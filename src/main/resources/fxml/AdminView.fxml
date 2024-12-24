@@ -8,7 +8,7 @@
 
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="fxml.AdminView"
+            fx:controller="com.group18.controller.AdminController"
             prefHeight="400.0" prefWidth="600.0">
 
 </AnchorPane>
