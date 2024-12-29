@@ -1,0 +1,113 @@
+/* Root and Font Styles */
+.root {
+    -fx-font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Sidebar Styles */
+.sidebar {
+    -fx-background-color: #2A1B35;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0, 0, 0);
+}
+
+/* Button Styles */
+.button, .nav-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8px;
+    -fx-cursor: hand;
+    -fx-transition: all 0.2s ease-in-out;
+}
+
+.button:hover, .nav-button:hover {
+    -fx-background-color: rgba(255,255,255,0.1) !important;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 4, 0, 0, 2);
+    -fx-translate-x: 2px;
+}
+
+.button:pressed, .nav-button:pressed {
+    -fx-background-color: rgba(255,255,255,0.15) !important;
+    -fx-translate-x: 1px;
+}
+
+/* Scroll Pane Styles */
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar:vertical,
+.scroll-bar:horizontal {
+    -fx-background-color: transparent;
+}
+
+/* Card Styles */
+.stat-card {
+    -fx-background-color: white;
+    -fx-background-radius: 10px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 0);
+}
+
+/* Table Styles */
+.table-view {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.table-view .column-header {
+    -fx-background-color: #F5F7FA;
+    -fx-border-color: transparent;
+}
+
+/* Animation Transitions */
+.animated-node {
+    -fx-transition: all 0.2s ease-in-out;
+}
+
+/* Alternative glass effect for sidebar if needed */
+.glass-effect {
+    -fx-background-color: rgba(42,27,53,0.95);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0, 0, 0);
+}
+
+/* Responsive layout styles */
+.flow-pane {
+    -fx-alignment: center;
+    -fx-column-halignment: center;
+    -fx-row-valignment: center;
+    -fx-hgap: 20;
+    -fx-vgap: 20;
+}
+
+/* Make scroll bars more modern */
+.scroll-pane {
+    -fx-fit-to-width: true;
+    -fx-fit-to-height: true;
+    -fx-pannable: true;
+    -fx-hbar-policy: as-needed;
+    -fx-vbar-policy: as-needed;
+}
+
+/* Ensure tables resize properly */
+.table-view {
+    -fx-table-cell-border-color: transparent;
+    -fx-table-header-border-color: transparent;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #F5F7FA;
+}
+
+.table-view .column-header {
+    -fx-size: 40px;
+    -fx-background-color: transparent;
+}
+
+/* Make cards maintain aspect ratio */
+.stat-card {
+    -fx-min-width: 280px;
+    -fx-pref-width: 300px;
+    -fx-max-width: 350px;
+}

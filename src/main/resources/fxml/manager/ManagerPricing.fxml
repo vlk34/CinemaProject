@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+
+<ScrollPane fitToWidth="true" style="-fx-background: #F5F7FA; -fx-background-color: #F5F7FA;"
+            xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.group18.controller.manager.ManagerPricingController">
+    <VBox spacing="20" style="-fx-background-color: #F5F7FA;">
+        <padding>
+            <Insets top="30" right="40" bottom="30" left="40"/>
+        </padding>
+
+        <!-- Header -->
+        <Label text="Pricing Discounts">
+            <font>
+                <Font size="24.0" name="System Bold"/>
+            </font>
+        </Label>
+
+        <!-- Pricing Cards -->
+        <FlowPane hgap="20.0" vgap="20.0">
+            <!-- Ticket Pricing Card -->
+            <VBox styleClass="stat-card" style="-fx-background-color: white; -fx-background-radius: 10;"
+                  minWidth="400" prefWidth="450" maxWidth="500" minHeight="200">
+                <padding>
+                    <Insets top="20" right="25" bottom="20" left="25"/>
+                </padding>
+                <Label text="Ticket Pricing">
+                    <font>
+                        <Font size="18.0" name="System Bold"/>
+                    </font>
+                </Label>
+                <VBox spacing="15" style="-fx-margin-top: 15px;">
+                    <VBox.margin>
+                        <Insets top="15"/>
+                    </VBox.margin>
+
+                    <HBox alignment="CENTER_LEFT" spacing="15">
+                        <Label text="Regular Price:" prefWidth="120"/>
+                        <TextField fx:id="regularPriceField" prefWidth="150"/>
+                        <Button text="Update" style="-fx-background-color: #2a1b35; -fx-text-fill: white;"/>
+                    </HBox>
+
+                    <HBox alignment="CENTER_LEFT" spacing="15">
+                        <Label text="Age Discount:" prefWidth="120"/>
+                        <TextField fx:id="ageDiscountField" prefWidth="150"/>
+                        <Button text="Update" style="-fx-background-color: #2a1b35; -fx-text-fill: white;"/>
+                    </HBox>
+
+                    <HBox alignment="CENTER_LEFT" spacing="15">
+                        <Label text="VAT Rate:" prefWidth="120"/>
+                        <TextField fx:id="vatRateField" prefWidth="150"/>
+                        <Button text="Update" style="-fx-background-color: #2a1b35; -fx-text-fill: white;"/>
+                    </HBox>
+                </VBox>
+            </VBox>
+
+            <!-- Products Pricing Card -->
+            <VBox styleClass="stat-card" style="-fx-background-color: white; -fx-background-radius: 10;"
+                  minWidth="400" prefWidth="450" maxWidth="500" minHeight="200">
+                <padding>
+                    <Insets top="20" right="25" bottom="20" left="25"/>
+                </padding>
+                <Label text="Products Pricing">
+                    <font>
+                        <Font size="18.0" name="System Bold"/>
+                    </font>
+                </Label>
+                <VBox spacing="15" style="-fx-margin-top: 15px;">
+                    <VBox.margin>
+                        <Insets top="15"/>
+                    </VBox.margin>
+
+                    <HBox alignment="CENTER_LEFT" spacing="15">
+                        <Label text="Product VAT:" prefWidth="120"/>
+                        <TextField fx:id="productVatField" prefWidth="150"/>
+                        <Button text="Update" style="-fx-background-color: #2a1b35; -fx-text-fill: white;"/>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </FlowPane>
+
+        <!-- Price History Table -->
+        <VBox style="-fx-background-color: white; -fx-background-radius: 10;" VBox.vgrow="ALWAYS">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="20"/>
+            </padding>
+            <Label text="Price Update History">
+                <font>
+                    <Font size="18.0" name="System Bold"/>
+                </font>
+            </Label>
+            <TableView fx:id="priceHistoryTable" VBox.vgrow="ALWAYS">
+                <VBox.margin>
+                    <Insets top="20"/>
+                </VBox.margin>
+                <columns>
+                    <TableColumn fx:id="dateColumn" text="Date" prefWidth="150"/>
+                    <TableColumn fx:id="itemColumn" text="Item" prefWidth="200"/>
+                    <TableColumn fx:id="oldPriceColumn" text="Old Price" prefWidth="150"/>
+                    <TableColumn fx:id="newPriceColumn" text="New Price" prefWidth="150"/>
+                    <TableColumn fx:id="updatedByColumn" text="Updated By" prefWidth="150"/>
+                </columns>
+                <columnResizePolicy>
+                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                </columnResizePolicy>
+            </TableView>
+        </VBox>
+    </VBox>
+</ScrollPane>

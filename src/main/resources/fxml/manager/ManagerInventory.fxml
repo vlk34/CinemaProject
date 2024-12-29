@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+
+<ScrollPane fitToWidth="true" style="-fx-background: #F5F7FA; -fx-background-color: #F5F7FA;"
+            xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.group18.controller.manager.ManagerInventoryController">
+    <VBox spacing="20" style="-fx-background-color: #F5F7FA;">
+        <padding>
+            <Insets top="30" right="40" bottom="30" left="40"/>
+        </padding>
+
+        <!-- Header -->
+        <HBox alignment="CENTER_LEFT" spacing="20">
+            <Label text="Inventory Management" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="addProductButton" text="Add New Product"
+                    style="-fx-background-color: #2a1b35; -fx-text-fill: white; -fx-background-radius: 5;">
+                <padding>
+                    <Insets top="8" right="15" bottom="8" left="15"/>
+                </padding>
+            </Button>
+        </HBox>
+
+        <!-- Inventory Categories -->
+        <FlowPane hgap="20" vgap="20">
+            <!-- Beverages Card -->
+            <VBox styleClass="stat-card" style="-fx-background-color: white; -fx-background-radius: 10;"
+                  minWidth="280" prefWidth="300" maxWidth="350" minHeight="120">
+                <padding>
+                    <Insets top="15" right="20" bottom="15" left="20"/>
+                </padding>
+                <Label text="Beverages" style="-fx-font-size: 16px; -fx-text-fill: #666;"/>
+                <Label text="156 items" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+                <Label text="12 items low on stock" style="-fx-text-fill: #E74C3C;"/>
+            </VBox>
+
+            <!-- Biscuits Card -->
+            <VBox styleClass="stat-card" style="-fx-background-color: white; -fx-background-radius: 10;"
+                  minWidth="280" prefWidth="300" maxWidth="350" minHeight="120">
+                <padding>
+                    <Insets top="15" right="20" bottom="15" left="20"/>
+                </padding>
+                <Label text="Biscuits" style="-fx-font-size: 16px; -fx-text-fill: #666;"/>
+                <Label text="89 items" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+                <Label text="5 items low on stock" style="-fx-text-fill: #E74C3C;"/>
+            </VBox>
+
+            <!-- Toys Card -->
+            <VBox styleClass="stat-card" style="-fx-background-color: white; -fx-background-radius: 10;"
+                  minWidth="280" prefWidth="300" maxWidth="350" minHeight="120">
+                <padding>
+                    <Insets top="15" right="20" bottom="15" left="20"/>
+                </padding>
+                <Label text="Toys" style="-fx-font-size: 16px; -fx-text-fill: #666;"/>
+                <Label text="45 items" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+                <Label text="3 items low on stock" style="-fx-text-fill: #E74C3C;"/>
+            </VBox>
+        </FlowPane>
+
+        <!-- Inventory Table -->
+        <VBox style="-fx-background-color: white; -fx-background-radius: 10;" VBox.vgrow="ALWAYS">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="20"/>
+            </padding>
+
+            <!-- Search and Filter -->
+            <HBox spacing="15" alignment="CENTER_LEFT">
+                <TextField promptText="Search products..." prefWidth="300">
+                    <padding>
+                        <Insets top="8" right="15" bottom="8" left="15"/>
+                    </padding>
+                </TextField>
+                <ComboBox promptText="Category" prefWidth="150"/>
+                <ComboBox promptText="Stock Status" prefWidth="150"/>
+            </HBox>
+
+            <TableView fx:id="inventoryTable" VBox.vgrow="ALWAYS">
+                <VBox.margin>
+                    <Insets top="20"/>
+                </VBox.margin>
+                <columns>
+                    <TableColumn fx:id="productNameColumn" text="Product Name" prefWidth="200"/>
+                    <TableColumn fx:id="categoryColumn" text="Category" prefWidth="150"/>
+                    <TableColumn fx:id="stockColumn" text="Stock" prefWidth="100"/>
+                    <TableColumn fx:id="priceColumn" text="Price" prefWidth="100"/>
+                    <TableColumn fx:id="statusColumn" text="Status" prefWidth="120"/>
+                    <TableColumn fx:id="actionsColumn" text="Actions" prefWidth="150"/>
+                </columns>
+                <columnResizePolicy>
+                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                </columnResizePolicy>
+            </TableView>
+        </VBox>
+    </VBox>
+</ScrollPane>

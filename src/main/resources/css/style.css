@@ -1,0 +1,31 @@
+/* Add hover effects for the button */
+.button:hover {
+    -fx-background-color: #5c3783 !important;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 4, 0, 0, 2);
+}
+
+/* Add focus styling for text fields */
+.text-field:focused, .password-field:focused {
+    -fx-background-color: white !important;
+    -fx-border-color: #4a2b6b !important;
+    -fx-effect: dropshadow(gaussian, rgba(74,43,107,0.1), 4, 0, 0, 0);
+}
+
+/* Smooth transitions */
+.button, .text-field, .password-field {
+    -fx-transition: all 0.2s ease-in-out;
+}
+
+/* Text field hover effect */
+.text-field:hover, .password-field:hover {
+    -fx-background-color: #FAFAFA !important;
+    -fx-border-color: #9E9E9E !important;
+}
+
+/* Add glass effect to the background */
+.root {
+    -fx-background-color: transparent;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0, 0, 0);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}

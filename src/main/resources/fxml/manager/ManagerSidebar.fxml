@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<VBox maxWidth="280.0" minWidth="250.0" spacing="8.0" style="-fx-background-color: #2a1b35;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.group18.controller.manager.ManagerSidebarController">
+    <padding>
+        <Insets bottom="20.0" right="20.0" top="20.0" />
+    </padding>
+
+    <!-- Title -->
+    <Label prefHeight="35.0" prefWidth="174.0" text="Manager Menu" textFill="WHITE">
+        <font>
+            <Font name="System Bold" size="24.0" />
+        </font>
+        <VBox.margin>
+            <Insets bottom="12.0" left="20.0" />
+        </VBox.margin>
+    </Label>
+
+    <!-- Navigation Buttons -->
+    <VBox spacing="8.0">
+        <!-- Inventory Button -->
+        <Button fx:id="inventoryButton" mnemonicParsing="false" onAction="#handleInventory" prefHeight="45.0" prefWidth="210.0" style="-fx-background-color: rgba(255,255,255,0.05); -fx-background-radius: 8; -fx-cursor: hand;">
+            <VBox.margin>
+                <Insets left="20.0" />
+            </VBox.margin>
+            <graphic>
+                <HBox alignment="CENTER_LEFT" prefWidth="215.0" spacing="12.0">
+                    <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" smooth="true">
+                        <image>
+                            <Image url="@/images/inventory.png" />
+                        </image>
+                        <effect>
+                            <ColorAdjust brightness="1.0" />
+                        </effect>
+                    </ImageView>
+                    <Label text="View Inventory" textFill="WHITE">
+                        <font>
+                            <Font name="System Bold" size="14.0" />
+                        </font>
+                    </Label>
+                </HBox>
+            </graphic>
+        </Button>
+
+        <!-- Staff Management Button -->
+        <Button fx:id="staffButton" mnemonicParsing="false" onAction="#handleStaff" prefHeight="45.0" prefWidth="210.0" style="-fx-background-color: rgba(255,255,255,0.05); -fx-background-radius: 8; -fx-cursor: hand;">
+            <VBox.margin>
+                <Insets left="20.0" />
+            </VBox.margin>
+            <graphic>
+                <HBox alignment="CENTER_LEFT" spacing="12.0">
+                    <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" smooth="true">
+                        <image>
+                            <Image url="@/images/user.png" />
+                        </image>
+                        <effect>
+                            <ColorAdjust brightness="1.0" />
+                        </effect>
+                    </ImageView>
+                    <Label text="Manage Personnel" textFill="WHITE">
+                        <font>
+                            <Font name="System Bold" size="14.0" />
+                        </font>
+                    </Label>
+                </HBox>
+            </graphic>
+        </Button>
+
+        <!-- Pricing Button -->
+        <Button fx:id="pricingButton" mnemonicParsing="false" onAction="#handlePricing" prefHeight="45.0" prefWidth="210.0" style="-fx-background-color: rgba(255,255,255,0.05); -fx-background-radius: 8; -fx-cursor: hand;">
+            <VBox.margin>
+                <Insets left="20.0" />
+            </VBox.margin>
+            <graphic>
+                <HBox alignment="CENTER_LEFT" spacing="12.0">
+                    <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" smooth="true">
+                        <image>
+                            <Image url="@/images/price-tag.png" />
+                        </image>
+                        <effect>
+                            <ColorAdjust brightness="1.0" />
+                        </effect>
+                    </ImageView>
+                    <Label text="Update Prices" textFill="WHITE">
+                        <font>
+                            <Font name="System Bold" size="14.0" />
+                        </font>
+                    </Label>
+                </HBox>
+            </graphic>
+        </Button>
+
+        <!-- Revenue Button -->
+        <Button fx:id="revenueButton" mnemonicParsing="false" onAction="#handleRevenue" prefHeight="45.0" prefWidth="210.0" style="-fx-background-color: rgba(255,255,255,0.05); -fx-background-radius: 8; -fx-cursor: hand;">
+            <VBox.margin>
+                <Insets left="20.0" />
+            </VBox.margin>
+            <graphic>
+                <HBox alignment="CENTER_LEFT" spacing="12.0">
+                    <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" smooth="true">
+                        <image>
+                            <Image url="@/images/bar-chart.png" />
+                        </image>
+                        <effect>
+                            <ColorAdjust brightness="1.0" />
+                        </effect>
+                    </ImageView>
+                    <Label text="Review Revenue" textFill="WHITE">
+                        <font>
+                            <Font name="System Bold" size="14.0" />
+                        </font>
+                    </Label>
+                </HBox>
+            </graphic>
+        </Button>
+    </VBox>
+
+    <Region VBox.vgrow="ALWAYS" />
+
+    <!-- Logout Button -->
+    <Button fx:id="logoutButton" mnemonicParsing="false" onAction="#handleLogout" prefHeight="45.0" prefWidth="210.0" style="-fx-background-color: rgba(255,255,255,0.05); -fx-background-radius: 8; -fx-cursor: hand;">
+        <VBox.margin>
+            <Insets left="20.0" />
+        </VBox.margin>
+        <graphic>
+            <HBox alignment="CENTER_LEFT" spacing="12.0">
+                <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" smooth="true">
+                    <image>
+                        <Image url="@/images/enter.png" />
+                    </image>
+                    <effect>
+                        <ColorAdjust brightness="1.0" />
+                    </effect>
+                </ImageView>
+                <Label text="Logout" textFill="WHITE">
+                    <font>
+                        <Font name="System Bold" size="14.0" />
+                    </font>
+                </Label>
+            </HBox>
+        </graphic>
+    </Button>
+</VBox>
