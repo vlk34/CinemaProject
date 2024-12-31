@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.geometry.Insets?>
+
+<HBox fx:id="stepper" alignment="CENTER" spacing="15" style="-fx-background-color: white; -fx-padding: 20;"
+      xmlns="http://javafx.com/javafx/23" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.group18.controller.cashier.sharedComponents.CashierStepperController">
+
+    <!-- Movie Search Step -->
+    <VBox alignment="CENTER" styleClass="step" spacing="8">
+        <StackPane>
+            <Circle fx:id="circle1" radius="15" styleClass="step-circle"/>
+            <Label text="1" styleClass="step-number"/>
+        </StackPane>
+        <Label text="Movie Search" styleClass="step-label"/>
+    </VBox>
+
+    <Line styleClass="step-line"/>
+
+    <!-- Session Selection Step -->
+    <VBox alignment="CENTER" styleClass="step" spacing="8">
+        <StackPane>
+            <Circle fx:id="circle2" radius="15" styleClass="step-circle"/>
+            <Label text="2" styleClass="step-number"/>
+        </StackPane>
+        <Label text="Session Selection" styleClass="step-label"/>
+    </VBox>
+
+    <Line styleClass="step-line"/>
+
+    <!-- Seat Selection Step -->
+    <VBox alignment="CENTER" styleClass="step" spacing="8">
+        <StackPane>
+            <Circle fx:id="circle3" radius="15" styleClass="step-circle"/>
+            <Label text="3" styleClass="step-number"/>
+        </StackPane>
+        <Label text="Seat Selection" styleClass="step-label"/>
+    </VBox>
+
+    <Line styleClass="step-line"/>
+
+    <!-- Customer Details Step -->
+    <VBox alignment="CENTER" styleClass="step" spacing="8">
+        <StackPane>
+            <Circle fx:id="circle4" radius="15" styleClass="step-circle"/>
+            <Label text="4" styleClass="step-number"/>
+        </StackPane>
+        <Label text="Customer Details" styleClass="step-label"/>
+    </VBox>
+
+    <Line styleClass="step-line"/>
+
+    <!-- Payment Step -->
+    <VBox alignment="CENTER" styleClass="step" spacing="8">
+        <StackPane>
+            <Circle fx:id="circle5" radius="15" styleClass="step-circle"/>
+            <Label text="5" styleClass="step-number"/>
+        </StackPane>
+        <Label text="Payment" styleClass="step-label"/>
+    </VBox>
+
+</HBox>

@@ -1,0 +1,149 @@
+/* Root and Font Styles */
+.root {
+    -fx-font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Main container styling */
+.container {
+    -fx-background-color: #F5F7FA;
+}
+
+/* Button Styles */
+.button {
+    -fx-background-color: #2A1B35;
+    -fx-text-fill: white;
+    -fx-background-radius: 5px;
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-background-color: derive(#2A1B35, 10%);
+}
+
+.button:pressed {
+    -fx-background-color: derive(#2A1B35, -10%);
+}
+
+.button.secondary {
+    -fx-background-color: transparent;
+    -fx-text-fill: #2A1B35;
+    -fx-border-color: #2A1B35;
+    -fx-border-radius: 5px;
+}
+
+/* Card Styles */
+.card {
+    -fx-background-color: white;
+    -fx-background-radius: 10px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 0);
+}
+
+/* Table Styles */
+.table-view {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.table-view .column-header {
+    -fx-background-color: #F5F7FA;
+}
+
+/* Stepper Styles */
+.step-circle {
+    -fx-fill: transparent;
+    -fx-stroke: #2a1b35;
+    -fx-stroke-width: 2;
+}
+
+.step-circle:hover {
+    -fx-stroke-width: 3;
+}
+
+.step-circle.completed {
+    -fx-fill: #2A1B35;
+}
+
+.step-circle.current {
+    -fx-fill: white;
+    -fx-stroke: #2A1B35;
+    -fx-stroke-width: 3;
+}
+
+.step-circle.incomplete {
+    -fx-fill: white;
+    -fx-stroke: #cccccc;
+}
+
+.step-label {
+    -fx-font-size: 13px;
+    -fx-font-weight: normal;
+    -fx-text-fill: #666666;
+}
+
+.step-line {
+    -fx-stroke: #cccccc;
+    -fx-stroke-width: 2;
+    -fx-stroke-dash-array: 2 4;
+}
+
+/* Active state */
+.step.active .step-circle {
+    -fx-stroke: #2a1b35;
+    -fx-stroke-width: 3;
+}
+
+.step.active .step-number {
+    -fx-text-fill: #2a1b35;
+    -fx-font-weight: bold;
+}
+
+.step.active .step-label {
+    -fx-text-fill: #2a1b35;
+    -fx-font-weight: bold;
+}
+
+/* Completed state */
+.step.completed .step-circle {
+    -fx-fill: #2a1b35;
+    -fx-stroke: #2a1b35;
+}
+
+.step.completed .step-number {
+    -fx-text-fill: white;
+}
+
+.step.completed .step-label {
+    -fx-text-fill: #2a1b35;
+}
+
+/* Not yet reached state */
+.step.inactive .step-circle {
+    -fx-stroke: #cccccc;
+}
+
+.step.inactive .step-number {
+    -fx-text-fill: #cccccc;
+}
+
+.step.inactive .step-label {
+    -fx-text-fill: #999999;
+}
+
+.step-number {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2a1b35;
+}
+
+/* Cart styling */
+.cart {
+    -fx-background-color: white;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 0);
+}
+
+/* Action bar styling */
+.action-bar {
+    -fx-background-color: white;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 0, -2, 0, 0);
+    -fx-padding: 10px;
+}

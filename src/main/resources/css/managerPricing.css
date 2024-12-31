@@ -1,0 +1,16 @@
+.purple-button {
+    -fx-background-color: #2a1b35;
+    -fx-text-fill: white;
+    -fx-cursor: hand;
+}
+
+.purple-button:hover {
+    -fx-background-color: #4a3b55;
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+}
+
+.purple-button:pressed {
+    -fx-scale-x: 0.95;
+    -fx-scale-y: 0.95;
+}

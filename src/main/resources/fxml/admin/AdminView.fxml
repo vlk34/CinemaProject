@@ -7,7 +7,7 @@
             stylesheets="@../../css/adminView.css" fx:controller="com.group18.controller.admin.AdminController"
             prefHeight="1080.0" prefWidth="1920.0"
             style="-fx-background-color: #F5F7FA;"
-            xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1">
+            xmlns="http://javafx.com/javafx/23" xmlns:fx="http://javafx.com/fxml/1">
 
     <!-- Left Sidebar -->
     <left>
@@ -16,7 +16,7 @@
 
     <!-- Main Content Area -->
     <center>
-        <fx:include source="/fxml/admin/AdminMovies.fxml" fx:id="content"/>
+        <fx:include source="/fxml/admin/AdminSchedules.fxml" fx:id="content"/>
     </center>
 
 </BorderPane>

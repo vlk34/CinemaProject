@@ -4,11 +4,9 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
-<?import javafx.scene.image.ImageView?>
-<?import javafx.scene.image.Image?>
 
 <ScrollPane fitToWidth="true" style="-fx-background: #F5F7FA; -fx-background-color: #F5F7FA;"
-            xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.group18.controller.manager.ManagerPricingController">
     <VBox spacing="20" style="-fx-background-color: #F5F7FA;">
         <padding>
@@ -16,7 +14,7 @@
         </padding>
 
         <!-- Header -->
-        <Label text="Pricing Discounts">
+        <Label text="Pricing Management">
             <font>
                 <Font size="24.0" name="System Bold"/>
             </font>
@@ -41,32 +39,28 @@
                     </VBox.margin>
 
                     <HBox alignment="CENTER_LEFT" spacing="15">
-                        <Label text="Regular Price:" prefWidth="120"/>
-                        <TextField fx:id="regularPriceField" prefWidth="150"/>
-                        <Button text="Update" style="-fx-background-color: #2a1b35; -fx-text-fill: white;"/>
+                        <Label text="Hall A Price:" minWidth="100" prefWidth="100"/>
+                        <TextField fx:id="hallAPriceField" HBox.hgrow="ALWAYS"/>
+                        <Button text="Update" onAction="#handleUpdateHallAPrice" minWidth="80"
+                                style="-fx-background-color: #2a1b35; -fx-text-fill: white;"/>
                     </HBox>
 
                     <HBox alignment="CENTER_LEFT" spacing="15">
-                        <Label text="Age Discount:" prefWidth="120"/>
-                        <TextField fx:id="ageDiscountField" prefWidth="150"/>
-                        <Button text="Update" style="-fx-background-color: #2a1b35; -fx-text-fill: white;"/>
-                    </HBox>
-
-                    <HBox alignment="CENTER_LEFT" spacing="15">
-                        <Label text="VAT Rate:" prefWidth="120"/>
-                        <TextField fx:id="vatRateField" prefWidth="150"/>
-                        <Button text="Update" style="-fx-background-color: #2a1b35; -fx-text-fill: white;"/>
+                        <Label text="Hall B Price:" minWidth="100" prefWidth="100"/>
+                        <TextField fx:id="hallBPriceField" HBox.hgrow="ALWAYS"/>
+                        <Button text="Update" onAction="#handleUpdateHallBPrice" minWidth="80"
+                                style="-fx-background-color: #2a1b35; -fx-text-fill: white;"/>
                     </HBox>
                 </VBox>
             </VBox>
 
-            <!-- Products Pricing Card -->
+            <!-- Age Discount Card -->
             <VBox styleClass="stat-card" style="-fx-background-color: white; -fx-background-radius: 10;"
                   minWidth="400" prefWidth="450" maxWidth="500" minHeight="200">
                 <padding>
                     <Insets top="20" right="25" bottom="20" left="25"/>
                 </padding>
-                <Label text="Products Pricing">
+                <Label text="Age-based Discount">
                     <font>
                         <Font size="18.0" name="System Bold"/>
                     </font>
@@ -77,9 +71,10 @@
                     </VBox.margin>
 
                     <HBox alignment="CENTER_LEFT" spacing="15">
-                        <Label text="Product VAT:" prefWidth="120"/>
-                        <TextField fx:id="productVatField" prefWidth="150"/>
-                        <Button text="Update" style="-fx-background-color: #2a1b35; -fx-text-fill: white;"/>
+                        <Label text="Discount Rate:" minWidth="100" prefWidth="100"/>
+                        <TextField fx:id="ageDiscountField" HBox.hgrow="ALWAYS"/>
+                        <Button text="Update" onAction="#handleUpdateAgeDiscount" minWidth="80"
+                                style="-fx-background-color: #2a1b35; -fx-text-fill: white;"/>
                     </HBox>
                 </VBox>
             </VBox>

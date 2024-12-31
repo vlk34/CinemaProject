@@ -133,6 +133,22 @@ public class UserDAO {
         return false;
     }
 
+    // Add this to UserDAO.java
+    public long getNewUsersThisMonth() {
+        String query = "SELECT COUNT(*) FROM users WHERE MONTH(created_at) = MONTH(CURRENT_DATE()) " +
+                "AND YEAR(created_at) = YEAR(CURRENT_DATE())";
+
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            if (rs.next()) {
+                return rs.getLong(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
     private User extractUserFromResultSet(ResultSet rs) throws SQLException {
         User user = new User();
         user.setUserId(rs.getInt("user_id"));

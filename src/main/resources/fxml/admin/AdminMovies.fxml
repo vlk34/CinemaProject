@@ -1,14 +1,96 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="fxml.admin.AdminMovies"
-            prefHeight="400.0" prefWidth="600.0">
+<ScrollPane fitToWidth="true" style="-fx-background: #F5F7FA; -fx-background-color: #F5F7FA;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.group18.controller.admin.AdminMoviesController">
+    <VBox spacing="20" style="-fx-background-color: #F5F7FA;">
+        <padding>
+            <Insets bottom="30" left="40" right="40" top="30" />
+        </padding>
 
-</AnchorPane>
+        <!-- Header -->
+        <HBox alignment="CENTER_LEFT" spacing="20">
+            <Label style="-fx-font-size: 24px; -fx-font-weight: bold;" text="Movie Management" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Button fx:id="addMovieButton" onAction="#handleAddMovie" style="-fx-background-color: #2a1b35; -fx-text-fill: white; -fx-background-radius: 5;" text="Add New Movie">
+                <padding>
+                    <Insets bottom="8" left="15" right="15" top="8" />
+                </padding>
+            </Button>
+        </HBox>
+
+        <!-- Movie Details Form -->
+        <VBox style="-fx-background-color: white; -fx-background-radius: 10;" spacing="15">
+            <padding>
+                <Insets bottom="20" left="20" right="20" top="20" />
+            </padding>
+            <Label text="Movie Details" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+            <GridPane hgap="10" vgap="10">
+                <columnConstraints>
+                    <ColumnConstraints minWidth="100" />
+                    <ColumnConstraints hgrow="ALWAYS" />
+                </columnConstraints>
+
+                <Label text="Title:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <TextField fx:id="titleField" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+
+                <Label text="Genre:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                <TextField fx:id="genreField" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+
+                <Label text="Duration (min):" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                <TextField fx:id="durationField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+
+                <Label text="Ticket Price ($):" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                <TextField fx:id="ticketPriceField" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+
+                <Label text="Summary:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+                <TextArea fx:id="summaryField" GridPane.columnIndex="1" GridPane.rowIndex="4" prefHeight="100"/>
+
+                <Label text="Poster:" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+                <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="5" alignment="CENTER_LEFT">
+                    <Button fx:id="selectPosterButton" text="Select Poster" onAction="#handleSelectPoster"/>
+                    <ImageView fx:id="posterImageView" fitHeight="100" fitWidth="75" preserveRatio="true"/>
+                </HBox>
+            </GridPane>
+
+            <HBox spacing="10" alignment="CENTER_RIGHT">
+                <Button fx:id="updateMovieButton" text="Update Movie" onAction="#handleUpdateMovie"
+                        style="-fx-background-color: #2a1b35; -fx-text-fill: white;"/>
+            </HBox>
+        </VBox>
+
+        <!-- Movies Table -->
+        <VBox style="-fx-background-color: white; -fx-background-radius: 10;" VBox.vgrow="ALWAYS">
+            <padding>
+                <Insets bottom="20" left="20" right="20" top="20" />
+            </padding>
+
+            <!-- Search and Filter -->
+            <HBox alignment="CENTER_LEFT" spacing="15">
+                <TextField prefWidth="300" promptText="Search movies...">
+                    <padding>
+                        <Insets bottom="8" left="15" right="15" top="8" />
+                    </padding>
+                </TextField>
+                <ComboBox prefWidth="150" promptText="Genre" />
+            </HBox>
+
+            <!-- Movies Table -->
+            <TableView fx:id="moviesTable" VBox.vgrow="ALWAYS">
+                <VBox.margin>
+                    <Insets top="20" />
+                </VBox.margin>
+                <columns>
+                    <TableColumn fx:id="titleColumn" prefWidth="250" text="Title" />
+                    <TableColumn fx:id="genreColumn" prefWidth="150" text="Genre" />
+                    <TableColumn fx:id="durationColumn" text="Duration (min)" prefWidth="120"/>
+                    <TableColumn fx:id="priceColumn" text="Ticket Price ($)" prefWidth="120"/>
+                    <TableColumn fx:id="actionsColumn" prefWidth="100" text="Actions" />
+                </columns>
+            </TableView>
+        </VBox>
+    </VBox>
+</ScrollPane>

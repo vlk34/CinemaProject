@@ -136,6 +136,69 @@ public class ProductDAO {
         return false;
     }
 
+    public Product addProduct(Product product) {
+        String query = "INSERT INTO products (product_name, product_type, price, stock) VALUES (?, ?, ?, ?)";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, product.getProductName());
+            stmt.setString(2, product.getProductType());
+            stmt.setBigDecimal(3, product.getPrice());
+            stmt.setInt(4, product.getStock());
+
+            int affectedRows = stmt.executeUpdate();
+
+            if (affectedRows == 0) {
+                throw new SQLException("Creating product failed, no rows affected.");
+            }
+
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    product.setProductId(generatedKeys.getInt(1));
+                } else {
+                    throw new SQLException("Creating product failed, no ID obtained.");
+                }
+            }
+
+            return product;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public boolean deleteProduct(int productId) {
+        String query = "DELETE FROM products WHERE product_id = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, productId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public Product updateProduct(Product product) {
+        String query = "UPDATE products SET product_name = ?, product_type = ?, price = ?, stock = ? WHERE product_id = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, product.getProductName());
+            stmt.setString(2, product.getProductType());
+            stmt.setBigDecimal(3, product.getPrice());
+            stmt.setInt(4, product.getStock());
+            stmt.setInt(5, product.getProductId());
+
+            int affectedRows = stmt.executeUpdate();
+
+            if (affectedRows > 0) {
+                return product;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     private Product extractProductFromResultSet(ResultSet rs) throws SQLException {
         Product product = new Product();
         product.setProductId(rs.getInt("product_id"));

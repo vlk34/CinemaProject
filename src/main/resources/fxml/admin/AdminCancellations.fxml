@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<ScrollPane fitToWidth="true" style="-fx-background: #F5F7FA; -fx-background-color: #F5F7FA;"
+            xmlns="http://javafx.com/javafx/23" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.group18.controller.admin.AdminCancellationsController">
+    <VBox spacing="20" style="-fx-background-color: #F5F7FA;">
+        <padding>
+            <Insets top="30" right="40" bottom="30" left="40"/>
+        </padding>
+
+        <!-- Header -->
+        <HBox alignment="CENTER_LEFT" spacing="20">
+            <Label text="Process Cancellations" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="refreshButton" text="Refresh Requests"
+                    style="-fx-background-color: #2a1b35; -fx-text-fill: white; -fx-background-radius: 5;">
+                <padding>
+                    <Insets top="8" right="15" bottom="8" left="15"/>
+                </padding>
+            </Button>
+        </HBox>
+
+        <!-- Stats Cards -->
+        <FlowPane hgap="20" vgap="20">
+            <!-- Pending Requests -->
+            <VBox styleClass="stat-card" style="-fx-background-color: white; -fx-background-radius: 10;"
+                  minWidth="280" prefWidth="300" maxWidth="350" minHeight="120">
+                <padding>
+                    <Insets top="15" right="20" bottom="15" left="20"/>
+                </padding>
+                <Label text="Pending Requests" style="-fx-font-size: 16px; -fx-text-fill: #666;"/>
+                <Label text="8" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+                <Label text="4 new today" style="-fx-text-fill: #E74C3C;"/>
+            </VBox>
+
+            <!-- Processed Today -->
+            <VBox styleClass="stat-card" style="-fx-background-color: white; -fx-background-radius: 10;"
+                  minWidth="280" prefWidth="300" maxWidth="350" minHeight="120">
+                <padding>
+                    <Insets top="15" right="20" bottom="15" left="20"/>
+                </padding>
+                <Label text="Processed Today" style="-fx-font-size: 16px; -fx-text-fill: #666;"/>
+                <Label text="12" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+                <HBox spacing="5">
+                    <Label text="Total refunded:" style="-fx-font-size: 14px;"/>
+                    <Label text="USD 480" style="-fx-font-size: 14px; -fx-text-fill: #E74C3C;"/>
+                </HBox>
+            </VBox>
+        </FlowPane>
+
+        <!-- Cancellation Requests Table -->
+        <VBox style="-fx-background-color: white; -fx-background-radius: 10;" VBox.vgrow="ALWAYS">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="20"/>
+            </padding>
+
+            <!-- Search and Filter -->
+            <HBox spacing="15" alignment="CENTER_LEFT">
+                <TextField promptText="Search by booking ID or customer name..." prefWidth="300">
+                    <padding>
+                        <Insets top="8" right="15" bottom="8" left="15"/>
+                    </padding>
+                </TextField>
+                <ComboBox promptText="Request Type" prefWidth="150"/>
+                <ComboBox promptText="Status" prefWidth="150"/>
+            </HBox>
+
+            <!-- Requests Table -->
+            <TableView fx:id="requestsTable" VBox.vgrow="ALWAYS">
+                <VBox.margin>
+                    <Insets top="20"/>
+                </VBox.margin>
+                <columns>
+                    <TableColumn fx:id="requestIdColumn" text="Request ID" prefWidth="100"/>
+                    <TableColumn fx:id="customerColumn" text="Customer" prefWidth="150"/>
+                    <TableColumn fx:id="bookingIdColumn" text="Booking ID" prefWidth="100"/>
+                    <TableColumn fx:id="typeColumn" text="Type" prefWidth="100"/>
+                    <TableColumn fx:id="itemsColumn" text="Items" prefWidth="200"/>
+                    <TableColumn fx:id="amountColumn" text="Amount" prefWidth="100"/>
+                    <TableColumn fx:id="statusColumn" text="Status" prefWidth="100"/>
+                    <TableColumn fx:id="actionsColumn" text="Actions" prefWidth="150"/>
+                </columns>
+            </TableView>
+        </VBox>
+    </VBox>
+</ScrollPane>

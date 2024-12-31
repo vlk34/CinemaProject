@@ -79,16 +79,17 @@ public class MovieDAO {
     }
 
     public boolean addMovie(Movie movie) {
-        String query = "INSERT INTO movies (title, genre, summary, poster_path) VALUES (?, ?, ?, ?)";
+        String query = "INSERT INTO movies (title, genre, summary, poster_path, duration, ticket_price) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement stmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, movie.getTitle());
             stmt.setString(2, movie.getGenre());
             stmt.setString(3, movie.getSummary());
             stmt.setString(4, movie.getPosterPath());
+            stmt.setInt(5, movie.getDuration());
+            stmt.setBigDecimal(6, movie.getTicketPrice());
 
             int affectedRows = stmt.executeUpdate();
-
             if (affectedRows > 0) {
                 ResultSet rs = stmt.getGeneratedKeys();
                 if (rs.next()) {
@@ -103,20 +104,38 @@ public class MovieDAO {
     }
 
     public boolean updateMovie(Movie movie) {
-        String query = "UPDATE movies SET title = ?, genre = ?, summary = ?, poster_path = ? WHERE movie_id = ?";
+        String query = "UPDATE movies SET title = ?, genre = ?, summary = ?, poster_path = ?, duration = ?, ticket_price = ? WHERE movie_id = ?";
 
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, movie.getTitle());
             stmt.setString(2, movie.getGenre());
             stmt.setString(3, movie.getSummary());
             stmt.setString(4, movie.getPosterPath());
-            stmt.setInt(5, movie.getMovieId());
+            stmt.setInt(5, movie.getDuration());
+            stmt.setBigDecimal(6, movie.getTicketPrice());
+            stmt.setInt(7, movie.getMovieId());
 
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public List<Movie> getAllMovies() {
+        String query = "SELECT * FROM movies";
+        List<Movie> movies = new ArrayList<>();
+
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+
+            while (rs.next()) {
+                movies.add(extractMovieFromResultSet(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return movies;
     }
 
     private Movie extractMovieFromResultSet(ResultSet rs) throws SQLException {
@@ -126,6 +145,40 @@ public class MovieDAO {
         movie.setGenre(rs.getString("genre"));
         movie.setSummary(rs.getString("summary"));
         movie.setPosterPath(rs.getString("poster_path"));
+        movie.setDuration(rs.getInt("duration"));
+        movie.setTicketPrice(rs.getBigDecimal("ticket_price"));
         return movie;
+    }
+
+    public boolean removeMovie(int movieId) {
+        String query = "DELETE FROM movies WHERE movie_id = ? AND NOT EXISTS " +
+                "(SELECT 1 FROM schedules WHERE movie_id = ?)";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, movieId);
+            stmt.setInt(2, movieId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public Movie findMovieByScheduleId(int scheduleId) {
+        String query = "SELECT m.* FROM movies m " +
+                "JOIN schedules s ON m.movie_id = s.movie_id " +
+                "WHERE s.schedule_id = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, scheduleId);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return extractMovieFromResultSet(rs);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

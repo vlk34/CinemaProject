@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.geometry.Insets?>
+
+<DialogPane xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.group18.controller.cashier.modals.CashierMovieDetailsController">
+
+    <content>
+        <HBox spacing="20">
+            <!-- Movie Poster -->
+            <ImageView fx:id="posterImageView" fitWidth="200" fitHeight="300"
+                       preserveRatio="true"/>
+
+            <!-- Movie Info -->
+            <VBox spacing="10">
+                <Label fx:id="titleLabel" style="-fx-font-size: 20; -fx-font-weight: bold;"/>
+
+                <Label text="Genres:" style="-fx-font-weight: bold;"/>
+                <Label fx:id="genresLabel"/>
+
+                <Label text="Summary:" style="-fx-font-weight: bold;"/>
+                <TextArea fx:id="summaryArea" wrapText="true" editable="false"
+                          prefRowCount="6" prefColumnCount="40"/>
+            </VBox>
+        </HBox>
+    </content>
+
+    <buttonTypes>
+        <ButtonType fx:constant="OK"/>
+        <ButtonType fx:constant="CANCEL"/>
+    </buttonTypes>
+
+</DialogPane>

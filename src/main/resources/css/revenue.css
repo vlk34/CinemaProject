@@ -1,0 +1,61 @@
+.stat-card {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 0);
+}
+
+.period-selector {
+    -fx-background-color: transparent;
+    -fx-border-color: #ddd;
+    -fx-border-radius: 5;
+}
+
+.period-selector:hover {
+    -fx-border-color: #2a1b35;
+}
+
+.revenue-table {
+    -fx-background-color: transparent;
+}
+
+.revenue-table .column-header {
+    -fx-background-color: #f8f9fa;
+    -fx-font-weight: bold;
+}
+
+.revenue-table .table-cell {
+    -fx-alignment: CENTER;
+}
+
+.revenue-table .table-row-cell {
+    -fx-background-color: transparent;
+}
+
+.revenue-table .table-row-cell:hover {
+    -fx-background-color: #f8f9fa;
+}
+
+.chart-series-line {
+    -fx-stroke-width: 2px;
+}
+
+.default-color0.chart-series-line {
+    -fx-stroke: #2a1b35;
+}
+
+.default-color1.chart-series-line {
+    -fx-stroke: #6c5ce7;
+}
+
+.chart-line-symbol {
+    -fx-background-radius: 5px;
+    -fx-padding: 5px;
+}
+
+.default-color0.chart-line-symbol {
+    -fx-background-color: #2a1b35;
+}
+
+.default-color1.chart-line-symbol {
+    -fx-background-color: #6c5ce7;
+}

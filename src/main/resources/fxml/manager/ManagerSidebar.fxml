@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<VBox maxWidth="280.0" minWidth="250.0" spacing="8.0" style="-fx-background-color: #2a1b35;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.group18.controller.manager.ManagerSidebarController">
+<VBox maxWidth="280.0" minWidth="250.0" spacing="8.0" style="-fx-background-color: #2a1b35;" xmlns="http://javafx.com/javafx/23" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.group18.controller.manager.ManagerSidebarController">
     <padding>
         <Insets bottom="20.0" right="20.0" top="20.0" />
     </padding>

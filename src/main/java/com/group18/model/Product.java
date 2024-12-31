@@ -18,6 +18,15 @@ public class Product {
         this.stock = stock;
     }
 
+    // Constructor with product ID (for when you want to create a product with an existing ID)
+    public Product(int productId, String productName, String productType, BigDecimal price, int stock) {
+        this.productId = productId;
+        this.productName = productName;
+        this.productType = productType;
+        this.price = price;
+        this.stock = stock;
+    }
+
     // Getters and Setters
     public int getProductId() {
         return productId;

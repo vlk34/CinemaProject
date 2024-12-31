@@ -17,8 +17,23 @@
     -fx-transition: all 0.2s ease-in-out;
 }
 
+.button {
+    -fx-background-color: #2a1b35;
+    -fx-text-fill: white;
+    -fx-background-radius: 5;
+}
+
+.button:hover {
+    -fx-background-color: #3c2749; /* Slightly lighter purple */
+    -fx-text-fill: white;
+}
+
+.button:pressed {
+    -fx-background-color: #231629; /* Slightly darker purple */
+    -fx-text-fill: white;
+}
+
 .button:hover, .nav-button:hover {
-    -fx-background-color: rgba(255,255,255,0.1) !important;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 4, 0, 0, 2);
     -fx-translate-x: 2px;
 }

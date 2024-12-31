@@ -141,6 +141,25 @@ public class OrderDAO {
         return orders;
     }
 
+    public List<Order> getAllOrders() {
+        String query = "SELECT * FROM orders ORDER BY order_date DESC";
+        List<Order> orders = new ArrayList<>();
+
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+
+            while (rs.next()) {
+                Order order = extractOrderFromResultSet(rs);
+                // Optionally load order items
+                order.setOrderItems(getOrderItemsForOrder(order.getOrderId()));
+                orders.add(order);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return orders;
+    }
+
     public boolean cancelOrder(int orderId) {
         String orderQuery = "DELETE FROM orders WHERE order_id = ?";
 

@@ -1,6 +1,8 @@
 package com.group18.controller.manager;
 
+import com.group18.model.User;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
@@ -25,6 +27,12 @@ public class ManagerSidebarController {
 
     private ManagerController mainController;
 
+    private User currentUser;
+
+    public void setCurrentUser(User user) {
+        this.currentUser = user;
+    }
+
     // Method to set the main controller
     public void setMainController(ManagerController controller) {
         this.mainController = controller;
@@ -37,7 +45,19 @@ public class ManagerSidebarController {
 
     @FXML
     private void handleStaff() {
-        mainController.switchContent("/fxml/manager/ManagerStaff.fxml");
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/manager/ManagerStaff.fxml"));
+            Node staffView = loader.load();
+
+            // Get the controller and set the current user
+            ManagerStaffController controller = loader.getController();
+            controller.setCurrentUser(currentUser);
+
+            // Switch the content
+            mainController.switchContent("/fxml/manager/ManagerStaff.fxml");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML
@@ -54,7 +74,7 @@ public class ManagerSidebarController {
     private void handleLogout() {
         try {
             // Load the login view
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Login.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/LoginView.fxml"));
             Parent loginView = loader.load();
 
             // Get the current stage

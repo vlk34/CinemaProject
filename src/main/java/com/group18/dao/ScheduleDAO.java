@@ -90,6 +90,22 @@ public class ScheduleDAO {
         return schedules;
     }
 
+    public List<Schedule> getAllSchedules() {
+        String query = "SELECT * FROM schedules";
+        List<Schedule> schedules = new ArrayList<>();
+
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+
+            while (rs.next()) {
+                schedules.add(extractScheduleFromResultSet(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return schedules;
+    }
+
     public boolean createSchedule(Schedule schedule) {
         String query = "INSERT INTO schedules (movie_id, hall_id, session_date, session_time) VALUES (?, ?, ?, ?)";
 
@@ -163,6 +179,53 @@ public class ScheduleDAO {
             e.printStackTrace();
         }
         return 0;
+    }
+
+    public boolean deleteSchedule(int scheduleId) {
+        // Only allow deletion if no tickets have been sold for this schedule
+        String query = """
+            DELETE FROM schedules 
+            WHERE schedule_id = ? 
+            AND NOT EXISTS (
+                SELECT 1 FROM order_items 
+                WHERE schedule_id = ? 
+                AND item_type = 'ticket'
+            )
+        """;
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, scheduleId);
+            stmt.setInt(2, scheduleId);
+
+            int affectedRows = stmt.executeUpdate();
+            return affectedRows > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean isScheduleExists(int movieId, int hallId, LocalDate sessionDate, LocalTime sessionTime) {
+        String query = "SELECT COUNT(*) FROM schedules " +
+                "WHERE movie_id = ? " +
+                "AND hall_id = ? " +
+                "AND session_date = ? " +
+                "AND session_time = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, movieId);
+            stmt.setInt(2, hallId);
+            stmt.setDate(3, Date.valueOf(sessionDate));
+            stmt.setTime(4, Time.valueOf(sessionTime));
+
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     private Schedule extractScheduleFromResultSet(ResultSet rs) throws SQLException {

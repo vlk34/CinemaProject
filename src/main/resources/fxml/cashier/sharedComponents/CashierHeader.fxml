@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.geometry.Insets?>
+
+<HBox fx:id="header" alignment="CENTER_LEFT" spacing="20" style="-fx-background-color: white; -fx-padding: 10 20;"
+      xmlns="http://javafx.com/javafx/23" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.group18.controller.cashier.sharedComponents.CashierHeaderController">
+
+    <!-- Cinema Logo/Name -->
+    <Label text="Group18 CinemaCenter" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+
+    <Region HBox.hgrow="ALWAYS"/>
+
+    <!-- Current Time -->
+    <Label fx:id="timeLabel" style="-fx-font-size: 14px;"/>
+
+    <!-- Cashier Info -->
+    <HBox alignment="CENTER" spacing="10">
+        <ImageView fitHeight="24.0" fitWidth="24.0">
+            <Image url="@/images/user.png"/>
+        </ImageView>
+        <Label fx:id="cashierNameLabel" style="-fx-font-size: 14px;"/>
+    </HBox>
+
+    <!-- Logout Button -->
+    <Button fx:id="logoutButton" onAction="#handleLogout" styleClass="secondary"
+            text="Logout" style="-fx-font-size: 14px;"/>
+
+</HBox>

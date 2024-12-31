@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<HBox fx:id="actionBar" alignment="CENTER_RIGHT" spacing="15" styleClass="action-bar"
+      xmlns="http://javafx.com/javafx/23" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.group18.controller.cashier.sharedComponents.CashierActionBarController">
+
+    <padding>
+        <Insets top="15" right="20" bottom="15" left="20"/>
+    </padding>
+
+    <!-- Cancel Transaction Button -->
+    <Button fx:id="cancelButton"
+            text="Cancel Transaction"
+            styleClass="secondary"
+            onAction="#handleCancel"/>
+
+    <!-- Back Button -->
+    <Button fx:id="backButton"
+            text="Back"
+            styleClass="secondary"
+            onAction="#handleBack"/>
+
+    <!-- Next/Confirm Button -->
+    <Button fx:id="nextButton"
+            text="Next"
+            onAction="#handleNext"
+            defaultButton="true"/>
+
+</HBox>

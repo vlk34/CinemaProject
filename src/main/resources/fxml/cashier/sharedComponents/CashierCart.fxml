@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox fx:id="cartContainer" styleClass="cart" maxHeight="300"
+      xmlns="http://javafx.com/javafx/23" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.group18.controller.cashier.sharedComponents.CashierCartController">
+
+    <padding>
+        <Insets top="15" right="20" bottom="15" left="20"/>
+    </padding>
+
+    <!-- Cart Header -->
+    <HBox alignment="CENTER_LEFT" spacing="10">
+        <Label text="Shopping Cart" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label fx:id="itemCountLabel" text="0 items" style="-fx-text-fill: #666666;"/>
+    </HBox>
+
+    <!-- Cart Items List -->
+    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent;">
+        <VBox fx:id="cartItemsContainer" spacing="10">
+            <padding>
+                <Insets top="10" bottom="10"/>
+            </padding>
+        </VBox>
+    </ScrollPane>
+
+    <!-- Summary Section -->
+    <VBox spacing="5" style="-fx-padding: 10 0 0 0; -fx-border-color: transparent #dddddd transparent transparent;">
+        <!-- Subtotal -->
+        <HBox alignment="CENTER_RIGHT" spacing="20">
+            <Label text="Subtotal:" style="-fx-text-fill: #666666;"/>
+            <Label fx:id="subtotalLabel" text="₺0.00" style="-fx-font-weight: bold;"/>
+        </HBox>
+
+        <!-- Discounts -->
+        <HBox alignment="CENTER_RIGHT" spacing="20">
+            <Label text="Discounts:" style="-fx-text-fill: #666666;"/>
+            <Label fx:id="discountsLabel" text="-₺0.00" style="-fx-text-fill: #E74C3C;"/>
+        </HBox>
+
+        <!-- Tax -->
+        <HBox alignment="CENTER_RIGHT" spacing="20">
+            <Label text="Tax (20%):" style="-fx-text-fill: #666666;"/>
+            <Label fx:id="taxLabel" text="₺0.00"/>
+        </HBox>
+
+        <!-- Total -->
+        <HBox alignment="CENTER_RIGHT" spacing="20" style="-fx-padding: 5 0 0 0; -fx-border-color: #dddddd transparent transparent transparent;">
+            <Label text="Total:" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+            <Label fx:id="totalLabel" text="₺0.00" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+        </HBox>
+    </VBox>
+
+</VBox>

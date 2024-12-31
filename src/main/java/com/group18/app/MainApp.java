@@ -11,6 +11,7 @@ import java.io.IOException;
 public class MainApp extends Application {
 
     private static Stage stg;
+
     @Override
     public void start(Stage primaryStage) throws IOException {
         stg = primaryStage;
@@ -18,9 +19,24 @@ public class MainApp extends Application {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/LoginView.fxml"));
         Parent root = loader.load();
 
-        // Create the scene and set it on the primary stage
-        primaryStage.setTitle("JavaFX Application Login");
-        primaryStage.setScene(new Scene(root));
+        // Create the scene with desired dimensions
+        Scene scene = new Scene(root);
+
+        // Set stage properties
+        primaryStage.setTitle("Cinema Management System");
+        primaryStage.setScene(scene);
+
+        // Set window size
+        primaryStage.setWidth(1800);
+        primaryStage.setHeight(1000);
+
+        // Set minimum size
+        primaryStage.setMinWidth(1280);
+        primaryStage.setMinHeight(720);
+
+        // Center the window
+        primaryStage.centerOnScreen();
+
         primaryStage.show();
     }
 

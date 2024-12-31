@@ -1,24 +1,27 @@
 package com.group18.model;
 
+import java.math.BigDecimal;
+
 public class Movie {
     private int movieId;
     private String title;
     private String genre;
     private String summary;
     private String posterPath;
+    private int duration;
+    private BigDecimal ticketPrice;
 
-    // Default constructor
     public Movie() {}
 
-    // Constructor with parameters
-    public Movie(String title, String genre, String summary, String posterPath) {
+    public Movie(String title, String genre, String summary, String posterPath, int duration, BigDecimal ticketPrice) {
         this.title = title;
         this.genre = genre;
         this.summary = summary;
         this.posterPath = posterPath;
+        this.duration = duration;
+        this.ticketPrice = ticketPrice;
     }
 
-    // Getters and setters
     public int getMovieId() {
         return movieId;
     }
@@ -57,5 +60,21 @@ public class Movie {
 
     public void setPosterPath(String posterPath) {
         this.posterPath = posterPath;
+    }
+
+    public int getDuration() {
+        return duration;
+    }
+
+    public void setDuration(int duration) {
+        this.duration = duration;
+    }
+
+    public BigDecimal getTicketPrice() {
+        return ticketPrice;
+    }
+
+    public void setTicketPrice(BigDecimal ticketPrice) {
+        this.ticketPrice = ticketPrice;
     }
 }

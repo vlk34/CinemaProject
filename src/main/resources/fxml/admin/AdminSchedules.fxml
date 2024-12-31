@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<ScrollPane fitToWidth="true" style="-fx-background: #F5F7FA; -fx-background-color: #F5F7FA;"
+            xmlns="http://javafx.com/javafx/23" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.group18.controller.admin.AdminScheduleController">
+    <VBox spacing="20" style="-fx-background-color: #F5F7FA;">
+        <padding>
+            <Insets top="30" right="40" bottom="30" left="40"/>
+        </padding>
+
+        <!-- Header -->
+        <HBox alignment="CENTER_LEFT" spacing="20">
+            <Label text="Monthly Schedule" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <DatePicker fx:id="monthPicker" promptText="Select Month"/>
+            <Button fx:id="createScheduleButton" text="Create New Schedule"
+                    style="-fx-background-color: #2a1b35; -fx-text-fill: white; -fx-background-radius: 5;">
+                <padding>
+                    <Insets top="8" right="15" bottom="8" left="15"/>
+                </padding>
+            </Button>
+        </HBox>
+
+        <!-- Schedule Cards -->
+        <GridPane hgap="20" vgap="20">
+            <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" percentWidth="50"/>
+                <ColumnConstraints hgrow="SOMETIMES" percentWidth="50"/>
+            </columnConstraints>
+
+            <!-- Hall A Schedule -->
+            <VBox styleClass="stat-card" style="-fx-background-color: white; -fx-background-radius: 10;"
+                  GridPane.columnIndex="0" minWidth="500" prefWidth="600">
+                <padding>
+                    <Insets top="20" right="25" bottom="20" left="25"/>
+                </padding>
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label text="Hall A Schedule" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+                    <Label text="(16 seats)" style="-fx-font-size: 14px; -fx-text-fill: #666;"/>
+                </HBox>
+                <TableView fx:id="hallATable" VBox.vgrow="ALWAYS">
+                    <VBox.margin>
+                        <Insets top="15"/>
+                    </VBox.margin>
+                    <columns>
+                        <TableColumn fx:id="dateAColumn" text="Date" minWidth="100"/>
+                        <TableColumn fx:id="timeAColumn" text="Time" minWidth="100"/>
+                        <TableColumn fx:id="movieAColumn" text="Movie" minWidth="200"/>
+                        <TableColumn fx:id="statusAColumn" text="Status" minWidth="100"/>
+                        <TableColumn fx:id="actionsAColumn" text="Actions" minWidth="100"/>
+                    </columns>
+                    <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                    </columnResizePolicy>
+                </TableView>
+            </VBox>
+
+            <!-- Hall B Schedule -->
+            <VBox styleClass="stat-card" style="-fx-background-color: white; -fx-background-radius: 10;"
+                  GridPane.columnIndex="1" minWidth="500" prefWidth="600">
+                <padding>
+                    <Insets top="20" right="25" bottom="20" left="25"/>
+                </padding>
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label text="Hall B Schedule" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+                    <Label text="(48 seats)" style="-fx-font-size: 14px; -fx-text-fill: #666;"/>
+                </HBox>
+                <TableView fx:id="hallBTable" VBox.vgrow="ALWAYS">
+                    <VBox.margin>
+                        <Insets top="15"/>
+                    </VBox.margin>
+                    <columns>
+                        <TableColumn fx:id="dateBColumn" text="Date" minWidth="100"/>
+                        <TableColumn fx:id="timeBColumn" text="Time" minWidth="100"/>
+                        <TableColumn fx:id="movieBColumn" text="Movie" minWidth="200"/>
+                        <TableColumn fx:id="statusBColumn" text="Status" minWidth="100"/>
+                        <TableColumn fx:id="actionsBColumn" text="Actions" minWidth="100"/>
+                    </columns>
+                    <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                    </columnResizePolicy>
+                </TableView>
+            </VBox>
+        </GridPane>
+
+        <!-- Legend -->
+        <HBox spacing="20" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 15;">
+            <Label text="Status Legend:" style="-fx-font-weight: bold"/>
+            <Label text="● Available" style="-fx-text-fill: #2ECC71"/>
+            <Label text="● Has Bookings" style="-fx-text-fill: #F1C40F"/>
+            <Label text="● Full" style="-fx-text-fill: #E74C3C"/>
+        </HBox>
+    </VBox>
+</ScrollPane>

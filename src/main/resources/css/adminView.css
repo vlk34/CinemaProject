@@ -1,0 +1,37 @@
+.root {
+    -fx-font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Table Styles */
+.table-view {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-table-cell-border-color: transparent;
+    -fx-table-header-border-color: transparent;
+    -fx-column-resize-policy: constrained-resize;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #F5F7FA;
+}
+
+.table-view .column-header {
+    -fx-size: 40px;
+    -fx-background-color: transparent;
+}
+
+.table-view .column-header-background .filler {
+    -fx-background-color: transparent;
+}
+
+.table-view .virtual-flow {
+    -fx-background-color: transparent;
+}
+
+.table-view .column-resize-line {
+    -fx-background-color: #ddd;
+}
+
+.table-view .table-column {
+    -fx-alignment: CENTER-LEFT;
+}

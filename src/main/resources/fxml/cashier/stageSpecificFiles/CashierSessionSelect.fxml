@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<?import javafx.scene.image.ImageView?>
+<ScrollPane fitToWidth="true" style="-fx-background: #F5F7FA; -fx-background-color: #F5F7FA;"
+            xmlns="http://javafx.com/javafx/23" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.group18.controller.cashier.stageSpecificFiles.CashierSessionSelectController">
+
+    <VBox spacing="20">
+        <padding>
+            <Insets top="30" right="40" bottom="30" left="40"/>
+        </padding>
+
+        <!-- Selected Movie Info -->
+        <VBox styleClass="card" spacing="15">
+            <padding>
+                <Insets top="20" right="25" bottom="20" left="25"/>
+            </padding>
+
+            <HBox spacing="20">
+                <!-- Movie Poster -->
+                <ImageView fx:id="moviePosterView" fitWidth="120" fitHeight="180"/>
+
+                <!-- Movie Details -->
+                <VBox spacing="5">
+                    <Label fx:id="movieTitleLabel" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+                    <Label fx:id="movieGenresLabel" style="-fx-text-fill: #666666;"/>
+                    <Label text="Duration: 2 hours" style="-fx-text-fill: #666666;"/>
+                </VBox>
+            </HBox>
+        </VBox>
+
+        <!-- Session Selection -->
+        <VBox styleClass="card">
+            <padding>
+                <Insets top="20" right="25" bottom="20" left="25"/>
+            </padding>
+
+            <Label text="Select Session" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+
+            <!-- Date Selection -->
+            <HBox spacing="15" alignment="CENTER_LEFT">
+                <VBox.margin>
+                    <Insets top="15"/>
+                </VBox.margin>
+
+                <DatePicker fx:id="datePicker" promptText="Select Date"/>
+
+                <Button text="Show Available Sessions"
+                        onAction="#handleShowSessions"
+                        style="-fx-background-color: #2a1b35; -fx-text-fill: white;"/>
+            </HBox>
+
+            <!-- Sessions Grid -->
+            <GridPane fx:id="sessionsGrid" hgap="15" vgap="15">
+                <padding>
+                    <Insets top="20"/>
+                </padding>
+
+                <!-- Headers -->
+                <Label text="Time" style="-fx-font-weight: bold;"
+                       GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <Label text="Hall" style="-fx-font-weight: bold;"
+                       GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                <Label text="Available Seats" style="-fx-font-weight: bold;"
+                       GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                <Label text="Select" style="-fx-font-weight: bold;"
+                       GridPane.columnIndex="3" GridPane.rowIndex="0"/>
+
+                <!-- Session rows will be added dynamically -->
+            </GridPane>
+        </VBox>
+
+        <!-- Hall Information -->
+        <HBox spacing="20">
+            <!-- Hall A Info -->
+            <VBox styleClass="card" spacing="10" HBox.hgrow="ALWAYS">
+                <padding>
+                    <Insets top="15" right="20" bottom="15" left="20"/>
+                </padding>
+
+                <Label text="Hall A" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+                <Label text="Capacity: 16 seats"/>
+                <Label text="Standard seating arrangement"/>
+            </VBox>
+
+            <!-- Hall B Info -->
+            <VBox styleClass="card" spacing="10" HBox.hgrow="ALWAYS">
+                <padding>
+                    <Insets top="15" right="20" bottom="15" left="20"/>
+                </padding>
+
+                <Label text="Hall B" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+                <Label text="Capacity: 48 seats"/>
+                <Label text="Premium seating arrangement"/>
+            </VBox>
+        </HBox>
+    </VBox>
+</ScrollPane>

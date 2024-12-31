@@ -4,11 +4,9 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
-<?import javafx.scene.image.ImageView?>
-<?import javafx.scene.image.Image?>
 
 <ScrollPane fitToWidth="true" style="-fx-background: #F5F7FA; -fx-background-color: #F5F7FA;"
-            xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            xmlns="http://javafx.com/javafx/23" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.group18.controller.manager.ManagerInventoryController">
     <VBox spacing="20" style="-fx-background-color: #F5F7FA;">
         <padding>
@@ -36,8 +34,8 @@
                     <Insets top="15" right="20" bottom="15" left="20"/>
                 </padding>
                 <Label text="Beverages" style="-fx-font-size: 16px; -fx-text-fill: #666;"/>
-                <Label text="156 items" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
-                <Label text="12 items low on stock" style="-fx-text-fill: #E74C3C;"/>
+                <Label fx:id="beveragesCountLabel" text="0 items" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+                <Label fx:id="beveragesLowStockLabel" text="0 items low on stock" style="-fx-text-fill: #E74C3C;"/>
             </VBox>
 
             <!-- Biscuits Card -->
@@ -47,8 +45,8 @@
                     <Insets top="15" right="20" bottom="15" left="20"/>
                 </padding>
                 <Label text="Biscuits" style="-fx-font-size: 16px; -fx-text-fill: #666;"/>
-                <Label text="89 items" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
-                <Label text="5 items low on stock" style="-fx-text-fill: #E74C3C;"/>
+                <Label fx:id="biscuitsCountLabel" text="0 items" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+                <Label fx:id="biscuitsLowStockLabel" text="0 items low on stock" style="-fx-text-fill: #E74C3C;"/>
             </VBox>
 
             <!-- Toys Card -->
@@ -58,8 +56,8 @@
                     <Insets top="15" right="20" bottom="15" left="20"/>
                 </padding>
                 <Label text="Toys" style="-fx-font-size: 16px; -fx-text-fill: #666;"/>
-                <Label text="45 items" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
-                <Label text="3 items low on stock" style="-fx-text-fill: #E74C3C;"/>
+                <Label fx:id="toysCountLabel" text="0 items" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+                <Label fx:id="toysLowStockLabel" text="0 items low on stock" style="-fx-text-fill: #E74C3C;"/>
             </VBox>
         </FlowPane>
 
@@ -71,13 +69,13 @@
 
             <!-- Search and Filter -->
             <HBox spacing="15" alignment="CENTER_LEFT">
-                <TextField promptText="Search products..." prefWidth="300">
+                <TextField fx:id="searchField" promptText="Search products..." prefWidth="300">
                     <padding>
                         <Insets top="8" right="15" bottom="8" left="15"/>
                     </padding>
                 </TextField>
-                <ComboBox promptText="Category" prefWidth="150"/>
-                <ComboBox promptText="Stock Status" prefWidth="150"/>
+                <ComboBox fx:id="categoryComboBox" promptText="Category" prefWidth="150"/>
+                <ComboBox fx:id="stockStatusComboBox" promptText="Stock Status" prefWidth="150"/>
             </HBox>
 
             <TableView fx:id="inventoryTable" VBox.vgrow="ALWAYS">

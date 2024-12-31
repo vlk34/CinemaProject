@@ -1,15 +1,17 @@
-package com.group18.model;  // or whatever package you want to put it in
+package com.group18.model;
+
+import java.time.LocalDate;
 
 public class PriceHistory {
-    private String date;
+    private LocalDate changeDate;
     private String item;
     private Double oldPrice;
     private Double newPrice;
     private String updatedBy;
 
     // Constructor
-    public PriceHistory(String date, String item, Double oldPrice, Double newPrice, String updatedBy) {
-        this.date = date;
+    public PriceHistory(LocalDate changeDate, String item, Double oldPrice, Double newPrice, String updatedBy) {
+        this.changeDate = changeDate;
         this.item = item;
         this.oldPrice = oldPrice;
         this.newPrice = newPrice;
@@ -17,12 +19,12 @@ public class PriceHistory {
     }
 
     // Getters and setters
-    public String getDate() {
-        return date;
+    public LocalDate getChangeDate() {
+        return changeDate;
     }
 
-    public void setDate(String date) {
-        this.date = date;
+    public void setChangeDate(LocalDate changeDate) {
+        this.changeDate = changeDate;
     }
 
     public String getItem() {
