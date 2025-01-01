@@ -78,6 +78,11 @@ public class AdminScheduleController {
         setupTableColumns();
         createScheduleButton.setDisable(true);
 
+        // Set initial month to current month
+        monthPicker.setValue(LocalDate.now());
+        selectedMonth = LocalDate.now().withDayOfMonth(1);
+        filterSchedulesByMonth(selectedMonth);
+
         monthPicker.valueProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 selectedMonth = newVal.withDayOfMonth(1);
@@ -174,7 +179,7 @@ public class AdminScheduleController {
 
         if (confirmation.showAndWait().get() == ButtonType.OK) {
             if (scheduleDAO.deleteSchedule(schedule.getScheduleId())) {
-                loadSchedules();
+                filterSchedulesByMonth(selectedMonth);
             } else {
                 Alert error = new Alert(Alert.AlertType.ERROR);
                 error.setTitle("Error");
@@ -312,7 +317,7 @@ public class AdminScheduleController {
         // Show the dialog and process the result
         Optional<Schedule> result = dialog.showAndWait();
         result.ifPresent(schedule -> {
-            loadSchedules();
+            filterSchedulesByMonth(selectedMonth);
             showAlert("Success", "Schedule created successfully!");
         });
     }
@@ -368,21 +373,17 @@ public class AdminScheduleController {
     }
 
     private void filterSchedulesByMonth(LocalDate selectedMonth) {
-        List<Schedule> schedules = scheduleDAO.getAllSchedules();
+        List<Schedule> schedules = scheduleDAO.getSchedulesByMonth(selectedMonth);
 
         ObservableList<Schedule> hallASchedules = FXCollections.observableArrayList(
                 schedules.stream()
-                        .filter(s -> s.getHallId() == 1 &&
-                                s.getSessionDate().getMonth() == selectedMonth.getMonth() &&
-                                s.getSessionDate().getYear() == selectedMonth.getYear())
+                        .filter(s -> s.getHallId() == 1)
                         .collect(Collectors.toList())
         );
 
         ObservableList<Schedule> hallBSchedules = FXCollections.observableArrayList(
                 schedules.stream()
-                        .filter(s -> s.getHallId() == 2 &&
-                                s.getSessionDate().getMonth() == selectedMonth.getMonth() &&
-                                s.getSessionDate().getYear() == selectedMonth.getYear())
+                        .filter(s -> s.getHallId() == 2)
                         .collect(Collectors.toList())
         );
 

@@ -105,8 +105,14 @@ public class CashierMovieSearchController {
         ImageView posterView = new ImageView();
         if (movie.getPosterPath() != null && !movie.getPosterPath().isEmpty()) {
             try {
-                System.out.println("Poster from cashier movies: " + movie.getPosterPath());
-                posterView.setImage(new Image(movie.getPosterPath()));
+                File posterFile = new File(movie.getPosterPath());
+                if (posterFile.exists()) {
+                    // Use the same logic as populateMovieDetails
+                    posterView.setImage(new Image(posterFile.toURI().toString()));
+                } else {
+                    System.err.println("File not found: " + movie.getPosterPath());
+                    posterView.setImage(new Image(getClass().getResourceAsStream("/images/movies/dark_knight.jpg")));
+                }
             } catch (Exception e) {
                 e.printStackTrace();
                 posterView.setImage(new Image(getClass().getResourceAsStream("/images/movies/dark_knight.jpg")));

@@ -1,5 +1,6 @@
 package com.group18.controller.cashier;
 
+import com.group18.controller.cashier.sharedComponents.CashierActionBarController;
 import com.group18.controller.cashier.sharedComponents.CashierCartController;
 import com.group18.controller.cashier.sharedComponents.CashierStepperController;
 import com.group18.controller.cashier.stageSpecificFiles.*;
@@ -12,12 +13,15 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.Map;
 import java.util.Set;
 
 public class CashierController {
     @FXML private VBox root;
     @FXML private Node currentStage;
     @FXML private CashierStepperController stepperController;
+    @FXML private CashierActionBarController actionBarController;
+    @FXML private CashierCartController cartController;
 
     private int currentStageIndex = 0;
     private final String[] stages = {
@@ -32,11 +36,15 @@ public class CashierController {
     private Movie selectedMovie;
     private MovieSession selectedSession;
     private Set<String> selectedSeats;
-
+    private LocalDate selectedDate;
+    // In CashierController.java
     @FXML
     private void initialize() {
-        // Load initial stage
         try {
+            // Set the main controller reference for the action bar
+            actionBarController.setMainController(this);
+
+            // Load initial stage
             FXMLLoader loader = new FXMLLoader(getClass().getResource(stages[0]));
             Node initialStage = loader.load();
 
@@ -47,7 +55,6 @@ public class CashierController {
             contentArea.getChildren().setAll(initialStage);
             currentStage = initialStage;
 
-            // Initialize stepper
             if (stepperController != null) {
                 stepperController.updateSteps(0);
             }
@@ -58,12 +65,17 @@ public class CashierController {
 
     public void navigateWithData(Object data) {
         // Store data based on current stage
+        System.out.println(currentStageIndex);
         switch (currentStageIndex) {
             case 0: // Movie Search
                 selectedMovie = (Movie) data;
                 break;
             case 1: // Session Select
-                selectedSession = (MovieSession) data;
+                if (data instanceof Map) {
+                    Map<String, Object> sessionData = (Map<String, Object>) data;
+                    selectedSession = (MovieSession) sessionData.get("session");
+                    selectedDate = (LocalDate) sessionData.get("date");
+                }
                 break;
             case 2: // Seat Select
                 selectedSeats = (Set<String>) data;
@@ -84,6 +96,10 @@ public class CashierController {
         if (currentStageIndex > 0) {
             loadStage(--currentStageIndex);
         }
+    }
+
+    public LocalDate getSelectedDate() {
+        return selectedDate;
     }
 
     private void loadStage(int index) {
@@ -120,7 +136,6 @@ public class CashierController {
         else if (controller instanceof CashierSeatSelectController) {
             CashierSeatSelectController seatController = (CashierSeatSelectController) controller;
             seatController.setCashierController(this);
-            LocalDate selectedDate = ((CashierSessionSelectController) controller).getSelectedDate();
             seatController.setSessionInfo(selectedMovie, selectedSession, selectedDate);
         }
         else if (controller instanceof CashierCustomerDetailsController) {
@@ -143,14 +158,9 @@ public class CashierController {
         currentStageIndex = 0;
         loadStage(currentStageIndex);
 
-        // Clear the cart
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/cashier/components/CashierCart.fxml"));
-            Node cartNode = loader.load();
-            CashierCartController cartController = loader.getController();
+        // Clear the cart using the injected controller
+        if (cartController != null) {
             cartController.clearCart();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 

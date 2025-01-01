@@ -2,7 +2,9 @@
 
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.shape.*?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Font?>
 
 <ScrollPane fitToWidth="true" style="-fx-background: #F5F7FA; -fx-background-color: #F5F7FA;"
             xmlns="http://javafx.com/javafx/23" xmlns:fx="http://javafx.com/fxml/1"
@@ -14,7 +16,7 @@
         </padding>
 
         <!-- Session Info -->
-        <VBox styleClass="card" spacing="10">
+        <VBox styleClass="card" spacing="10" style="-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);">
             <padding>
                 <Insets top="15" right="20" bottom="15" left="20"/>
             </padding>
@@ -43,53 +45,64 @@
         </VBox>
 
         <!-- Simplified Seat Grid -->
-        <VBox styleClass="card" alignment="CENTER" spacing="20">
+        <VBox styleClass="card" alignment="CENTER" spacing="20"
+              style="-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);">
             <padding>
                 <Insets top="30" right="30" bottom="30" left="30"/>
             </padding>
+
+            <!-- Screen Indicator -->
+            <Label text="SCREEN"
+                   style="-fx-background-color: #2a1b35; -fx-text-fill: white; -fx-padding: 5 20; -fx-background-radius: 5;"/>
 
             <!-- Main seat grid -->
             <GridPane fx:id="seatGrid" alignment="CENTER" hgap="10" vgap="10"/>
 
             <!-- Legend -->
-            <HBox spacing="20" alignment="CENTER">
+            <HBox spacing="20" style="-fx-background-color: #F0F4F8; -fx-background-radius: 10; -fx-padding: 15;">
                 <HBox spacing="10" alignment="CENTER">
-                    <Region styleClass="seat-available"/>
-                    <Label text="Available"/>
+                    <Circle radius="8" fill="#2ECC71"/>
+                    <Label text="Available" style="-fx-text-fill: #2a1b35;"/>
                 </HBox>
 
                 <HBox spacing="10" alignment="CENTER">
-                    <Region styleClass="seat-selected"/>
-                    <Label text="Selected"/>
+                    <Circle radius="8" fill="#3498DB"/>
+                    <Label text="Selected" style="-fx-text-fill: #2a1b35;"/>
                 </HBox>
 
                 <HBox spacing="10" alignment="CENTER">
-                    <Region styleClass="seat-occupied"/>
-                    <Label text="Occupied"/>
+                    <Circle radius="8" fill="#E74C3C"/>
+                    <Label text="Occupied" style="-fx-text-fill: #2a1b35;"/>
                 </HBox>
             </HBox>
         </VBox>
 
         <!-- Selection Summary -->
-        <VBox styleClass="card" spacing="15">
+        <VBox styleClass="card" spacing="15"
+              style="-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);">
             <padding>
                 <Insets top="20" right="25" bottom="20" left="25"/>
             </padding>
 
-            <HBox spacing="50">
+            <HBox spacing="50" alignment="CENTER_LEFT">
                 <VBox spacing="5" HBox.hgrow="ALWAYS">
                     <Label text="Selected Seats" style="-fx-font-weight: bold;"/>
-                    <Label fx:id="selectedSeatsLabel" style="-fx-font-size: 16px;"/>
+                    <Label fx:id="selectedSeatsLabel"
+                           style="-fx-font-size: 16px; -fx-text-fill: #2a1b35;"/>
                 </VBox>
 
                 <VBox spacing="5">
                     <Label text="Total Price" style="-fx-font-weight: bold;"/>
-                    <Label fx:id="totalPriceLabel" style="-fx-font-size: 16px;"/>
+                    <Label fx:id="totalPriceLabel"
+                           style="-fx-font-size: 16px; -fx-text-fill: #2a1b35;"/>
                 </VBox>
 
                 <Button fx:id="confirmButton" text="Confirm Selection"
                         onAction="#handleConfirmSelection"
-                        style="-fx-background-color: #2a1b35; -fx-text-fill: white;"/>
+                        style="-fx-background-color: #2a1b35;
+                               -fx-text-fill: white;
+                               -fx-background-radius: 5;
+                               -fx-padding: 8 15;"/>
             </HBox>
         </VBox>
     </VBox>

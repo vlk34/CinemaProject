@@ -66,14 +66,7 @@ public class ScheduleDAO {
     }
 
     public List<Schedule> getAvailableSchedules(int movieId, LocalDate date) {
-        String query = """
-            SELECT s.* FROM schedules s
-            LEFT JOIN order_items oi ON s.schedule_id = oi.schedule_id
-            JOIN halls h ON s.hall_id = h.hall_id
-            GROUP BY s.schedule_id
-            HAVING COUNT(oi.order_item_id) < h.capacity
-            AND s.movie_id = ? AND s.session_date = ?
-        """;
+        String query = "SELECT * FROM schedules WHERE movie_id = ? AND session_date = ?";
         List<Schedule> schedules = new ArrayList<>();
 
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
@@ -96,6 +89,24 @@ public class ScheduleDAO {
 
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
+
+            while (rs.next()) {
+                schedules.add(extractScheduleFromResultSet(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return schedules;
+    }
+
+    public List<Schedule> getSchedulesByMonth(LocalDate monthDate) {
+        String query = "SELECT * FROM schedules WHERE MONTH(session_date) = ? AND YEAR(session_date) = ?";
+        List<Schedule> schedules = new ArrayList<>();
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, monthDate.getMonthValue());
+            stmt.setInt(2, monthDate.getYear());
+            ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
                 schedules.add(extractScheduleFromResultSet(rs));
@@ -226,6 +237,25 @@ public class ScheduleDAO {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public List<Schedule> getSchedulesBetweenDates(int movieId, LocalDate startDate, LocalDate endDate) {
+        String query = "SELECT * FROM schedules WHERE movie_id = ? AND session_date BETWEEN ? AND ? ORDER BY session_date";
+        List<Schedule> schedules = new ArrayList<>();
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, movieId);
+            stmt.setDate(2, Date.valueOf(startDate));
+            stmt.setDate(3, Date.valueOf(endDate));
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                schedules.add(extractScheduleFromResultSet(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return schedules;
     }
 
     private Schedule extractScheduleFromResultSet(ResultSet rs) throws SQLException {

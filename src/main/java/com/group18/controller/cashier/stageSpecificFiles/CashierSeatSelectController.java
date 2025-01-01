@@ -7,6 +7,8 @@ import javafx.geometry.Pos;
 import javafx.geometry.Insets;
 import com.group18.model.Movie;
 import com.group18.model.MovieSession;
+import javafx.scene.shape.Circle;
+
 import java.time.LocalDate;
 import java.util.*;
 
@@ -86,35 +88,60 @@ public class CashierSeatSelectController {
 
     private StackPane createSeat(String seatId) {
         StackPane seatPane = new StackPane();
-        seatPane.setPrefSize(40, 40);
-        seatPane.getStyleClass().add("seat");
+        seatPane.setPrefSize(50, 50);
+        seatPane.setMaxSize(50, 50);
 
-        // Create the clickable region
-        Region seatRegion = new Region();
-        seatRegion.setPrefSize(30, 30);
-        seatRegion.getStyleClass().add(occupiedSeats.contains(seatId) ?
-                "seat-occupied" : "seat-available");
+        // Create the seat circle
+        Circle seatCircle = new Circle(20);
 
-        // Add seat number
+        // Determine seat style based on occupation status
+        if (occupiedSeats.contains(seatId)) {
+            seatCircle.setFill(javafx.scene.paint.Color.valueOf("#E74C3C")); // Red for occupied
+            seatCircle.setOpacity(0.7);
+        } else {
+            seatCircle.setFill(javafx.scene.paint.Color.valueOf("#2ECC71")); // Green for available
+        }
+
+        // Add subtle border
+        seatCircle.setStroke(javafx.scene.paint.Color.valueOf("#2a1b35"));
+        seatCircle.setStrokeWidth(2);
+
+        // Create seat label
         Label label = new Label(seatId);
-        label.setStyle("-fx-font-size: 12px;");
+        label.setTextFill(javafx.scene.paint.Color.WHITE);
+        label.setStyle("-fx-font-weight: bold;");
 
-        seatPane.getChildren().addAll(seatRegion, label);
+        seatPane.getChildren().addAll(seatCircle, label);
 
+        // Add click handler for available seats
         if (!occupiedSeats.contains(seatId)) {
-            seatPane.setOnMouseClicked(e -> toggleSeatSelection(seatId, seatRegion));
+            seatPane.setOnMouseClicked(e -> toggleSeatSelection(seatId, seatCircle));
+
+            // Add hover effects
+            seatPane.setOnMouseEntered(e -> {
+                seatCircle.setOpacity(0.7);
+                seatPane.setCursor(javafx.scene.Cursor.HAND);
+            });
+            seatPane.setOnMouseExited(e -> {
+                if (!selectedSeats.contains(seatId)) {
+                    seatCircle.setOpacity(1.0);
+                }
+            });
         }
 
         return seatPane;
     }
 
-    private void toggleSeatSelection(String seatId, Region seatRegion) {
+    // Modify toggleSeatSelection to work with Circle instead of Region
+    private void toggleSeatSelection(String seatId, Circle seatCircle) {
         if (selectedSeats.contains(seatId)) {
             selectedSeats.remove(seatId);
-            seatRegion.getStyleClass().setAll("seat-available");
+            seatCircle.setFill(javafx.scene.paint.Color.valueOf("#2ECC71")); // Back to green
+            seatCircle.setOpacity(1.0);
         } else {
             selectedSeats.add(seatId);
-            seatRegion.getStyleClass().setAll("seat-selected");
+            seatCircle.setFill(javafx.scene.paint.Color.valueOf("#3498DB")); // Blue for selected
+            seatCircle.setOpacity(0.8);
         }
 
         updateSelectionSummary();
