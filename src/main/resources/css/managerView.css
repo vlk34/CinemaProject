@@ -39,7 +39,6 @@
 }
 
 .button:pressed, .nav-button:pressed {
-    -fx-background-color: rgba(255,255,255,0.15) !important;
     -fx-translate-x: 1px;
 }
 

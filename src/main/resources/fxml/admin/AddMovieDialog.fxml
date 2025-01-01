@@ -1,17 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TextArea?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
 
-<VBox alignment="CENTER" spacing="15" style="-fx-padding: 20;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.group18.controller.admin.AddMovieDialogController">
+<VBox alignment="CENTER" spacing="15" style="-fx-padding: 20;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.group18.controller.admin.AddMovieDialogController">
     <Label style="-fx-font-size: 18px; -fx-font-weight: bold;" text="Add New Movie" />
 
     <GridPane hgap="10" vgap="10">
@@ -29,25 +22,14 @@
         <Label text="Duration (min):" GridPane.columnIndex="0" GridPane.rowIndex="2" />
         <TextField fx:id="durationField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
 
-        <Label text="Ticket Price ($):" GridPane.columnIndex="0" GridPane.rowIndex="3" />
-        <TextField fx:id="ticketPriceField" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+        <Label text="Summary:" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+        <TextArea fx:id="summaryField" prefHeight="100" GridPane.columnIndex="1" GridPane.rowIndex="3" />
 
-        <Label text="Summary:" GridPane.columnIndex="0" GridPane.rowIndex="4" />
-        <TextArea fx:id="summaryField" prefHeight="100" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-
-        <Label text="Poster:" GridPane.columnIndex="0" GridPane.rowIndex="5" />
-        <HBox alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="5">
+        <Label text="Poster:" GridPane.columnIndex="0" GridPane.rowIndex="4" />
+        <HBox alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="4">
             <Button fx:id="selectPosterButton" text="Select Poster" />
             <ImageView fx:id="posterImageView" fitHeight="100" fitWidth="75" preserveRatio="true" />
         </HBox>
-      <rowConstraints>
-         <RowConstraints />
-         <RowConstraints />
-         <RowConstraints />
-         <RowConstraints />
-         <RowConstraints />
-         <RowConstraints />
-      </rowConstraints>
     </GridPane>
 
     <HBox alignment="CENTER" spacing="10">

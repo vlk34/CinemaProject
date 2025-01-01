@@ -9,7 +9,6 @@ import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
-import java.math.BigDecimal;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,7 +20,6 @@ public class AddMovieDialogController {
     @FXML private TextField genreField;
     @FXML private TextArea summaryField;
     @FXML private TextField durationField;
-    @FXML private TextField ticketPriceField;
     @FXML private ImageView posterImageView;
     @FXML private Button selectPosterButton;
     @FXML private Button addMovieButton;
@@ -45,14 +43,13 @@ public class AddMovieDialogController {
             String genre = genreField.getText().trim();
             String summary = summaryField.getText().trim();
             int duration = Integer.parseInt(durationField.getText().trim());
-            BigDecimal ticketPrice = new BigDecimal(ticketPriceField.getText().trim());
 
             if (title.isEmpty() || genre.isEmpty() || summary.isEmpty()) {
                 showAlert("Validation Error", "Please fill in all fields.");
                 return;
             }
 
-            Movie newMovie = new Movie(title, genre, summary, currentPosterPath, duration, ticketPrice);
+            Movie newMovie = new Movie(title, genre, summary, currentPosterPath, duration);
 
             if (movieDAO.addMovie(newMovie)) {
                 showAlert("Success", "Movie added successfully.");
@@ -61,7 +58,7 @@ public class AddMovieDialogController {
                 showAlert("Error", "Failed to add movie.");
             }
         } catch (NumberFormatException e) {
-            showAlert("Error", "Invalid duration or price format.");
+            showAlert("Error", "Invalid duration format.");
         }
     }
 

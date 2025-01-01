@@ -9,17 +9,15 @@ public class Movie {
     private String summary;
     private String posterPath;
     private int duration;
-    private BigDecimal ticketPrice;
 
     public Movie() {}
 
-    public Movie(String title, String genre, String summary, String posterPath, int duration, BigDecimal ticketPrice) {
+    public Movie(String title, String genre, String summary, String posterPath, int duration) {
         this.title = title;
         this.genre = genre;
         this.summary = summary;
         this.posterPath = posterPath;
         this.duration = duration;
-        this.ticketPrice = ticketPrice;
     }
 
     public int getMovieId() {
@@ -68,13 +66,5 @@ public class Movie {
 
     public void setDuration(int duration) {
         this.duration = duration;
-    }
-
-    public BigDecimal getTicketPrice() {
-        return ticketPrice;
-    }
-
-    public void setTicketPrice(BigDecimal ticketPrice) {
-        this.ticketPrice = ticketPrice;
     }
 }

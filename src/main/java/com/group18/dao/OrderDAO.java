@@ -16,7 +16,7 @@ public class OrderDAO {
     }
 
     public boolean createOrder(Order order) {
-        String orderQuery = "INSERT INTO orders (cashier_id, order_date, total_price) VALUES (?, ?, ?)";
+        String orderQuery = "INSERT INTO orders (cashier_id, order_date, total_price, status) VALUES (?, ?, ?, 'PENDING')";
         String itemQuery = "INSERT INTO order_items (order_id, item_type, schedule_id, seat_number, " +
                 "discount_applied, occupant_first_name, occupant_last_name, product_id, " +
                 "quantity, item_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -83,43 +83,6 @@ public class OrderDAO {
         }
     }
 
-    public Order getOrderById(int orderId) {
-        String orderQuery = "SELECT * FROM orders WHERE order_id = ?";
-        String itemsQuery = "SELECT * FROM order_items WHERE order_id = ?";
-
-        try {
-            Order order = null;
-
-            // Get order details
-            try (PreparedStatement orderStmt = connection.prepareStatement(orderQuery)) {
-                orderStmt.setInt(1, orderId);
-                ResultSet rs = orderStmt.executeQuery();
-
-                if (rs.next()) {
-                    order = extractOrderFromResultSet(rs);
-                }
-            }
-
-            if (order != null) {
-                // Get order items
-                try (PreparedStatement itemsStmt = connection.prepareStatement(itemsQuery)) {
-                    itemsStmt.setInt(1, orderId);
-                    ResultSet rs = itemsStmt.executeQuery();
-
-                    while (rs.next()) {
-                        order.addOrderItem(extractOrderItemFromResultSet(rs));
-                    }
-                }
-            }
-
-            return order;
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
     public List<Order> getOrdersByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
         String query = "SELECT * FROM orders WHERE order_date BETWEEN ? AND ?";
         List<Order> orders = new ArrayList<>();
@@ -131,7 +94,6 @@ public class OrderDAO {
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 Order order = extractOrderFromResultSet(rs);
-                // Load order items for each order
                 order.setOrderItems(getOrderItemsForOrder(order.getOrderId()));
                 orders.add(order);
             }
@@ -150,7 +112,6 @@ public class OrderDAO {
 
             while (rs.next()) {
                 Order order = extractOrderFromResultSet(rs);
-                // Optionally load order items
                 order.setOrderItems(getOrderItemsForOrder(order.getOrderId()));
                 orders.add(order);
             }
@@ -160,19 +121,34 @@ public class OrderDAO {
         return orders;
     }
 
-    public boolean cancelOrder(int orderId) {
-        String orderQuery = "DELETE FROM orders WHERE order_id = ?";
-
+    public boolean processCancellation(int orderId) {
         try {
             connection.setAutoCommit(false);
 
-            // Order items will be automatically deleted due to CASCADE constraint
-            try (PreparedStatement stmt = connection.prepareStatement(orderQuery)) {
+            // First get all items to restore inventory
+            List<OrderItem> items = getOrderItemsForOrder(orderId);
+            ProductDAO productDAO = new ProductDAO();
+
+            // Restore product inventory
+            for (OrderItem item : items) {
+                if ("product".equals(item.getItemType()) && item.getProductId() != null) {
+                    productDAO.increaseStock(item.getProductId(), item.getQuantity());
+                }
+            }
+
+            // Update order status
+            String updateQuery = "UPDATE orders SET status = 'PROCESSED' WHERE order_id = ? AND status = 'PENDING'";
+            try (PreparedStatement stmt = connection.prepareStatement(updateQuery)) {
                 stmt.setInt(1, orderId);
                 int result = stmt.executeUpdate();
 
-                connection.commit();
-                return result > 0;
+                if (result > 0) {
+                    connection.commit();
+                    return true;
+                } else {
+                    connection.rollback();
+                    return false;
+                }
             }
         } catch (SQLException e) {
             try {
@@ -189,6 +165,62 @@ public class OrderDAO {
                 e.printStackTrace();
             }
         }
+    }
+
+    public boolean rejectCancellation(int orderId) {
+        String query = "UPDATE orders SET status = 'REJECTED' WHERE order_id = ? AND status = 'PENDING'";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, orderId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public List<Order> getPendingCancellations() {
+        String query = "SELECT * FROM orders WHERE status = 'PENDING' ORDER BY order_date DESC";
+        List<Order> orders = new ArrayList<>();
+
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+
+            while (rs.next()) {
+                Order order = extractOrderFromResultSet(rs);
+                order.setOrderItems(getOrderItemsForOrder(order.getOrderId()));
+                orders.add(order);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return orders;
+    }
+
+    public CancellationStats getCancellationStats() {
+        String query = """
+            SELECT 
+                COUNT(CASE WHEN status = 'PENDING' THEN 1 END) as pending_count,
+                COUNT(CASE WHEN status = 'PROCESSED' AND DATE(order_date) = CURRENT_DATE THEN 1 END) as processed_today,
+                SUM(CASE WHEN status = 'PROCESSED' AND DATE(order_date) = CURRENT_DATE THEN total_price END) as refunded_today
+            FROM orders
+            WHERE status IN ('PENDING', 'PROCESSED')
+        """;
+
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+
+            if (rs.next()) {
+                return new CancellationStats(
+                        rs.getInt("pending_count"),
+                        rs.getInt("processed_today"),
+                        rs.getBigDecimal("refunded_today")
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return new CancellationStats(0, 0, BigDecimal.ZERO);
     }
 
     private List<OrderItem> getOrderItemsForOrder(int orderId) {
@@ -214,6 +246,7 @@ public class OrderDAO {
         order.setCashierId(rs.getInt("cashier_id"));
         order.setOrderDate(rs.getTimestamp("order_date").toLocalDateTime());
         order.setTotalPrice(rs.getBigDecimal("total_price"));
+        order.setStatus(rs.getString("status")); // Added status
         return order;
     }
 
@@ -231,5 +264,21 @@ public class OrderDAO {
         item.setQuantity(rs.getInt("quantity"));
         item.setItemPrice(rs.getBigDecimal("item_price"));
         return item;
+    }
+
+    public static class CancellationStats {
+        private final int pendingCount;
+        private final int processedToday;
+        private final BigDecimal refundedToday;
+
+        public CancellationStats(int pendingCount, int processedToday, BigDecimal refundedToday) {
+            this.pendingCount = pendingCount;
+            this.processedToday = processedToday;
+            this.refundedToday = refundedToday != null ? refundedToday : BigDecimal.ZERO;
+        }
+
+        public int getPendingCount() { return pendingCount; }
+        public int getProcessedToday() { return processedToday; }
+        public BigDecimal getRefundedToday() { return refundedToday; }
     }
 }

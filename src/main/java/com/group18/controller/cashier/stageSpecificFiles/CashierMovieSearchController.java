@@ -102,11 +102,17 @@ public class CashierMovieSearchController {
         card.setPrefWidth(200);
         card.setStyle("-fx-background-color: white; -fx-padding: 10; -fx-background-radius: 5;");
 
-        ImageView posterView;
-        if (movie.getPosterPath() != null && new File(movie.getPosterPath()).exists()) {
-            posterView = new ImageView(new Image(new File(movie.getPosterPath()).toURI().toString()));
+        ImageView posterView = new ImageView();
+        if (movie.getPosterPath() != null && !movie.getPosterPath().isEmpty()) {
+            try {
+                System.out.println("Poster from cashier movies: " + movie.getPosterPath());
+                posterView.setImage(new Image(movie.getPosterPath()));
+            } catch (Exception e) {
+                e.printStackTrace();
+                posterView.setImage(new Image(getClass().getResourceAsStream("/images/movies/dark_knight.jpg")));
+            }
         } else {
-            posterView = new ImageView(new Image(getClass().getResourceAsStream("/images/no-poster.png")));
+            posterView.setImage(new Image(getClass().getResourceAsStream("/images/movies/dark_knight.jpg")));
         }
         posterView.setFitWidth(180);
         posterView.setFitHeight(270);
@@ -122,14 +128,11 @@ public class CashierMovieSearchController {
         Label durationLabel = new Label(movie.getDuration() + " minutes");
         durationLabel.setStyle("-fx-text-fill: #666666;");
 
-        Label priceLabel = new Label("$" + movie.getTicketPrice());
-        priceLabel.setStyle("-fx-text-fill: #2a1b35; -fx-font-weight: bold;");
-
         Button detailsButton = new Button("View Details");
         detailsButton.setStyle("-fx-background-color: #2a1b35; -fx-text-fill: white;");
         detailsButton.setOnAction(e -> showMovieDetails(movie));
 
-        card.getChildren().addAll(posterView, titleLabel, genreLabel, durationLabel, priceLabel, detailsButton);
+        card.getChildren().addAll(posterView, titleLabel, genreLabel, durationLabel, detailsButton);
         return card;
     }
 

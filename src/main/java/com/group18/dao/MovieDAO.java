@@ -79,7 +79,7 @@ public class MovieDAO {
     }
 
     public boolean addMovie(Movie movie) {
-        String query = "INSERT INTO movies (title, genre, summary, poster_path, duration, ticket_price) VALUES (?, ?, ?, ?, ?, ?)";
+        String query = "INSERT INTO movies (title, genre, summary, poster_path, duration) VALUES (?, ?, ?, ?, ?)";
 
         try (PreparedStatement stmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, movie.getTitle());
@@ -87,7 +87,6 @@ public class MovieDAO {
             stmt.setString(3, movie.getSummary());
             stmt.setString(4, movie.getPosterPath());
             stmt.setInt(5, movie.getDuration());
-            stmt.setBigDecimal(6, movie.getTicketPrice());
 
             int affectedRows = stmt.executeUpdate();
             if (affectedRows > 0) {
@@ -104,7 +103,7 @@ public class MovieDAO {
     }
 
     public boolean updateMovie(Movie movie) {
-        String query = "UPDATE movies SET title = ?, genre = ?, summary = ?, poster_path = ?, duration = ?, ticket_price = ? WHERE movie_id = ?";
+        String query = "UPDATE movies SET title = ?, genre = ?, summary = ?, poster_path = ?, duration = ? WHERE movie_id = ?";
 
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, movie.getTitle());
@@ -112,8 +111,7 @@ public class MovieDAO {
             stmt.setString(3, movie.getSummary());
             stmt.setString(4, movie.getPosterPath());
             stmt.setInt(5, movie.getDuration());
-            stmt.setBigDecimal(6, movie.getTicketPrice());
-            stmt.setInt(7, movie.getMovieId());
+            stmt.setInt(6, movie.getMovieId());
 
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -146,7 +144,6 @@ public class MovieDAO {
         movie.setSummary(rs.getString("summary"));
         movie.setPosterPath(rs.getString("poster_path"));
         movie.setDuration(rs.getInt("duration"));
-        movie.setTicketPrice(rs.getBigDecimal("ticket_price"));
         return movie;
     }
 

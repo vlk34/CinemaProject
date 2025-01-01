@@ -26,6 +26,7 @@
         </HBox>
 
         <!-- Stats Cards -->
+        <!-- Stats Cards -->
         <FlowPane hgap="20" vgap="20">
             <!-- Pending Requests -->
             <VBox styleClass="stat-card" style="-fx-background-color: white; -fx-background-radius: 10;"
@@ -34,8 +35,8 @@
                     <Insets top="15" right="20" bottom="15" left="20"/>
                 </padding>
                 <Label text="Pending Requests" style="-fx-font-size: 16px; -fx-text-fill: #666;"/>
-                <Label text="8" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
-                <Label text="4 new today" style="-fx-text-fill: #E74C3C;"/>
+                <Label fx:id="pendingCountLabel" text="8" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+                <Label text="Awaiting Decision" style="-fx-text-fill: #E74C3C;"/>
             </VBox>
 
             <!-- Processed Today -->
@@ -45,10 +46,10 @@
                     <Insets top="15" right="20" bottom="15" left="20"/>
                 </padding>
                 <Label text="Processed Today" style="-fx-font-size: 16px; -fx-text-fill: #666;"/>
-                <Label text="12" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+                <Label fx:id="processedCountLabel" text="12" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
                 <HBox spacing="5">
                     <Label text="Total refunded:" style="-fx-font-size: 14px;"/>
-                    <Label text="USD 480" style="-fx-font-size: 14px; -fx-text-fill: #E74C3C;"/>
+                    <Label fx:id="refundedAmountLabel" text="USD 480" style="-fx-font-size: 14px; -fx-text-fill: #E74C3C;"/>
                 </HBox>
             </VBox>
         </FlowPane>
@@ -61,13 +62,13 @@
 
             <!-- Search and Filter -->
             <HBox spacing="15" alignment="CENTER_LEFT">
-                <TextField promptText="Search by booking ID or customer name..." prefWidth="300">
+                <TextField fx:id="searchField" promptText="Search by booking ID or customer name..." prefWidth="300">
                     <padding>
                         <Insets top="8" right="15" bottom="8" left="15"/>
                     </padding>
                 </TextField>
-                <ComboBox promptText="Request Type" prefWidth="150"/>
-                <ComboBox promptText="Status" prefWidth="150"/>
+                <ComboBox fx:id="requestTypeCombo" promptText="Request Type" prefWidth="150"/>
+                <ComboBox fx:id="statusCombo" promptText="Status" prefWidth="150"/>
             </HBox>
 
             <!-- Requests Table -->

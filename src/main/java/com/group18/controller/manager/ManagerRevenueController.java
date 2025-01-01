@@ -6,19 +6,15 @@ import com.group18.model.OrderItem;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.chart.LineChart;
-import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -41,9 +37,6 @@ public class ManagerRevenueController {
     private Label productsChangeLabel;
 
     @FXML
-    private LineChart<String, Number> revenueChart;
-
-    @FXML
     private TableView<RevenueEntry> revenueTable;
     @FXML
     private TableColumn<RevenueEntry, String> dateColumn;
@@ -59,10 +52,8 @@ public class ManagerRevenueController {
     @FXML
     public void initialize() {
         orderDAO = new OrderDAO();
-
         setupTable();
         loadData();
-        setupRevenueChart();
     }
 
     private void setupTable() {
@@ -100,12 +91,10 @@ public class ManagerRevenueController {
                 if ("ticket".equals(item.getItemType())) {
                     stats.ticketRevenue = stats.ticketRevenue.add(item.getItemPrice());
                     stats.ticketCount++;
-                    // Calculate ticket VAT
                     stats.ticketVAT = stats.ticketVAT.add(item.getItemPrice().multiply(TICKET_VAT_RATE));
                 } else {
                     stats.productRevenue = stats.productRevenue.add(item.getItemPrice());
                     stats.productCount++;
-                    // Calculate product VAT
                     stats.productVAT = stats.productVAT.add(item.getItemPrice().multiply(PRODUCT_VAT_RATE));
                 }
             }
@@ -148,43 +137,6 @@ public class ManagerRevenueController {
                 .multiply(BigDecimal.valueOf(100))
                 .divide(previous, 2, BigDecimal.ROUND_HALF_UP)
                 .doubleValue();
-    }
-
-    private void setupRevenueChart() {
-        // Clear any existing data
-        revenueChart.getData().clear();
-
-        // Create series for different revenue types
-        XYChart.Series<String, Number> ticketSeries = new XYChart.Series<>();
-        ticketSeries.setName("Ticket Revenue");
-
-        XYChart.Series<String, Number> productSeries = new XYChart.Series<>();
-        productSeries.setName("Product Revenue");
-
-        // Get last 6 months of data
-        LocalDateTime endDate = LocalDateTime.now();
-        LocalDateTime startDate = endDate.minusMonths(6);
-        List<Order> orders = orderDAO.getOrdersByDateRange(startDate, endDate);
-
-        // Group orders by month and calculate revenue
-        Map<YearMonth, List<Order>> ordersByMonth = orders.stream()
-                .collect(Collectors.groupingBy(order ->
-                        YearMonth.from(order.getOrderDate())));
-
-        // Populate chart data
-        YearMonth current = YearMonth.from(startDate);
-        while (!current.isAfter(YearMonth.from(endDate))) {
-            List<Order> monthOrders = ordersByMonth.getOrDefault(current, new ArrayList<>());
-            RevenueStatistics stats = calculateStatistics(monthOrders);
-
-            String monthLabel = current.format(DateTimeFormatter.ofPattern("MMM yy"));
-            ticketSeries.getData().add(new XYChart.Data<>(monthLabel, stats.ticketRevenue));
-            productSeries.getData().add(new XYChart.Data<>(monthLabel, stats.productRevenue));
-
-            current = current.plusMonths(1);
-        }
-
-        revenueChart.getData().addAll(ticketSeries, productSeries);
     }
 
     private void updateRevenueTable(List<Order> orders) {

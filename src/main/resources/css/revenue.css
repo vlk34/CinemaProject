@@ -1,9 +1,11 @@
+/* Card Styles */
 .stat-card {
     -fx-background-color: white;
     -fx-background-radius: 10;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 0);
 }
 
+/* Period Selector Styles */
 .period-selector {
     -fx-background-color: transparent;
     -fx-border-color: #ddd;
@@ -14,6 +16,7 @@
     -fx-border-color: #2a1b35;
 }
 
+/* Revenue Table Styles */
 .revenue-table {
     -fx-background-color: transparent;
 }
@@ -35,27 +38,28 @@
     -fx-background-color: #f8f9fa;
 }
 
-.chart-series-line {
-    -fx-stroke-width: 2px;
+/* Custom Scrollbar */
+.scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 12;
 }
 
-.default-color0.chart-series-line {
-    -fx-stroke: #2a1b35;
+.scroll-bar:vertical .thumb {
+    -fx-background-color: #ddd;
+    -fx-background-radius: 6;
 }
 
-.default-color1.chart-series-line {
-    -fx-stroke: #6c5ce7;
+.scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #ccc;
 }
 
-.chart-line-symbol {
-    -fx-background-radius: 5px;
-    -fx-padding: 5px;
+/* Table Header Alignment */
+.table-view .column-header {
+    -fx-alignment: CENTER;
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: transparent;
 }
 
-.default-color0.chart-line-symbol {
-    -fx-background-color: #2a1b35;
-}
-
-.default-color1.chart-line-symbol {
-    -fx-background-color: #6c5ce7;
+.table-view .table-column {
+    -fx-alignment: CENTER;
 }

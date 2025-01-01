@@ -11,6 +11,7 @@ public class Order {
     private LocalDateTime orderDate;
     private BigDecimal totalPrice;
     private List<OrderItem> orderItems;
+    private String status = "PENDING";
 
     public Order() {
         this.orderItems = new ArrayList<>();
@@ -73,5 +74,13 @@ public class Order {
         this.totalPrice = orderItems.stream()
                 .map(OrderItem::getItemPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

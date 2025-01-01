@@ -32,7 +32,6 @@ public class AdminMoviesController {
     @FXML private TextField genreField;
     @FXML private TextArea summaryField;
     @FXML private TextField durationField;
-    @FXML private TextField ticketPriceField;
     @FXML private ImageView posterImageView;
     @FXML private Button addMovieButton;
     @FXML private Button updateMovieButton;
@@ -41,7 +40,6 @@ public class AdminMoviesController {
     @FXML private TableColumn<Movie, String> titleColumn;
     @FXML private TableColumn<Movie, String> genreColumn;
     @FXML private TableColumn<Movie, Integer> durationColumn;
-    @FXML private TableColumn<Movie, BigDecimal> priceColumn;
     @FXML private TableColumn<Movie, Void> actionsColumn;
 
     private MovieDAO movieDAO;
@@ -73,9 +71,6 @@ public class AdminMoviesController {
         durationColumn.setCellValueFactory(new PropertyValueFactory<>("duration"));
         durationColumn.setStyle("-fx-alignment: CENTER;");
 
-        priceColumn.setCellValueFactory(new PropertyValueFactory<>("ticketPrice"));
-        priceColumn.setStyle("-fx-alignment: CENTER;");
-
         setupActionsColumn();
     }
 
@@ -90,7 +85,6 @@ public class AdminMoviesController {
         genreField.setText(movie.getGenre());
         summaryField.setText(movie.getSummary());
         durationField.setText(String.valueOf(movie.getDuration()));
-        ticketPriceField.setText(movie.getTicketPrice().toString());
 
         if (movie.getPosterPath() != null && !movie.getPosterPath().isEmpty()) {
             try {
@@ -172,7 +166,6 @@ public class AdminMoviesController {
             selectedMovie.setGenre(genreField.getText().trim());
             selectedMovie.setSummary(summaryField.getText().trim());
             selectedMovie.setDuration(Integer.parseInt(durationField.getText().trim()));
-            selectedMovie.setTicketPrice(new BigDecimal(ticketPriceField.getText().trim()));
             selectedMovie.setPosterPath(currentPosterPath);
 
             if (movieDAO.updateMovie(selectedMovie)) {
@@ -251,7 +244,6 @@ public class AdminMoviesController {
         genreField.clear();
         summaryField.clear();
         durationField.clear();
-        ticketPriceField.clear();
         posterImageView.setImage(null);
         selectedMovie = null;
         currentPosterPath = null;
