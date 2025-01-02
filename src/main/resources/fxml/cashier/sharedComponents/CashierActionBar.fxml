@@ -27,7 +27,6 @@
     <!-- Next/Confirm Button -->
     <Button fx:id="nextButton"
             text="Next"
-            onAction="#handleNext"
-            defaultButton="true"/>
+            onAction="#handleNext" />
 
 </HBox>

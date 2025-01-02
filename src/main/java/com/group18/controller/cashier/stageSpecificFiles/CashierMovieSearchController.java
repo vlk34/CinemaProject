@@ -105,24 +105,22 @@ public class CashierMovieSearchController {
         ImageView posterView = new ImageView();
         if (movie.getPosterPath() != null && !movie.getPosterPath().isEmpty()) {
             try {
-                File posterFile = new File(movie.getPosterPath());
-                if (posterFile.exists()) {
-                    // Use the same logic as populateMovieDetails
-                    posterView.setImage(new Image(posterFile.toURI().toString()));
-                } else {
-                    System.err.println("File not found: " + movie.getPosterPath());
-                    posterView.setImage(new Image(getClass().getResourceAsStream("/images/movies/dark_knight.jpg")));
-                }
+                // Use getResourceAsStream with the poster path
+                Image image = new Image(getClass().getResourceAsStream(movie.getPosterPath()));
+                posterView.setImage(image);
             } catch (Exception e) {
                 e.printStackTrace();
+                // Set default image if loading fails
                 posterView.setImage(new Image(getClass().getResourceAsStream("/images/movies/dark_knight.jpg")));
             }
         } else {
+            // Set default image if no poster path
             posterView.setImage(new Image(getClass().getResourceAsStream("/images/movies/dark_knight.jpg")));
         }
         posterView.setFitWidth(180);
         posterView.setFitHeight(270);
 
+        // Rest of the method remains the same
         Label titleLabel = new Label(movie.getTitle());
         titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14;");
         titleLabel.setWrapText(true);

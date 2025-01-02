@@ -17,7 +17,7 @@
         <TextField fx:id="titleField" GridPane.columnIndex="1" GridPane.rowIndex="0" />
 
         <Label text="Genre:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
-        <TextField fx:id="genreField" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+        <ComboBox fx:id="genreComboBox" prefWidth="150" promptText="Genre" GridPane.columnIndex="1" GridPane.rowIndex="1" />
 
         <Label text="Duration (min):" GridPane.columnIndex="0" GridPane.rowIndex="2" />
         <TextField fx:id="durationField" GridPane.columnIndex="1" GridPane.rowIndex="2" />

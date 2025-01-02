@@ -24,6 +24,7 @@ public class AddMovieDialogController {
     @FXML private Button selectPosterButton;
     @FXML private Button addMovieButton;
     @FXML private Button cancelButton;
+    @FXML private ComboBox<String> genreComboBox;
 
     private MovieDAO movieDAO;
     private String currentPosterPath;
@@ -32,6 +33,7 @@ public class AddMovieDialogController {
     @FXML
     private void initialize() {
         movieDAO = new MovieDAO();
+        genreComboBox.getItems().addAll("Action", "Comedy", "Drama", "Horror", "Science Fiction");
         selectPosterButton.setOnAction(event -> handleSelectPoster());
         addMovieButton.setOnAction(event -> handleAddMovie());
         cancelButton.setOnAction(event -> dialogStage.close());
@@ -40,11 +42,11 @@ public class AddMovieDialogController {
     private void handleAddMovie() {
         try {
             String title = titleField.getText().trim();
-            String genre = genreField.getText().trim();
+            String genre = genreComboBox.getValue();
             String summary = summaryField.getText().trim();
             int duration = Integer.parseInt(durationField.getText().trim());
 
-            if (title.isEmpty() || genre.isEmpty() || summary.isEmpty()) {
+            if (title.isEmpty() || genre.isEmpty() || summary.isEmpty() || genre == null) {
                 showAlert("Validation Error", "Please fill in all fields.");
                 return;
             }
@@ -65,6 +67,7 @@ public class AddMovieDialogController {
     private void handleSelectPoster() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select Movie Poster");
+        fileChooser.setInitialDirectory(new File("src/main/resources/images/movies"));
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif")
         );
@@ -73,13 +76,10 @@ public class AddMovieDialogController {
 
         if (selectedFile != null) {
             try {
-                Path posterDir = Paths.get("src/main/resources/posters");
-                Files.createDirectories(posterDir);
-                String fileName = System.currentTimeMillis() + "_" + selectedFile.getName();
-                Path targetPath = posterDir.resolve(fileName);
-                Files.copy(selectedFile.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-                posterImageView.setImage(new Image(targetPath.toUri().toString()));
-                currentPosterPath = targetPath.toString();
+                posterImageView.setImage(new Image(selectedFile.toURI().toString()));
+
+                // Store the relative path for database
+                currentPosterPath = "/images/movies/" + selectedFile.getName();
             } catch (Exception e) {
                 showAlert("Error", "Failed to select poster: " + e.getMessage());
             }

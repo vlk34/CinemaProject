@@ -98,18 +98,34 @@ public class CashierSessionSelectController {
     }
 
     private void loadMoviePoster() {
-        String posterPath = selectedMovie.getPosterPath();
-        Image posterImage = posterPath != null && !posterPath.isEmpty()
-                ? tryLoadImage(posterPath)
-                : getDefaultImage();
-        moviePosterView.setImage(posterImage);
-    }
+        if (selectedMovie == null || selectedMovie.getPosterPath() == null) {
+            // Set default image if no movie or poster path
+            moviePosterView.setImage(new Image(getClass().getResourceAsStream("/images/movies/default_poster.jpg")));
+            return;
+        }
 
-    private Image tryLoadImage(String path) {
         try {
-            return new Image(new File(path).toURI().toString());
+            // Try loading from resource path first
+            Image resourceImage = new Image(getClass().getResourceAsStream(selectedMovie.getPosterPath()));
+
+            // If resource image is valid, use it
+            if (resourceImage.isError()) {
+                // If resource loading fails, try file path
+                File posterFile = new File(selectedMovie.getPosterPath());
+                if (posterFile.exists()) {
+                    resourceImage = new Image(posterFile.toURI().toString());
+                }
+            }
+
+            // Set image, fallback to default if still invalid
+            moviePosterView.setImage(resourceImage.isError()
+                    ? new Image(getClass().getResourceAsStream("/images/movies/default_poster.jpg"))
+                    : resourceImage);
+
         } catch (Exception e) {
-            return getDefaultImage();
+            // Fallback to default image if any exception occurs
+            moviePosterView.setImage(new Image(getClass().getResourceAsStream("/images/movies/default_poster.jpg")));
+            System.err.println("Error loading poster: " + e.getMessage());
         }
     }
 
@@ -161,6 +177,7 @@ public class CashierSessionSelectController {
             String hallName = schedule.getHallId() == 1 ? "Hall_A" : "Hall_B";
 
             MovieSession session = new MovieSession(
+                    schedule.getScheduleId(),
                     hallName,
                     schedule.getSessionTime(),
                     availableSeats

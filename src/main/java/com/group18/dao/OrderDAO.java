@@ -240,6 +240,7 @@ public class OrderDAO {
         return items;
     }
 
+
     private Order extractOrderFromResultSet(ResultSet rs) throws SQLException {
         Order order = new Order();
         order.setOrderId(rs.getInt("order_id"));

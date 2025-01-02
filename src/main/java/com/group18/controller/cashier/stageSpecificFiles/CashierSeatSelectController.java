@@ -1,5 +1,10 @@
 package com.group18.controller.cashier.stageSpecificFiles;
 import com.group18.controller.cashier.CashierController;
+import com.group18.dao.DBConnection;
+import com.group18.dao.OrderDAO;
+import com.group18.dao.PriceDAO;
+import com.group18.model.OrderItem;
+import com.group18.model.ShoppingCart;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -9,6 +14,11 @@ import com.group18.model.Movie;
 import com.group18.model.MovieSession;
 import javafx.scene.shape.Circle;
 
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -28,6 +38,8 @@ public class CashierSeatSelectController {
     private Set<String> selectedSeats = new TreeSet<>();
     private Set<String> occupiedSeats = new HashSet<>();
     private double ticketPrice = 50.0;
+    private PriceDAO priceDAO;
+    private ShoppingCart cart;
 
     private static final int HALL_A_SIZE = 16; // 4x4
     private static final int HALL_B_SIZE = 48; // 6x8
@@ -41,12 +53,17 @@ public class CashierSeatSelectController {
     @FXML
     private void initialize() {
         confirmButton.setDisable(true);
+        priceDAO = new PriceDAO();
+        cart = ShoppingCart.getInstance();
     }
 
     public void setSessionInfo(Movie movie, MovieSession session, LocalDate date) {
         this.movie = movie;
         this.session = session;
         this.date = date;
+
+        // Load ticket price from database using your existing PriceDAO
+        this.ticketPrice = priceDAO.getTicketPrice(session.getHall());
 
         updateSessionInfo();
         loadOccupiedSeats();
@@ -62,11 +79,20 @@ public class CashierSeatSelectController {
 
     private void loadOccupiedSeats() {
         occupiedSeats.clear();
-        // Sample occupied seats
-        if (session.getHall().equals("Hall_A")) {
-            occupiedSeats.addAll(Arrays.asList("A1", "B2"));
-        } else {
-            occupiedSeats.addAll(Arrays.asList("C4", "D5", "E6"));
+        String query = "SELECT seat_number FROM order_items WHERE schedule_id = ? AND item_type = 'ticket'";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, session.getScheduleId());
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                // Convert numeric seat to display format (A1, B1, etc.)
+                int seatNumber = rs.getInt("seat_number");
+                occupiedSeats.add(convertNumberToSeatId(seatNumber));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
@@ -171,12 +197,55 @@ public class CashierSeatSelectController {
 
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            addSeatsToCart();
+            cashierController.navigateWithData(selectedSeats);
         }
     }
 
     private void addSeatsToCart() {
-        // TODO: Implement cart integration
+        for (String seatId : selectedSeats) {
+            OrderItem ticketItem = new OrderItem();
+            ticketItem.setItemType("ticket");
+            ticketItem.setScheduleId(session.getScheduleId());
+            // Convert A1, B1 format to numeric seat number for database
+            ticketItem.setSeatNumber(convertSeatIdToNumber(seatId));
+            ticketItem.setQuantity(1);
+            ticketItem.setItemPrice(BigDecimal.valueOf(ticketPrice));
+            ticketItem.setDiscountApplied(false); // Will be handled in the next stage
+
+            cart.addItem(ticketItem);
+        }
+
+        // Show success message
+        Alert success = new Alert(Alert.AlertType.INFORMATION);
+        success.setTitle("Success");
+        success.setHeaderText(null);
+        success.setContentText("Added " + selectedSeats.size() + " tickets to cart.");
+        success.showAndWait();
+
+        // Move to the next stage (customer info & discounts)
+        if (cashierController != null) {
+            cashierController.navigateWithData(selectedSeats);
+        }
+    }
+
+    private int convertSeatIdToNumber(String seatId) {
+        // Convert A1, B1 etc. to 1, 5 etc. (using 4 columns for Hall_A, 8 for Hall_B)
+        char row = seatId.charAt(0);
+        int col = Integer.parseInt(seatId.substring(1));
+        int cols = session.getHall().equals("Hall_A") ? 4 : 8;
+
+        // Example for Hall_A (4 columns):
+        // A1 -> 1, A2 -> 2, A3 -> 3, A4 -> 4
+        // B1 -> 5, B2 -> 6, B3 -> 7, B4 -> 8
+        return ((row - 'A') * cols) + col;
+    }
+
+    private String convertNumberToSeatId(int number) {
+        // Convert 1, 5 etc. back to A1, B1 etc.
+        int cols = session.getHall().equals("Hall_A") ? 4 : 8;
+        int row = (number - 1) / cols;
+        int col = ((number - 1) % cols) + 1;
+        return String.format("%c%d", (char)('A' + row), col);
     }
 
     private void showError(String title, String content) {

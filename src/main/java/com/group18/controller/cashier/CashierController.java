@@ -84,6 +84,10 @@ public class CashierController {
 
         // Move to next stage
         nextStage();
+
+        if (actionBarController != null) {
+            actionBarController.updateButtonStates(currentStageIndex);
+        }
     }
 
     public void nextStage() {
@@ -119,6 +123,11 @@ public class CashierController {
             if (stepperController != null) {
                 stepperController.updateSteps(index);
             }
+
+            if (actionBarController != null) {
+                actionBarController.updateButtonStates(currentStageIndex);
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
         }

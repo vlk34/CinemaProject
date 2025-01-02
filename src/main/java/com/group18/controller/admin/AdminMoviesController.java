@@ -29,7 +29,6 @@ import java.util.List;
 
 public class AdminMoviesController {
     @FXML private TextField titleField;
-    @FXML private TextField genreField;
     @FXML private TextArea summaryField;
     @FXML private TextField durationField;
     @FXML private ImageView posterImageView;
@@ -41,6 +40,9 @@ public class AdminMoviesController {
     @FXML private TableColumn<Movie, String> genreColumn;
     @FXML private TableColumn<Movie, Integer> durationColumn;
     @FXML private TableColumn<Movie, Void> actionsColumn;
+    @FXML private ComboBox<String> genreComboBox;
+    @FXML private ComboBox<String> filterGenreComboBox;
+    @FXML private TextField searchField;
 
     private MovieDAO movieDAO;
     private Movie selectedMovie;
@@ -50,7 +52,15 @@ public class AdminMoviesController {
     private void initialize() {
         movieDAO = new MovieDAO();
 
+        // Initialize ComboBox items
+        genreComboBox.getItems().addAll("Action", "Comedy", "Drama", "Horror", "Science Fiction");
+        filterGenreComboBox.getItems().addAll("All Genres", "Action", "Comedy", "Drama", "Horror", "Science Fiction");
+
+        // Initialize filterGenreComboBox with "All Genres"
+        filterGenreComboBox.setValue("All Genres");
+
         setupTableColumns();
+        setupGenreComboBoxes();
         loadMovies();
 
         moviesTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
@@ -59,6 +69,30 @@ public class AdminMoviesController {
                 populateMovieDetails(newSelection);
             }
         });
+    }
+
+    private void setupGenreComboBoxes() {
+        // Add listener to filter genre ComboBox
+        filterGenreComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            // Implement filtering logic here
+            filterMovies();
+        });
+    }
+
+    private void filterMovies() {
+        String selectedGenre = filterGenreComboBox.getValue();
+        String searchText = searchField.getText().toLowerCase();
+
+        ObservableList<Movie> allMovies = FXCollections.observableArrayList(movieDAO.getAllMovies());
+        ObservableList<Movie> filteredMovies = allMovies.filtered(movie -> {
+            boolean matchesGenre = selectedGenre == null || selectedGenre.equals("All Genres") ||
+                    selectedGenre.equals(movie.getGenre());
+            boolean matchesSearch = searchText == null || searchText.isEmpty() ||
+                    movie.getTitle().toLowerCase().contains(searchText);
+            return matchesGenre && matchesSearch;
+        });
+
+        moviesTable.setItems(filteredMovies);
     }
 
     private void setupTableColumns() {
@@ -82,19 +116,20 @@ public class AdminMoviesController {
 
     private void populateMovieDetails(Movie movie) {
         titleField.setText(movie.getTitle());
-        genreField.setText(movie.getGenre());
+        genreComboBox.setValue(movie.getGenre());
         summaryField.setText(movie.getSummary());
         durationField.setText(String.valueOf(movie.getDuration()));
 
         if (movie.getPosterPath() != null && !movie.getPosterPath().isEmpty()) {
             try {
-                File posterFile = new File(movie.getPosterPath());
-                if (posterFile.exists()) {
-                    posterImageView.setImage(new Image(posterFile.toURI().toString()));
-                    currentPosterPath = movie.getPosterPath();
-                }
+                // Load image using getResource since we're using a relative path
+                Image image = new Image(getClass().getResourceAsStream(movie.getPosterPath()));
+                posterImageView.setImage(image);
+                currentPosterPath = movie.getPosterPath();
             } catch (Exception e) {
                 e.printStackTrace();
+                // Optionally set a default image if loading fails
+                posterImageView.setImage(null);
             }
         } else {
             posterImageView.setImage(null);
@@ -106,6 +141,7 @@ public class AdminMoviesController {
     private void handleSelectPoster() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select Movie Poster");
+        fileChooser.setInitialDirectory(new File("src/main/resources/images/movies")); // Set initial directory
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif")
         );
@@ -114,15 +150,13 @@ public class AdminMoviesController {
 
         if (selectedFile != null) {
             try {
-                Path posterDir = Paths.get("src/main/resources/posters");
-                Files.createDirectories(posterDir);
-                String fileName = System.currentTimeMillis() + "_" + selectedFile.getName();
-                Path targetPath = posterDir.resolve(fileName);
-                Files.copy(selectedFile.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-                posterImageView.setImage(new Image(targetPath.toUri().toString()));
-                currentPosterPath = targetPath.toString();
+                // Just use the selected file directly
+                posterImageView.setImage(new Image(selectedFile.toURI().toString()));
+
+                // Store the relative path
+                currentPosterPath = "/images/movies/" + selectedFile.getName();
             } catch (Exception e) {
-                e.printStackTrace();
+                showAlert("Error", "Failed to select poster: " + e.getMessage());
             }
         }
     }
@@ -163,7 +197,7 @@ public class AdminMoviesController {
 
         try {
             selectedMovie.setTitle(titleField.getText().trim());
-            selectedMovie.setGenre(genreField.getText().trim());
+            selectedMovie.setGenre(genreComboBox.getValue());
             selectedMovie.setSummary(summaryField.getText().trim());
             selectedMovie.setDuration(Integer.parseInt(durationField.getText().trim()));
             selectedMovie.setPosterPath(currentPosterPath);
@@ -176,7 +210,7 @@ public class AdminMoviesController {
                 showAlert("Error", "Failed to update movie");
             }
         } catch (NumberFormatException e) {
-            showAlert("Error", "Invalid duration or price format");
+            showAlert("Error", "Invalid duration format");
         }
     }
 
@@ -241,7 +275,7 @@ public class AdminMoviesController {
 
     private void clearFields() {
         titleField.clear();
-        genreField.clear();
+        genreComboBox.setValue(null);
         summaryField.clear();
         durationField.clear();
         posterImageView.setImage(null);

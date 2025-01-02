@@ -5,6 +5,8 @@
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
+<?import javafx.collections.FXCollections?>
+<?import java.lang.String?>
 <ScrollPane fitToWidth="true" style="-fx-background: #F5F7FA; -fx-background-color: #F5F7FA;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.group18.controller.admin.AdminMoviesController">
     <VBox spacing="20" style="-fx-background-color: #F5F7FA;">
         <padding>
@@ -38,7 +40,7 @@
                 <TextField fx:id="titleField" GridPane.columnIndex="1" GridPane.rowIndex="0" />
 
                 <Label text="Genre:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
-                <TextField fx:id="genreField" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                <ComboBox fx:id="genreComboBox" prefWidth="150" promptText="Genre" GridPane.columnIndex="1" GridPane.rowIndex="1" />
 
                 <Label text="Duration (min):" GridPane.columnIndex="0" GridPane.rowIndex="2" />
                 <TextField fx:id="durationField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
@@ -73,13 +75,14 @@
             </padding>
 
             <!-- Search and Filter -->
+            <!-- Search and Filter -->
             <HBox alignment="CENTER_LEFT" spacing="15">
-                <TextField prefWidth="300" promptText="Search movies...">
+                <TextField fx:id="searchField" prefWidth="300" promptText="Search movies...">
                     <padding>
                         <Insets bottom="8" left="15" right="15" top="8" />
                     </padding>
                 </TextField>
-                <ComboBox prefWidth="150" promptText="Genre" />
+                <ComboBox fx:id="filterGenreComboBox" prefWidth="150" promptText="Genre" />
             </HBox>
 
             <!-- Movies Table -->
