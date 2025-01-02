@@ -21,7 +21,7 @@ public class CashierController {
     @FXML private Node currentStage;
     @FXML private CashierStepperController stepperController;
     @FXML private CashierActionBarController actionBarController;
-    @FXML private CashierCartController cartController;
+    @FXML private CashierCartController cashierCartController;
 
     private int currentStageIndex = 0;
     private final String[] stages = {
@@ -43,6 +43,9 @@ public class CashierController {
         try {
             // Set the main controller reference for the action bar
             actionBarController.setMainController(this);
+
+            cashierCartController.setMainController(this);
+            System.out.println(cashierCartController);
 
             // Load initial stage
             FXMLLoader loader = new FXMLLoader(getClass().getResource(stages[0]));
@@ -168,13 +171,18 @@ public class CashierController {
         loadStage(currentStageIndex);
 
         // Clear the cart using the injected controller
-        if (cartController != null) {
-            cartController.clearCart();
+        if (cashierCartController != null) {
+            cashierCartController.clearCart();
         }
     }
 
     public int getCurrentStageIndex() {
         return currentStageIndex;
+    }
+
+    public CashierCartController getCartController() {
+        System.out.println("Getting cart controller - Current value: " + (cashierCartController == null ? "NULL" : "NOT NULL"));
+        return cashierCartController;
     }
 
     // Getters for stored data

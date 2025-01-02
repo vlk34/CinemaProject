@@ -1,52 +1,107 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
-<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
 
-<VBox fx:id="cartContainer" styleClass="cart" maxHeight="200"
-      xmlns="http://javafx.com/javafx/23" xmlns:fx="http://javafx.com/fxml/1"
+<VBox fx:id="cashierCart"
+      styleClass="cart"
+      spacing="10"
+      style="-fx-background-color: white;
+              -fx-background-radius: 10;
+              -fx-padding: 10px;
+              -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);"
+      xmlns="http://javafx.com/javafx/17.0.12"
+      xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.group18.controller.cashier.sharedComponents.CashierCartController">
 
-    <padding>
-        <Insets top="10" right="20" bottom="10" left="20"/>
-    </padding>
+    <!-- Cart Header with Minimize/Maximize Button -->
+    <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-background-color: #f4f4f4; -fx-background-radius: 5; -fx-padding: 8px;">
+        <Button fx:id="toggleDetailsButton"
+                style="-fx-background-color: transparent;"
+                onAction="#toggleCartDetails">
+            <graphic>
+                <ImageView fitHeight="20" fitWidth="20" pickOnBounds="true" preserveRatio="true">
+                    <Image url="@/images/minimize.png"/>
+                </ImageView>
+            </graphic>
+        </Button>
 
-    <!-- Cart Header -->
-    <HBox alignment="CENTER_LEFT" spacing="10">
-        <Label text="Shopping Cart" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+        <Label text="Cart" styleClass="cart-summary-label" style="-fx-font-weight: bold;"/>
+
+        <Label fx:id="itemCountLabel"
+               styleClass="cart-summary-value"
+               style="-fx-background-color: #2a1b35;
+                      -fx-text-fill: white;
+                      -fx-background-radius: 15;
+                      -fx-padding: 2 8 2 8;"/>
+
         <Region HBox.hgrow="ALWAYS"/>
-        <Label fx:id="itemCountLabel" text="0 items" style="-fx-text-fill: #666666;"/>
+
+        <Label text="Total:" styleClass="cart-summary-label"/>
+        <Label fx:id="totalLabel"
+               styleClass="cart-summary-value"
+               style="-fx-font-weight: bold;"/>
     </HBox>
 
-    <!-- Cart Items List -->
-    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
-                style="-fx-background-color: transparent;"
-                maxHeight="100">
-        <VBox fx:id="cartItemsContainer" spacing="5">
-            <padding>
-                <Insets top="5" bottom="5"/>
-            </padding>
+    <!-- Expandable Cart Details -->
+    <VBox fx:id="cartDetailsContainer" visible="false" managed="false">
+        <!-- Cart Items Container -->
+        <ScrollPane fitToWidth="true"
+                    VBox.vgrow="ALWAYS"
+                    minHeight="150"
+                    maxHeight="300"
+                    style="-fx-background: transparent;
+                           -fx-background-color: transparent;
+                           -fx-border-color: #e0e0e0;
+                           -fx-border-radius: 5;">
+            <VBox fx:id="cartItemsContainer"
+                  spacing="10"
+                  style="-fx-background-color: transparent;"
+                  minWidth="250">
+                <padding>
+                    <Insets bottom="10.0" left="15.0" right="15.0" top="10.0" />
+                </padding>
+            </VBox>
+        </ScrollPane>
+
+        <!-- Detailed Summary -->
+        <VBox spacing="8"
+              style="-fx-background-color: #f4f4f4;
+                     -fx-background-radius: 5;
+                     -fx-padding: 10;">
+
+            <HBox styleClass="cart-summary-row">
+                <Label text="Subtotal:" styleClass="cart-summary-label"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="subtotalLabel" styleClass="cart-summary-value"/>
+            </HBox>
+
+            <Separator/>
+
+            <HBox styleClass="cart-summary-row">
+                <Label text="Discounts:" styleClass="cart-summary-label"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="discountsLabel" styleClass="cart-summary-value"/>
+            </HBox>
+
+            <Separator/>
+
+            <HBox styleClass="cart-summary-row">
+                <Label text="Tax:" styleClass="cart-summary-label"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="taxLabel" styleClass="cart-summary-value"/>
+            </HBox>
         </VBox>
-    </ScrollPane>
 
-    <!-- Summary Section -->
-    <VBox spacing="3" style="-fx-padding: 5 0 0 0; -fx-border-color: transparent #dddddd transparent transparent;">
-        <!-- Combine Subtotal and Discounts in one row -->
-        <HBox alignment="CENTER_RIGHT" spacing="20">
-            <Label text="Subtotal:" style="-fx-text-fill: #666666;"/>
-            <Label fx:id="subtotalLabel" text="₺0.00" style="-fx-font-weight: bold;"/>
-            <Label text="Discounts:" style="-fx-text-fill: #666666;"/>
-            <Label fx:id="discountsLabel" text="-₺0.00" style="-fx-text-fill: #E74C3C;"/>
-        </HBox>
-
-        <!-- Combine Tax and Total in one row -->
-        <HBox alignment="CENTER_RIGHT" spacing="20" style="-fx-padding: 3 0 0 0; -fx-border-color: #dddddd transparent transparent transparent;">
-            <Label text="Tax (20%):" style="-fx-text-fill: #666666;"/>
-            <Label fx:id="taxLabel" text="₺0.00"/>
-            <Label text="Total:" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
-            <Label fx:id="totalLabel" text="₺0.00" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
-        </HBox>
+        <!-- Checkout Button -->
+        <Button text="Proceed to Checkout"
+                fx:id="checkoutButton"
+                style="-fx-background-color: #2a1b35;
+                       -fx-text-fill: white;
+                       -fx-background-radius: 5;"
+                maxWidth="Infinity"/>
     </VBox>
-
 </VBox>

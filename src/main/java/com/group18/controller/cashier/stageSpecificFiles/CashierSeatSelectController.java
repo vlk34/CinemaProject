@@ -1,5 +1,6 @@
 package com.group18.controller.cashier.stageSpecificFiles;
 import com.group18.controller.cashier.CashierController;
+import com.group18.controller.cashier.sharedComponents.CashierCartController;
 import com.group18.dao.DBConnection;
 import com.group18.dao.OrderDAO;
 import com.group18.dao.PriceDAO;
@@ -164,6 +165,7 @@ public class CashierSeatSelectController {
             selectedSeats.remove(seatId);
             seatCircle.setFill(javafx.scene.paint.Color.valueOf("#2ECC71")); // Back to green
             seatCircle.setOpacity(1.0);
+
         } else {
             selectedSeats.add(seatId);
             seatCircle.setFill(javafx.scene.paint.Color.valueOf("#3498DB")); // Blue for selected
@@ -197,34 +199,18 @@ public class CashierSeatSelectController {
 
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
+            addSeatsToCart();
+
             cashierController.navigateWithData(selectedSeats);
         }
     }
 
     private void addSeatsToCart() {
-        for (String seatId : selectedSeats) {
-            OrderItem ticketItem = new OrderItem();
-            ticketItem.setItemType("ticket");
-            ticketItem.setScheduleId(session.getScheduleId());
-            // Convert A1, B1 format to numeric seat number for database
-            ticketItem.setSeatNumber(convertSeatIdToNumber(seatId));
-            ticketItem.setQuantity(1);
-            ticketItem.setItemPrice(BigDecimal.valueOf(ticketPrice));
-            ticketItem.setDiscountApplied(false); // Will be handled in the next stage
+        CashierCartController cartController = cashierController.getCartController();
+        if (cartController != null) {
 
-            cart.addItem(ticketItem);
-        }
-
-        // Show success message
-        Alert success = new Alert(Alert.AlertType.INFORMATION);
-        success.setTitle("Success");
-        success.setHeaderText(null);
-        success.setContentText("Added " + selectedSeats.size() + " tickets to cart.");
-        success.showAndWait();
-
-        // Move to the next stage (customer info & discounts)
-        if (cashierController != null) {
-            cashierController.navigateWithData(selectedSeats);
+            cartController.setSessionContext(movie, session, date);
+            cartController.addSeatsToCart(selectedSeats);
         }
     }
 

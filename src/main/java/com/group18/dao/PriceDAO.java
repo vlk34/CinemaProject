@@ -15,12 +15,15 @@ public class PriceDAO {
 
     // Ticket Prices
     public double getTicketPrice(String hall) {
-        String query = "SELECT price FROM ticket_prices WHERE hall = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+        // Use a local connection that's created and closed within the method
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement("SELECT price FROM ticket_prices WHERE hall = ?")) {
+
             pstmt.setString(1, hall);
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                return rs.getDouble("price");
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getDouble("price");
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -28,9 +31,11 @@ public class PriceDAO {
         return 0.0;
     }
 
+    // Apply similar pattern to other methods
     public boolean updateTicketPrice(String hall, double newPrice) {
-        String query = "UPDATE ticket_prices SET price = ? WHERE hall = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement("UPDATE ticket_prices SET price = ? WHERE hall = ?")) {
+
             pstmt.setDouble(1, newPrice);
             pstmt.setString(2, hall);
             int rowsUpdated = pstmt.executeUpdate();
@@ -43,9 +48,10 @@ public class PriceDAO {
 
     // Age Discounts
     public double getAgeDiscount() {
-        String query = "SELECT discount_rate FROM age_discounts WHERE discount_type = 'age'";
-        try (Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
+        try (Connection connection = DBConnection.getConnection();
+             Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT discount_rate FROM age_discounts WHERE discount_type = 'age'")) {
+
             if (rs.next()) {
                 return rs.getDouble("discount_rate");
             }
@@ -56,8 +62,9 @@ public class PriceDAO {
     }
 
     public boolean updateAgeDiscount(double newDiscount) {
-        String query = "UPDATE age_discounts SET discount_rate = ? WHERE discount_type = 'age'";
-        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement("UPDATE age_discounts SET discount_rate = ? WHERE discount_type = 'age'")) {
+
             pstmt.setDouble(1, newDiscount);
             int rowsUpdated = pstmt.executeUpdate();
             return rowsUpdated > 0;
@@ -69,9 +76,10 @@ public class PriceDAO {
 
     // Price History
     public void logPriceChange(PriceHistory log) {
-        String query = "INSERT INTO price_history (change_date, item, old_price, new_price, updated_by) " +
-                "VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(
+                     "INSERT INTO price_history (change_date, item, old_price, new_price, updated_by) VALUES (?, ?, ?, ?, ?)")) {
+
             pstmt.setDate(1, Date.valueOf(log.getChangeDate()));
             pstmt.setString(2, log.getItem());
             pstmt.setDouble(3, log.getOldPrice());
@@ -85,9 +93,10 @@ public class PriceDAO {
 
     public List<PriceHistory> getPriceUpdateHistory() {
         List<PriceHistory> history = new ArrayList<>();
-        String query = "SELECT * FROM price_history ORDER BY change_date DESC";
-        try (Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
+        try (Connection connection = DBConnection.getConnection();
+             Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT * FROM price_history ORDER BY change_date DESC")) {
+
             while (rs.next()) {
                 PriceHistory log = new PriceHistory(
                         rs.getDate("change_date").toLocalDate(),

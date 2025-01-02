@@ -6,6 +6,7 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.image.Image?>
 
+<?import java.lang.String?>
 <ScrollPane fitToWidth="true" style="-fx-background: #F5F7FA; -fx-background-color: #F5F7FA;"
             xmlns="http://javafx.com/javafx/23" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.group18.controller.cashier.stageSpecificFiles.CashierCustomerDetailsController">
@@ -21,7 +22,7 @@
                 <Insets top="20" right="25" bottom="20" left="25"/>
             </padding>
 
-            <Label text="Customer Information" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+            <Label text="Customer Information" styleClass="section-title"/>
 
             <GridPane hgap="15" vgap="15">
                 <columnConstraints>
@@ -44,37 +45,40 @@
 
             <Button fx:id="verifyAgeButton" text="Verify Age for Discount"
                     onAction="#handleVerifyAge"
-                    style="-fx-background-color: #2a1b35; -fx-text-fill: white;"/>
+                    style="-fx-background-color: #2a1b35; -fx-text-fill: white; -fx-background-radius: 5;"/>
         </VBox>
 
         <!-- Additional Products Section -->
-        <VBox styleClass="card">
+        <VBox styleClass="card" spacing="15">
             <padding>
                 <Insets top="20" right="25" bottom="20" left="25"/>
             </padding>
 
-            <Label text="Additional Products" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+            <Label text="Additional Products" styleClass="section-title"/>
 
             <!-- Products TabPane -->
-            <TabPane>
+            <TabPane style="-fx-tab-min-width: 120;">
+                <styleClass>
+                    <String fx:value="floating-tabs"/>
+                </styleClass>
                 <!-- Beverages Tab -->
                 <Tab text="Beverages" closable="false">
-                    <ScrollPane fitToWidth="true">
-                        <FlowPane fx:id="beveragesContainer" hgap="20" vgap="20"/>
+                    <ScrollPane fitToWidth="true" styleClass="transparent-scroll-pane">
+                        <FlowPane fx:id="beveragesContainer" styleClass="products-container"/>
                     </ScrollPane>
                 </Tab>
 
                 <!-- Biscuits Tab -->
                 <Tab text="Biscuits" closable="false">
-                    <ScrollPane fitToWidth="true">
-                        <FlowPane fx:id="biscuitsContainer" hgap="20" vgap="20"/>
+                    <ScrollPane fitToWidth="true" styleClass="transparent-scroll-pane">
+                        <FlowPane fx:id="biscuitsContainer" styleClass="products-container"/>
                     </ScrollPane>
                 </Tab>
 
                 <!-- Toys Tab -->
                 <Tab text="Toys" closable="false">
-                    <ScrollPane fitToWidth="true">
-                        <FlowPane fx:id="toysContainer" hgap="20" vgap="20"/>
+                    <ScrollPane fitToWidth="true" styleClass="transparent-scroll-pane">
+                        <FlowPane fx:id="toysContainer" styleClass="products-container"/>
                     </ScrollPane>
                 </Tab>
             </TabPane>

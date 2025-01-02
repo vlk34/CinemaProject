@@ -1,0 +1,62 @@
+/* Date Picker Styles */
+.date-picker > .arrow-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.date-picker > .arrow-button:hover {
+    -fx-background-color: rgba(42, 27, 53, 0.1);
+    -fx-opacity: 1;
+}
+
+.date-picker-popup > * > .spinner > .button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: #2a1b35;
+}
+
+.date-picker-popup > * > .spinner > .button:hover {
+    -fx-background-color: rgba(42, 27, 53, 0.1);
+    -fx-opacity: 1;
+}
+
+.date-picker-popup > * > .spinner > .button:pressed {
+    -fx-background-color: rgba(42, 27, 53, 0.2);
+    -fx-opacity: 1;
+}
+
+.date-picker-popup > * > .spinner {
+    -fx-background-color: white;
+}
+
+/* Also add base date picker styling */
+.date-picker {
+    -fx-background-color: #f8f9fa;
+    -fx-background-radius: 5;
+    -fx-border-color: #dee2e6;
+    -fx-border-radius: 5;
+}
+
+.date-picker:focused {
+    -fx-border-color: #2a1b35;
+    -fx-background-color: white;
+}
+
+.date-picker .cell {
+    -fx-background-color: white;
+    -fx-text-fill: #2a1b35;
+    -fx-padding: 4 8;
+}
+
+.date-picker .cell:hover {
+    -fx-background-color: rgba(42, 27, 53, 0.1);
+}
+
+.date-picker .cell:focused {
+    -fx-background-color: rgba(42, 27, 53, 0.2);
+}
+
+.date-picker .selected {
+    -fx-background-color: #2a1b35;
+    -fx-text-fill: white;
+}

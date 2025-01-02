@@ -185,9 +185,7 @@ public class ManagerStaffController implements Initializable {
     private void showAddStaffDialog() {
         AddStaffDialog dialog = new AddStaffDialog(userDAO);
         dialog.showAndWait().ifPresent(newUser -> {
-            masterData.add(newUser);
-            updateStaffStats();
-            staffTable.refresh();
+            loadStaffData();
         });
     }
 
