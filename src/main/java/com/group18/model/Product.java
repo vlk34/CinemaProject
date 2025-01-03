@@ -8,23 +8,43 @@ public class Product {
     private String productType; // enum('beverage','biscuit','toy')
     private BigDecimal price;
     private int stock;
-
+    private String imagePath;
     public Product() {}
 
-    public Product(String productName, String productType, BigDecimal price, int stock) {
+    public Product(String productName, String productType, BigDecimal price, int stock, String imagePath) {
         this.productName = productName;
         this.productType = productType;
         this.price = price;
         this.stock = stock;
+        this.imagePath = imagePath;
     }
 
     // Constructor with product ID (for when you want to create a product with an existing ID)
-    public Product(int productId, String productName, String productType, BigDecimal price, int stock) {
+    public Product(int productId, String productName, String productType, BigDecimal price, int stock, String imagePath) {
         this.productId = productId;
         this.productName = productName;
         this.productType = productType;
         this.price = price;
         this.stock = stock;
+        this.imagePath = imagePath;
+    }
+
+    // Constructor without image path (for backwards compatibility)
+    public Product(String productName, String productType, BigDecimal price, int stock) {
+        this(productName, productType, price, stock, null);
+    }
+
+    // Constructor with ID but without image path (for backwards compatibility)
+    public Product(int productId, String productName, String productType, BigDecimal price, int stock) {
+        this(productId, productName, productType, price, stock, null);
+    }
+
+    public String getImagePath() {
+        return imagePath;
+    }
+
+    public void setImagePath(String path) {
+        this.imagePath = path;
     }
 
     // Getters and Setters

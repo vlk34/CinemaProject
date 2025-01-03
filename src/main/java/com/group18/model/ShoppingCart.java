@@ -19,6 +19,10 @@ public class ShoppingCart {
         return instance;
     }
 
+    public boolean isEmpty() {
+        return items.isEmpty();
+    }
+
     public void setCashierId(int cashierId) {
         this.cashierId = cashierId;
     }

@@ -1,28 +1,44 @@
 package com.group18.model;
 
 import com.group18.dao.ProductDAO;
-import com.group18.model.Product;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
-
+import javafx.scene.layout.HBox;
+import javafx.stage.FileChooser;
+import java.io.File;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 public class EditProductDialog extends Dialog<Product> {
     private ProductDAO productDAO;
     private Product originalProduct;
+    private String currentImagePath;
 
     private TextField nameField;
     private TextField priceField;
     private TextField stockField;
+    private TextField imagePathField;
     private ComboBox<String> categoryComboBox;
 
     public EditProductDialog(ProductDAO productDAO, Product productToEdit) {
         this.productDAO = productDAO;
         this.originalProduct = productToEdit;
+        this.currentImagePath = productToEdit.getImagePath();
 
         setupDialog();
         initializeFields();
+
+        // Add result converter
+        setResultConverter(buttonType -> {
+            if (buttonType == ButtonType.OK) {
+                return updateProduct();
+            }
+            return null;
+        });
     }
 
     private void setupDialog() {
@@ -33,7 +49,17 @@ public class EditProductDialog extends Dialog<Product> {
         nameField = new TextField();
         priceField = new TextField();
         stockField = new TextField();
+        imagePathField = new TextField();
+        imagePathField.setEditable(false);
         categoryComboBox = new ComboBox<>();
+
+        // Create select image button
+        Button selectImageButton = new Button("Select Image");
+        selectImageButton.setOnAction(e -> handleSelectImage());
+
+        // Create image path layout
+        HBox imageBox = new HBox(10);
+        imageBox.getChildren().addAll(imagePathField, selectImageButton);
 
         // Populate category combo box
         categoryComboBox.getItems().addAll("Beverage", "Biscuit", "Toy");
@@ -52,20 +78,47 @@ public class EditProductDialog extends Dialog<Product> {
         grid.add(stockField, 1, 2);
         grid.add(new Label("Category:"), 0, 3);
         grid.add(categoryComboBox, 1, 3);
+        grid.add(new Label("Image:"), 0, 4);
+        grid.add(imageBox, 1, 4);
 
         // Set content
         getDialogPane().setContent(grid);
 
         // Add buttons
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+    }
 
-        // Validate and process input
-        setResultConverter(buttonType -> {
-            if (buttonType == ButtonType.OK) {
-                return updateProduct();
+    private void handleSelectImage() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select Product Image");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif")
+        );
+
+        File selectedFile = fileChooser.showOpenDialog(getDialogPane().getScene().getWindow());
+
+        if (selectedFile != null) {
+            try {
+                // Generate relative path for database
+                String fileName = selectedFile.getName();
+                currentImagePath = "/images/products/" + fileName;
+
+                // Create target path in resources
+                Path targetPath = Paths.get("src/main/resources/images/products", fileName);
+                Files.createDirectories(targetPath.getParent());
+
+                // Copy file if it doesn't exist already
+                if (!Files.exists(targetPath)) {
+                    Files.copy(selectedFile.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+                }
+
+                // Update the display field
+                imagePathField.setText(fileName);
+
+            } catch (Exception e) {
+                showErrorDialog("Error", "Failed to copy image file: " + e.getMessage());
             }
-            return null;
-        });
+        }
     }
 
     private void initializeFields() {
@@ -74,6 +127,18 @@ public class EditProductDialog extends Dialog<Product> {
         priceField.setText(originalProduct.getPrice().toString());
         stockField.setText(String.valueOf(originalProduct.getStock()));
 
+        // Handle image path display
+        if (originalProduct.getImagePath() != null) {
+            String fileName = originalProduct.getImagePath().substring(
+                    originalProduct.getImagePath().lastIndexOf('/') + 1
+            );
+            imagePathField.setText(fileName);
+            currentImagePath = originalProduct.getImagePath(); // Keep the full path
+        } else {
+            imagePathField.setText("No image selected");
+            currentImagePath = null;
+        }
+
         // Set category, converting to title case
         String category = originalProduct.getProductType();
         categoryComboBox.setValue(
@@ -81,7 +146,6 @@ public class EditProductDialog extends Dialog<Product> {
                         category.substring(1)
         );
 
-        // Add validation
         setupValidation();
     }
 
@@ -112,27 +176,25 @@ public class EditProductDialog extends Dialog<Product> {
 
     private Product updateProduct() {
         try {
-            // Create a copy of the original product with updated values
             Product updatedProduct = new Product(
                     originalProduct.getProductId(),
                     nameField.getText().trim(),
                     categoryComboBox.getValue().toLowerCase(),
                     new BigDecimal(priceField.getText()),
-                    Integer.parseInt(stockField.getText())
+                    Integer.parseInt(stockField.getText()),
+                    currentImagePath  // Add the image path
             );
 
             // Attempt to update in database
             Product result = productDAO.updateProduct(updatedProduct);
 
             if (result == null) {
-                // Show error if update failed
                 showErrorDialog("Update Failed", "Could not update product in database.");
                 return null;
             }
 
             return result;
         } catch (Exception e) {
-            // Show error for any unexpected exceptions
             showErrorDialog("Error", "An error occurred while updating the product.");
             return null;
         }

@@ -14,6 +14,48 @@ public class CashierActionBarController {
 
     private CashierController mainController;
 
+    private boolean validateCurrentStage() {
+        if (mainController == null) return false;
+
+        int currentStage = mainController.getCurrentStageIndex();
+
+        switch (currentStage) {
+            case 0: // Movie Search
+                return mainController.getSelectedMovie() != null;
+
+            case 1: // Session Select
+                return mainController.getSelectedSession() != null &&
+                        mainController.getSelectedDate() != null;
+
+            case 2: // Seat Select
+                return mainController.getSelectedSeats() != null &&
+                        !mainController.getSelectedSeats().isEmpty();
+
+            case 3: // Customer Details
+                return mainController.getCartController() != null &&
+                        mainController.getCustomerDetailsController() != null &&
+                        mainController.getCustomerDetailsController().hasItems();
+
+            default:
+                return true;
+        }
+    }
+
+    public void updateButtonStates(int currentStage) {
+        // Disable back button on first stage
+        backButton.setDisable(currentStage == 0);
+
+        // Update next button text and state
+        if (currentStage == 4) { // Final stage
+            nextButton.setText("Confirm Payment");
+        } else {
+            nextButton.setText("Next");
+        }
+
+        // Disable next button if current stage isn't valid
+        nextButton.setDisable(!validateCurrentStage());
+    }
+
     public void setMainController(CashierController controller) {
         this.mainController = controller;
     }
@@ -54,23 +96,6 @@ public class CashierActionBarController {
                 mainController.nextStage();
                 updateButtonStates(mainController.getCurrentStageIndex());
             }
-        }
-    }
-
-    private boolean validateCurrentStage() {
-        // This will be implemented with specific validation for each stage
-        return true;
-    }
-
-    public void updateButtonStates(int currentStage) {
-        // Disable back button on first stage
-        backButton.setDisable(currentStage == 0);
-
-        // Update next button text on final stage
-        if (currentStage == 4) { // Final stage
-            nextButton.setText("Confirm Payment");
-        } else {
-            nextButton.setText("Next");
         }
     }
 }

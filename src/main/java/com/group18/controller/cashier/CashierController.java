@@ -22,6 +22,7 @@ public class CashierController {
     @FXML private CashierStepperController stepperController;
     @FXML private CashierActionBarController actionBarController;
     @FXML private CashierCartController cashierCartController;
+    @FXML private CashierCustomerDetailsController customerDetailsController;
 
     private int currentStageIndex = 0;
     private final String[] stages = {
@@ -67,29 +68,48 @@ public class CashierController {
     }
 
     public void navigateWithData(Object data) {
-        // Store data based on current stage
-        System.out.println(currentStageIndex);
+        boolean dataChanged = false;
+
         switch (currentStageIndex) {
             case 0: // Movie Search
-                selectedMovie = (Movie) data;
+                Movie newMovie = (Movie) data;
+                if (newMovie != selectedMovie) {
+                    selectedMovie = newMovie;
+                    dataChanged = true;
+                }
                 break;
+
             case 1: // Session Select
                 if (data instanceof Map) {
                     Map<String, Object> sessionData = (Map<String, Object>) data;
-                    selectedSession = (MovieSession) sessionData.get("session");
-                    selectedDate = (LocalDate) sessionData.get("date");
+                    MovieSession newSession = (MovieSession) sessionData.get("session");
+                    LocalDate newDate = (LocalDate) sessionData.get("date");
+
+                    if (newSession != selectedSession || newDate != selectedDate) {
+                        selectedSession = newSession;
+                        selectedDate = newDate;
+                        dataChanged = true;
+                    }
                 }
                 break;
+
             case 2: // Seat Select
-                selectedSeats = (Set<String>) data;
+                Set<String> newSeats = (Set<String>) data;
+                if (!newSeats.equals(selectedSeats)) {
+                    selectedSeats = newSeats;
+                    dataChanged = true;
+                }
                 break;
         }
 
-        // Move to next stage
-        nextStage();
-
-        if (actionBarController != null) {
+        // Update button states if data changed
+        if (dataChanged && actionBarController != null) {
             actionBarController.updateButtonStates(currentStageIndex);
+        }
+
+        // Only proceed to next stage if we have valid data
+        if (dataChanged) {
+            nextStage();
         }
     }
 
@@ -151,9 +171,9 @@ public class CashierController {
             seatController.setSessionInfo(selectedMovie, selectedSession, selectedDate);
         }
         else if (controller instanceof CashierCustomerDetailsController) {
-            CashierCustomerDetailsController customerController = (CashierCustomerDetailsController) controller;
-            customerController.setCashierController(this);
-            customerController.setSelectedSeats(selectedSeats);
+            customerDetailsController = (CashierCustomerDetailsController) controller;
+            customerDetailsController.setCashierController(this);
+            customerDetailsController.setSelectedSeats(selectedSeats);
         }
         else if (controller instanceof CashierPaymentController) {
             ((CashierPaymentController) controller).setCashierController(this);
@@ -181,8 +201,15 @@ public class CashierController {
     }
 
     public CashierCartController getCartController() {
-        System.out.println("Getting cart controller - Current value: " + (cashierCartController == null ? "NULL" : "NOT NULL"));
         return cashierCartController;
+    }
+
+    public CashierActionBarController getActionBarController() {
+        return actionBarController;
+    }
+
+    public CashierCustomerDetailsController getCustomerDetailsController() {
+        return customerDetailsController;
     }
 
     // Getters for stored data

@@ -9,11 +9,12 @@ import com.group18.model.ShoppingCart;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.text.TextAlignment;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
@@ -48,8 +49,26 @@ public class CashierCustomerDetailsController {
             }
         });
 
+        // Setup customer details validation
+        setupCustomerDetailsValidation();
+
         // Load products for each category
         loadProducts();
+    }
+
+    private void setupCustomerDetailsValidation() {
+        // Add listeners to all required fields
+        firstNameField.textProperty().addListener((obs, old, newVal) -> validateCustomerDetails());
+        lastNameField.textProperty().addListener((obs, old, newVal) -> validateCustomerDetails());
+        ageField.textProperty().addListener((obs, old, newVal) -> validateCustomerDetails());
+    }
+
+    private void validateCustomerDetails() {
+        boolean detailsValid = !firstNameField.getText().trim().isEmpty() &&
+                !lastNameField.getText().trim().isEmpty() &&
+                !ageField.getText().trim().isEmpty();
+
+        verifyAgeButton.setDisable(!detailsValid);
     }
 
     private void loadProducts() {
@@ -73,8 +92,9 @@ public class CashierCustomerDetailsController {
         card.getStyleClass().add("product-card");
         card.setPrefWidth(200);
         card.setAlignment(Pos.CENTER);
+        card.setPadding(new Insets(10));
 
-        // Image container with placeholder
+        // Image container
         VBox imageContainer = new VBox();
         imageContainer.getStyleClass().add("image-container");
         imageContainer.setAlignment(Pos.CENTER);
@@ -82,6 +102,41 @@ public class CashierCustomerDetailsController {
         ImageView imageView = new ImageView();
         imageView.setFitHeight(100);
         imageView.setFitWidth(100);
+        imageView.setPreserveRatio(true);
+        // Add better image loading with fallback
+        if (product.getImagePath() != null) {
+            try {
+                // First try loading from resources
+                String imagePath = product.getImagePath();
+                Image image;
+                try {
+                    // Try loading using getResource
+                    image = new Image(getClass().getResource(imagePath).toExternalForm());
+                } catch (Exception e) {
+                    // If that fails, try loading from file system
+                    image = new Image("file:src/main/resources" + imagePath);
+                }
+                imageView.setImage(image);
+            } catch (Exception e) {
+                System.err.println("Failed to load image for product: " + product.getProductName());
+                e.printStackTrace();
+                // Load a default "no image" placeholder
+                try {
+                    Image defaultImage = new Image(getClass().getResource("/images/no-image.png").toExternalForm());
+                    imageView.setImage(defaultImage);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        } else {
+            // Load default "no image" placeholder for products without image path
+            try {
+                Image defaultImage = new Image(getClass().getResource("/images/no-image.png").toExternalForm());
+                imageView.setImage(defaultImage);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
         imageContainer.getChildren().add(imageView);
 
         // Product name with wrapping
@@ -116,7 +171,7 @@ public class CashierCustomerDetailsController {
 
         Button minusButton = new Button("-");
         minusButton.getStyleClass().add("quantity-button");
-        minusButton.setDisable(product.getStock() == 0);
+        minusButton.setDisable(true);
 
         Label quantityLabel = new Label("0");
         quantityLabel.getStyleClass().add("quantity-label");
@@ -128,14 +183,15 @@ public class CashierCustomerDetailsController {
         minusButton.setOnAction(e -> {
             int quantity = Integer.parseInt(quantityLabel.getText());
             if (quantity > 0) {
-                quantityLabel.setText(String.valueOf(quantity - 1));
-                updateCartProduct(product, quantity - 1);
+                quantity--;
+                quantityLabel.setText(String.valueOf(quantity));
+                updateCartProduct(product, quantity);
 
                 // Enable plus button when decreasing from max stock
                 plusButton.setDisable(false);
             }
             // Disable minus button when reaching 0
-            if (quantity - 1 == 0) {
+            if (quantity == 0) {
                 minusButton.setDisable(true);
             }
         });
@@ -143,14 +199,15 @@ public class CashierCustomerDetailsController {
         plusButton.setOnAction(e -> {
             int quantity = Integer.parseInt(quantityLabel.getText());
             if (quantity < product.getStock()) {
-                quantityLabel.setText(String.valueOf(quantity + 1));
-                updateCartProduct(product, quantity + 1);
+                quantity++;
+                quantityLabel.setText(String.valueOf(quantity));
+                updateCartProduct(product, quantity);
 
                 // Enable minus button when increasing from 0
                 minusButton.setDisable(false);
             }
             // Disable plus button when reaching max stock
-            if (quantity + 1 == product.getStock()) {
+            if (quantity == product.getStock()) {
                 plusButton.setDisable(true);
             }
         });
@@ -187,6 +244,8 @@ public class CashierCustomerDetailsController {
                         item.getProductId().equals(product.getProductId())
         );
 
+        cashierController.getCartController().removeCartItem(product.getProductName());
+
         // Add new item if quantity > 0
         if (quantity > 0) {
             OrderItem item = new OrderItem();
@@ -195,6 +254,18 @@ public class CashierCustomerDetailsController {
             item.setQuantity(quantity);
             item.setItemPrice(product.getPrice());
             cart.addItem(item);
+
+            // Update cart UI with new quantity
+            if (cashierController != null && cashierController.getCartController() != null) {
+                cashierController.getCartController().addCartItem(
+                        product.getProductName(),
+                        product.getPrice().doubleValue(),
+                        quantity,
+                        "product"
+                );
+            }
+        } else {
+            cashierController.getCartController().removeCartItem(product.getProductName());
         }
     }
 
@@ -220,6 +291,42 @@ public class CashierCustomerDetailsController {
         updateTicketsInCart();
     }
 
+    public void clearProductSelections() {
+        // Clear all quantity labels and reset buttons
+        for (Node node : beveragesContainer.getChildren()) {
+            if (node instanceof VBox) {
+                resetProductCard((VBox) node);
+            }
+        }
+        for (Node node : biscuitsContainer.getChildren()) {
+            if (node instanceof VBox) {
+                resetProductCard((VBox) node);
+            }
+        }
+        for (Node node : toysContainer.getChildren()) {
+            if (node instanceof VBox) {
+                resetProductCard((VBox) node);
+            }
+        }
+    }
+
+    private void resetProductCard(VBox card) {
+        // Find the quantity label and buttons within the card
+        for (Node node : card.getChildren()) {
+            if (node instanceof HBox && ((HBox) node).getChildren().size() == 3) {
+                HBox quantityBox = (HBox) node;
+                Button minusButton = (Button) quantityBox.getChildren().get(0);
+                Label quantityLabel = (Label) quantityBox.getChildren().get(1);
+                Button plusButton = (Button) quantityBox.getChildren().get(2);
+
+                // Reset quantity to 0
+                quantityLabel.setText("0");
+                minusButton.setDisable(true);
+                plusButton.setDisable(false);
+            }
+        }
+    }
+
     private void updateTicketsInCart() {
         if (firstNameField.getText().isEmpty() || lastNameField.getText().isEmpty()) {
             showError("Invalid Input", "Please fill in customer name details.");
@@ -229,11 +336,25 @@ public class CashierCustomerDetailsController {
         double basePrice = priceDAO.getTicketPrice(cashierController.getSelectedSession().getHall());
         double discountRate = isDiscountApplicable ? priceDAO.getAgeDiscount() / 100.0 : 0.0;
 
-        // Remove existing ticket items
-        cart.getItems().removeIf(item -> item.getItemType().equals("ticket"));
+        // Keep track of total discount amount
+        double totalDiscount = 0.0;
+
+        // Remove existing ticket items but keep product items
+        List<OrderItem> productItems = cart.getItems().stream()
+                .filter(item -> "product".equals(item.getItemType()))
+                .collect(java.util.stream.Collectors.toList());
+
+        cart.clear();
+
+        // Re-add product items
+        productItems.forEach(cart::addItem);
+
+        // Clear cart UI but maintain product items
+        if (cashierController != null && cashierController.getCartController() != null) {
+            cashierController.getCartController().refreshCart();
+        }
 
         // Add updated ticket items
-        int seatIndex = 0;
         for (String seatId : selectedSeats) {
             OrderItem ticketItem = new OrderItem();
             ticketItem.setItemType("ticket");
@@ -241,16 +362,40 @@ public class CashierCustomerDetailsController {
             ticketItem.setSeatNumber(convertSeatIdToNumber(seatId));
             ticketItem.setQuantity(1);
 
-            // Apply discount if applicable
-            double finalPrice = isDiscountApplicable ? basePrice * (1 - discountRate) : basePrice;
+            // Calculate discount and final price
+            double discountAmount = isDiscountApplicable ? (basePrice * discountRate) : 0.0;
+            double finalPrice = basePrice - discountAmount;
+
+            totalDiscount += discountAmount;
+
             ticketItem.setItemPrice(BigDecimal.valueOf(finalPrice));
             ticketItem.setDiscountApplied(isDiscountApplicable);
-
             ticketItem.setOccupantFirstName(firstNameField.getText().trim());
             ticketItem.setOccupantLastName(lastNameField.getText().trim());
 
             cart.addItem(ticketItem);
+
+            // Add to cart UI
+            if (cashierController != null && cashierController.getCartController() != null) {
+                String itemName = String.format("Seat %s - %s", seatId, cashierController.getSelectedMovie().getTitle());
+                cashierController.getCartController().addCartItem(
+                        itemName,
+                        basePrice,  // Show original price
+                        1,
+                        "ticket",
+                        discountAmount  // Pass discount amount
+                );
+            }
         }
+
+        // Update total discount in cart UI
+        if (cashierController != null && cashierController.getCartController() != null) {
+            cashierController.getCartController().updateDiscount(totalDiscount);
+        }
+    }
+
+    public boolean hasItems() {
+        return !cart.isEmpty();
     }
 
     private int convertSeatIdToNumber(String seatId) {

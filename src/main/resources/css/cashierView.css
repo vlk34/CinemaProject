@@ -70,6 +70,7 @@
     -fx-font-weight: bold;
     -fx-text-alignment: center;
     -fx-wrap-text: true;
+    -fx-text-fill: #2a1b35;
 }
 
 .product-card .product-price {
@@ -95,6 +96,7 @@
     -fx-min-width: 30;
     -fx-alignment: center;
     -fx-font-weight: bold;
+    -fx-text-fill: #2a1b35;
 }
 
 /* Product Status Indicators */
@@ -472,4 +474,8 @@
     -fx-alignment: center;
 }
 
-
+.discount-text {
+    -fx-text-fill: #E74C3C;
+    -fx-font-size: 12px;
+    -fx-font-style: italic;
+}

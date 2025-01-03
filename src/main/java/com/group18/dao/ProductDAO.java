@@ -137,13 +137,14 @@ public class ProductDAO {
     }
 
     public Product addProduct(Product product) {
-        String query = "INSERT INTO products (product_name, product_type, price, stock) VALUES (?, ?, ?, ?)";
+        String query = "INSERT INTO products (product_name, product_type, price, stock, image_path) VALUES (?, ?, ?, ?, ?)";
 
         try (PreparedStatement stmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, product.getProductName());
             stmt.setString(2, product.getProductType());
             stmt.setBigDecimal(3, product.getPrice());
             stmt.setInt(4, product.getStock());
+            stmt.setString(5, product.getImagePath());
 
             int affectedRows = stmt.executeUpdate();
 
@@ -179,14 +180,15 @@ public class ProductDAO {
     }
 
     public Product updateProduct(Product product) {
-        String query = "UPDATE products SET product_name = ?, product_type = ?, price = ?, stock = ? WHERE product_id = ?";
+        String query = "UPDATE products SET product_name = ?, product_type = ?, price = ?, stock = ?, image_path = ? WHERE product_id = ?";
 
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, product.getProductName());
             stmt.setString(2, product.getProductType());
             stmt.setBigDecimal(3, product.getPrice());
             stmt.setInt(4, product.getStock());
-            stmt.setInt(5, product.getProductId());
+            stmt.setString(5, product.getImagePath());
+            stmt.setInt(6, product.getProductId());
 
             int affectedRows = stmt.executeUpdate();
 
@@ -206,6 +208,7 @@ public class ProductDAO {
         product.setProductType(rs.getString("product_type"));
         product.setPrice(rs.getBigDecimal("price"));
         product.setStock(rs.getInt("stock"));
+        product.setImagePath(rs.getString("image_path"));
         return product;
     }
 }

@@ -91,21 +91,34 @@ public class CashierCartController {
         }
     }
 
-    public void addCartItem(String name, double price, int quantity, String type) {
+    public void addCartItem(String name, double price, int quantity, String type, double discountAmount) {
         // Remove existing item if it exists
         removeCartItem(name);
 
         // Create cart item UI
-        HBox itemContainer = createCartItemUI(name, price, quantity);
+        HBox itemContainer = createCartItemUI(name, price, quantity, discountAmount);
         cartItemsContainer.getChildren().add(itemContainer);
         cartItems.put(name, itemContainer);  // Store reference to the item
 
         // Update totals
         subtotal += price * quantity;
+        if (discountAmount > 0) {
+            discounts += discountAmount * quantity;
+        }
         tax = calculateTax(subtotal - discounts);
         updateSummary();
 
         checkoutButton.setDisable(false);
+    }
+
+    // Overloaded method for backward compatibility (no discount)
+    public void addCartItem(String name, double price, int quantity, String type) {
+        addCartItem(name, price, quantity, type, 0.0);
+    }
+
+    public void updateDiscount(double totalDiscount) {
+        this.discounts = totalDiscount;
+        updateSummary();
     }
 
     public void removeCartItem(String name) {
@@ -116,22 +129,32 @@ public class CashierCartController {
             String priceText = priceLabel.getText().replaceAll("[^\\d.,]", "").replace(",", ".");
             double price = Double.parseDouble(priceText);
 
-            // Update totals
-            subtotal -= price;
-            tax = calculateTax(subtotal - discounts);
+            // Get quantity label to calculate total price to remove
+            Label quantityLabel = (Label) itemContainer.getChildren().get(1);
+            int quantity = Integer.parseInt(quantityLabel.getText().substring(1));
 
+            // Remove item from UI and data structure first
             cartItemsContainer.getChildren().remove(itemContainer);
             cartItems.remove(name);
+
+            // Now update all the totals
+            subtotal -= (price * quantity);
+
+            // Recalculate full tax based on remaining items
+            tax = calculateTax(subtotal - discounts);
+
             updateSummary();
+
+            // Update action bar
+            if (mainController != null && mainController.getActionBarController() != null) {
+                mainController.getActionBarController().updateButtonStates(
+                        mainController.getCurrentStageIndex()
+                );
+            }
         }
     }
 
-    public void addDiscount(String description, double amount) {
-        discounts += amount;
-        updateSummary();
-    }
-
-    private HBox createCartItemUI(String name, double price, int quantity) {
+    private HBox createCartItemUI(String name, double price, int quantity, double discountAmount) {
         HBox container = new HBox();
         container.setSpacing(10);
         container.getStyleClass().add("cart-item");
@@ -148,12 +171,20 @@ public class CashierCartController {
 
         details.getChildren().addAll(nameLabel, priceLabel);
 
+        // If there's a discount, add it
+        if (discountAmount > 0) {
+            Label discountLabel = new Label("-" + formatCurrency(discountAmount));
+            discountLabel.getStyleClass().addAll("item-discount", "discount-text");
+            details.getChildren().add(discountLabel);
+        }
+
         // Quantity
         Label quantityLabel = new Label("x" + quantity);
         quantityLabel.getStyleClass().add("item-quantity");
 
         // Total
-        Label totalLabel = new Label(formatCurrency(price * quantity));
+        double itemTotal = (price - discountAmount) * quantity;
+        Label totalLabel = new Label(formatCurrency(itemTotal));
         totalLabel.getStyleClass().add("item-total");
 
         Region spacer = new Region();
@@ -177,12 +208,84 @@ public class CashierCartController {
         taxLabel.setText(formatCurrency(tax));
 
         // Disable checkout if no items
+        System.out.println("Cart items are: " + cartItems.isEmpty());
         checkoutButton.setDisable(cartItems.isEmpty());
+
+        if (mainController != null && mainController.getActionBarController() != null) {
+            mainController.getActionBarController().updateButtonStates(
+                    mainController.getCurrentStageIndex()
+            );
+        }
     }
 
-    private double calculateTax(double amount) {
-        // 20% tax rate for tickets, 10% for products
-        return amount * 0.20; // We'll need to make this more sophisticated later
+    public void refreshCart() {
+        // Preserve existing product items
+        Map<String, HBox> productItems = new HashMap<>();
+        cartItems.forEach((name, item) -> {
+            // Check if item is a product (not a ticket)
+            if (!name.contains("Seat")) {
+                productItems.put(name, item);
+            }
+        });
+
+        // Clear cart
+        cartItemsContainer.getChildren().clear();
+        cartItems.clear();
+
+        // Reset totals
+        subtotal = 0.0;
+        discounts = 0.0;
+        tax = 0.0;
+
+        // Re-add product items
+        productItems.forEach((name, item) -> {
+            cartItemsContainer.getChildren().add(item);
+            cartItems.put(name, item);
+
+            // Recalculate totals for products
+            VBox details = (VBox) item.getChildren().get(0);
+            Label priceLabel = (Label) details.getChildren().get(1);
+            String priceText = priceLabel.getText().replaceAll("[^\\d.,]", "").replace(",", ".");
+            double price = Double.parseDouble(priceText);
+
+            Label quantityLabel = (Label) item.getChildren().get(1);
+            int quantity = Integer.parseInt(quantityLabel.getText().substring(1));
+
+            subtotal += price * quantity;
+        });
+
+        updateSummary();
+    }
+
+    private double calculateTax(double baseAmount) {
+        return cartItems.entrySet().stream()
+                .mapToDouble(entry -> {
+                    String name = entry.getKey();
+                    HBox itemContainer = entry.getValue();
+                    VBox details = (VBox) itemContainer.getChildren().get(0);
+                    Label priceLabel = (Label) details.getChildren().get(1);
+                    String priceText = priceLabel.getText().replaceAll("[^\\d.,]", "").replace(",", ".");
+                    double price = Double.parseDouble(priceText);
+
+                    Label quantityLabel = (Label) itemContainer.getChildren().get(1);
+                    int quantity = Integer.parseInt(quantityLabel.getText().substring(1));
+
+                    if (name.contains("Seat")) {
+                        // 20% tax for tickets
+                        double itemSubtotal = price * quantity;
+                        // If there's a discount label, subtract it
+                        if (details.getChildren().size() > 2) {
+                            Label discountLabel = (Label) details.getChildren().get(2);
+                            String discountText = discountLabel.getText().replaceAll("[^\\d.,]", "").replace(",", ".");
+                            double discountAmount = Double.parseDouble(discountText);
+                            itemSubtotal -= (discountAmount * quantity);
+                        }
+                        return itemSubtotal * 0.20; // 20% tax for tickets
+                    } else {
+                        return price * quantity * 0.10; // 10% tax for products
+                    }
+                })
+                .sum();
     }
 
     private String formatCurrency(double amount) {
@@ -199,6 +302,13 @@ public class CashierCartController {
         updateSummary();
 
         checkoutButton.setDisable(true);
+
+        // Update action bar
+        if (mainController != null && mainController.getActionBarController() != null) {
+            mainController.getActionBarController().updateButtonStates(
+                    mainController.getCurrentStageIndex()
+            );
+        }
     }
 
     // Getters for cart details
