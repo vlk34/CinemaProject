@@ -95,13 +95,5 @@
                 <Label fx:id="taxLabel" styleClass="cart-summary-value"/>
             </HBox>
         </VBox>
-
-        <!-- Checkout Button -->
-        <Button text="Proceed to Checkout"
-                fx:id="checkoutButton"
-                style="-fx-background-color: #2a1b35;
-                       -fx-text-fill: white;
-                       -fx-background-radius: 5;"
-                maxWidth="Infinity"/>
     </VBox>
 </VBox>

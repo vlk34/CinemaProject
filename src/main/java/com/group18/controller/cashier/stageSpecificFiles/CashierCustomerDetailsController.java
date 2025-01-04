@@ -17,6 +17,7 @@ import javafx.scene.layout.*;
 import javafx.scene.text.TextAlignment;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class CashierCustomerDetailsController {
@@ -35,6 +36,12 @@ public class CashierCustomerDetailsController {
     private ProductDAO productDAO;
     private ShoppingCart cart;
     private boolean isDiscountApplicable = false;
+    private boolean customerDetailsValidated = false;
+
+    private String previousFirstName = "";
+    private String previousLastName = "";
+    private String previousAge = "";
+    private boolean previousDiscountApplicable = false;
 
     @FXML
     private void initialize() {
@@ -51,9 +58,27 @@ public class CashierCustomerDetailsController {
 
         // Setup customer details validation
         setupCustomerDetailsValidation();
+    }
 
-        // Load products for each category
-        loadProducts();
+    // Method to restore previous input
+    public void restorePreviousInput() {
+        firstNameField.setText(previousFirstName);
+        lastNameField.setText(previousLastName);
+        ageField.setText(previousAge);
+
+        // If we had a previous validation, restore its state
+        if (previousDiscountApplicable) {
+            handleVerifyAge(false);
+        }
+    }
+
+    @FXML
+    private void handleVerifyAge() {
+        handleVerifyAge(true);
+    }
+
+    public boolean isCustomerDetailsValidated() {
+        return customerDetailsValidated;
     }
 
     private void setupCustomerDetailsValidation() {
@@ -171,14 +196,32 @@ public class CashierCustomerDetailsController {
 
         Button minusButton = new Button("-");
         minusButton.getStyleClass().add("quantity-button");
-        minusButton.setDisable(true);
 
         Label quantityLabel = new Label("0");
         quantityLabel.getStyleClass().add("quantity-label");
 
         Button plusButton = new Button("+");
         plusButton.getStyleClass().add("quantity-button");
-        plusButton.setDisable(product.getStock() == 0);
+
+        // Check if this product already exists in cart and set initial quantity
+        Map<String, HBox> cartItems = cashierController.getCartController().getCartItems();
+        int initialQuantity = 0;
+
+        // Look for this product in cart items
+        for (HBox cartItem : cartItems.values()) {
+            VBox details = (VBox) cartItem.getChildren().get(0);
+            Label itemNameLabel = (Label) details.getChildren().get(0);
+            if (itemNameLabel.getText().equals(product.getProductName())) {
+                Label quantityInCart = (Label) cartItem.getChildren().get(1);
+                initialQuantity = Integer.parseInt(quantityInCart.getText().substring(1)); // Remove 'x' prefix
+                break;
+            }
+        }
+
+        // Set initial quantity and button states
+        quantityLabel.setText(String.valueOf(initialQuantity));
+        minusButton.setDisable(initialQuantity == 0);
+        plusButton.setDisable(initialQuantity == product.getStock() || product.getStock() == 0);
 
         minusButton.setOnAction(e -> {
             int quantity = Integer.parseInt(quantityLabel.getText());
@@ -269,26 +312,42 @@ public class CashierCustomerDetailsController {
         }
     }
 
-    @FXML
-    private void handleVerifyAge() {
+    private void handleVerifyAge(boolean showAlert) {
         if (ageField.getText().isEmpty()) {
             showError("Invalid Input", "Please enter customer's age.");
             return;
         }
 
+        // Store current input before validation
+        previousFirstName = firstNameField.getText().trim();
+        previousLastName = lastNameField.getText().trim();
+        previousAge = ageField.getText().trim();
+
         int age = Integer.parseInt(ageField.getText());
         isDiscountApplicable = age < 18 || age > 60;
+        previousDiscountApplicable = isDiscountApplicable;
 
-        // Show result
-        Alert alert = new Alert(
-                isDiscountApplicable ? Alert.AlertType.INFORMATION : Alert.AlertType.WARNING,
-                isDiscountApplicable ? "Age discount will be applied!" : "No age discount applicable."
-        );
-        alert.setHeaderText(null);
-        alert.showAndWait();
+        // Show result if requested
+        if (showAlert) {
+            Alert alert = new Alert(
+                    isDiscountApplicable ? Alert.AlertType.INFORMATION : Alert.AlertType.WARNING,
+                    isDiscountApplicable ? "Age discount will be applied!" : "No age discount applicable."
+            );
+            alert.setHeaderText(null);
+            alert.showAndWait();
+        }
 
         // Update all ticket items in cart with customer details and discount
         updateTicketsInCart();
+
+        customerDetailsValidated = true;
+
+        // Update the action bar buttons
+        if (cashierController != null && cashierController.getActionBarController() != null) {
+            cashierController.getActionBarController().updateButtonStates(
+                    cashierController.getCurrentStageIndex()
+            );
+        }
     }
 
     public void clearProductSelections() {
@@ -398,6 +457,10 @@ public class CashierCustomerDetailsController {
         return !cart.isEmpty();
     }
 
+    public boolean hasValidatedCustomer() {
+        return customerDetailsValidated;
+    }
+
     private int convertSeatIdToNumber(String seatId) {
         char row = seatId.charAt(0);
         int col = Integer.parseInt(seatId.substring(1));
@@ -407,6 +470,9 @@ public class CashierCustomerDetailsController {
 
     public void setCashierController(CashierController controller) {
         this.cashierController = controller;
+        // Load products for each category
+        loadProducts();
+        restorePreviousInput();
     }
 
     public void setSelectedSeats(Set<String> seats) {

@@ -27,7 +27,6 @@ public class CashierCartController {
     @FXML private Label discountsLabel;
     @FXML private Label taxLabel;
     @FXML private Label totalLabel;
-    @FXML private Button checkoutButton;
     @FXML private VBox cartDetailsContainer;
     @FXML private Button toggleDetailsButton;
     private CashierController mainController;
@@ -69,6 +68,14 @@ public class CashierCartController {
         this.mainController = controller;
     }
 
+    public VBox getCartItemsContainer() {
+        return cartItemsContainer;
+    }
+
+    public Map<String, HBox> getCartItems() {
+        return cartItems;
+    }
+
     // New method to set movie and session context
     public void setSessionContext(Movie movie, MovieSession session, LocalDate date) {
         this.currentMovie = movie;
@@ -107,8 +114,6 @@ public class CashierCartController {
         }
         tax = calculateTax(subtotal - discounts);
         updateSummary();
-
-        checkoutButton.setDisable(false);
     }
 
     // Overloaded method for backward compatibility (no discount)
@@ -207,10 +212,6 @@ public class CashierCartController {
         discountsLabel.setText("-" + formatCurrency(discounts));
         taxLabel.setText(formatCurrency(tax));
 
-        // Disable checkout if no items
-        System.out.println("Cart items are: " + cartItems.isEmpty());
-        checkoutButton.setDisable(cartItems.isEmpty());
-
         if (mainController != null && mainController.getActionBarController() != null) {
             mainController.getActionBarController().updateButtonStates(
                     mainController.getCurrentStageIndex()
@@ -300,8 +301,6 @@ public class CashierCartController {
         discounts = 0.0;
         tax = 0.0;
         updateSummary();
-
-        checkoutButton.setDisable(true);
 
         // Update action bar
         if (mainController != null && mainController.getActionBarController() != null) {

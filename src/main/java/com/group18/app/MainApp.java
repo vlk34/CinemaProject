@@ -40,12 +40,6 @@ public class MainApp extends Application {
         primaryStage.show();
     }
 
-    public void changeScene(String fxml) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
-        Parent pane = loader.load();
-        stg.getScene().setRoot(pane);
-    }
-
     public static void main(String[] args) {
         launch(args);
     }

@@ -34,7 +34,8 @@ public class CashierActionBarController {
             case 3: // Customer Details
                 return mainController.getCartController() != null &&
                         mainController.getCustomerDetailsController() != null &&
-                        mainController.getCustomerDetailsController().hasItems();
+                        mainController.getCustomerDetailsController().hasItems() &&
+                        mainController.getCustomerDetailsController().isCustomerDetailsValidated();
 
             default:
                 return true;

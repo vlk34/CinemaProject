@@ -87,6 +87,11 @@ public class ManagerRevenueController {
         RevenueStatistics stats = new RevenueStatistics();
 
         for (Order order : orders) {
+            // Skip cancelled orders
+            if (!"PROCESSED".equals(order.getStatus()) && !"PENDING".equals(order.getStatus())) {
+                continue;
+            }
+
             for (OrderItem item : order.getOrderItems()) {
                 if ("ticket".equals(item.getItemType())) {
                     stats.ticketRevenue = stats.ticketRevenue.add(item.getItemPrice());
@@ -143,6 +148,11 @@ public class ManagerRevenueController {
         ObservableList<RevenueEntry> entries = FXCollections.observableArrayList();
 
         for (Order order : orders) {
+            // Skip cancelled orders
+            if (!"PROCESSED".equals(order.getStatus()) && !"PENDING".equals(order.getStatus())) {
+                continue;
+            }
+
             String date = order.getOrderDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
             // Group items by type

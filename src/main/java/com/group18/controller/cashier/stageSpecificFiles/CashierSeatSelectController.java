@@ -7,6 +7,7 @@ import com.group18.dao.PriceDAO;
 import com.group18.model.OrderItem;
 import com.group18.model.ShoppingCart;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.geometry.Pos;
@@ -69,6 +70,19 @@ public class CashierSeatSelectController {
         updateSessionInfo();
         loadOccupiedSeats();
         createSeatGrid();
+    }
+
+    // New method to restore previously selected seats
+    public void restorePreviousSeats(Set<String> previousSeats) {
+        if (previousSeats != null && !previousSeats.isEmpty()) {
+            // Filter out occupied seats from previous selection
+            previousSeats.removeAll(occupiedSeats);
+
+            // Add previously selected seats
+            for (String seatId : previousSeats) {
+                addSeatToSelection(seatId);
+            }
+        }
     }
 
     private void updateSessionInfo() {
@@ -159,6 +173,28 @@ public class CashierSeatSelectController {
         return seatPane;
     }
 
+    private void addSeatToSelection(String seatId) {
+        // Find the corresponding seat pane
+        for (Node node : seatGrid.getChildren()) {
+            if (node instanceof StackPane) {
+                StackPane seatPane = (StackPane) node;
+                Label seatLabel = (Label) seatPane.getChildren().get(1);
+
+                if (seatLabel.getText().equals(seatId)) {
+                    Circle seatCircle = (Circle) seatPane.getChildren().get(0);
+
+                    // Add seat to selection
+                    selectedSeats.add(seatId);
+                    seatCircle.setFill(javafx.scene.paint.Color.valueOf("#3498DB")); // Blue for selected
+                    seatCircle.setOpacity(0.8);
+                    break;
+                }
+            }
+        }
+
+        updateSelectionSummary();
+    }
+
     // Modify toggleSeatSelection to work with Circle instead of Region
     private void toggleSeatSelection(String seatId, Circle seatCircle) {
         if (selectedSeats.contains(seatId)) {
@@ -193,7 +229,7 @@ public class CashierSeatSelectController {
         confirm.setTitle("Confirm Seats");
         confirm.setHeaderText("Selected Seats: " + String.join(", ", selectedSeats));
         confirm.setContentText(String.format(
-                "Total Price: ₺%.2f%n%nDo you want to proceed with these seats?",
+                "Total Price: ₺%.2f%n%nDo you want to proceed with these seats? Any additional products in your cart will be reset.",
                 selectedSeats.size() * ticketPrice
         ));
 

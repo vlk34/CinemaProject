@@ -13,6 +13,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -36,9 +37,9 @@ public class CashierController {
     // Data to pass between stages
     private Movie selectedMovie;
     private MovieSession selectedSession;
-    private Set<String> selectedSeats;
+    private Set<String> selectedSeats = new HashSet<>();
     private LocalDate selectedDate;
-    // In CashierController.java
+
     @FXML
     private void initialize() {
         try {
@@ -46,7 +47,6 @@ public class CashierController {
             actionBarController.setMainController(this);
 
             cashierCartController.setMainController(this);
-            System.out.println(cashierCartController);
 
             // Load initial stage
             FXMLLoader loader = new FXMLLoader(getClass().getResource(stages[0]));
@@ -95,8 +95,9 @@ public class CashierController {
 
             case 2: // Seat Select
                 Set<String> newSeats = (Set<String>) data;
-                if (!newSeats.equals(selectedSeats)) {
-                    selectedSeats = newSeats;
+                // Preserve previous seats if the new selection is not empty
+                if (newSeats != null && !newSeats.isEmpty()) {
+                    selectedSeats = new HashSet<>(newSeats);
                     dataChanged = true;
                 }
                 break;
@@ -168,12 +169,23 @@ public class CashierController {
         else if (controller instanceof CashierSeatSelectController) {
             CashierSeatSelectController seatController = (CashierSeatSelectController) controller;
             seatController.setCashierController(this);
-            seatController.setSessionInfo(selectedMovie, selectedSession, selectedDate);
+
+            // Restore previous state if available
+            if (selectedMovie != null && selectedSession != null && selectedDate != null) {
+                seatController.setSessionInfo(selectedMovie, selectedSession, selectedDate);
+                if (selectedSeats != null && !selectedSeats.isEmpty()) {
+                    seatController.restorePreviousSeats(selectedSeats);
+                }
+            }
         }
         else if (controller instanceof CashierCustomerDetailsController) {
             customerDetailsController = (CashierCustomerDetailsController) controller;
             customerDetailsController.setCashierController(this);
-            customerDetailsController.setSelectedSeats(selectedSeats);
+
+            // Restore previous seat selection
+            if (selectedSeats != null && !selectedSeats.isEmpty()) {
+                customerDetailsController.setSelectedSeats(selectedSeats);
+            }
         }
         else if (controller instanceof CashierPaymentController) {
             ((CashierPaymentController) controller).setCashierController(this);

@@ -196,10 +196,20 @@ public class AdminMoviesController {
         }
 
         try {
+            int duration = Integer.parseInt(durationField.getText().trim());
+
+            // Add duration validation
+            if (duration < 60 || duration > 120) {
+                showAlert("Invalid Duration",
+                        "Movie duration must be between 60 and 120 minutes.\n" +
+                                "Please enter a duration between 1 and 2 hours.");
+                return;
+            }
+
             selectedMovie.setTitle(titleField.getText().trim());
             selectedMovie.setGenre(genreComboBox.getValue());
             selectedMovie.setSummary(summaryField.getText().trim());
-            selectedMovie.setDuration(Integer.parseInt(durationField.getText().trim()));
+            selectedMovie.setDuration(duration);
             selectedMovie.setPosterPath(currentPosterPath);
 
             if (movieDAO.updateMovie(selectedMovie)) {
@@ -210,7 +220,7 @@ public class AdminMoviesController {
                 showAlert("Error", "Failed to update movie");
             }
         } catch (NumberFormatException e) {
-            showAlert("Error", "Invalid duration format");
+            showAlert("Error", "Invalid duration format. Please enter a valid number of minutes.");
         }
     }
 

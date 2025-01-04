@@ -10,6 +10,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
@@ -112,7 +113,10 @@ public class AdminCancellationsController {
 
     private void setupTableColumns() {
         requestIdColumn.setCellValueFactory(new PropertyValueFactory<>("orderId"));
+        requestIdColumn.setStyle("-fx-alignment: CENTER;");
+
         bookingIdColumn.setCellValueFactory(new PropertyValueFactory<>("orderId"));
+        bookingIdColumn.setStyle("-fx-alignment: CENTER;");
 
         // Custom cell factory for customer column
         customerColumn.setCellValueFactory(data -> {
@@ -125,12 +129,14 @@ public class AdminCancellationsController {
             }
             return new SimpleStringProperty("N/A");
         });
+        customerColumn.setStyle("-fx-alignment: CENTER;");
 
         // Type column showing order type
         typeColumn.setCellValueFactory(data -> {
             Order order = data.getValue();
             return new SimpleStringProperty(determineOrderType(order));
         });
+        typeColumn.setStyle("-fx-alignment: CENTER;");
 
         // Items summary column
         itemsColumn.setCellValueFactory(data -> {
@@ -138,17 +144,22 @@ public class AdminCancellationsController {
             String summary = createItemsSummary(order.getOrderItems());
             return new SimpleStringProperty(summary);
         });
+        itemsColumn.setStyle("-fx-alignment: CENTER;");
 
         amountColumn.setCellValueFactory(new PropertyValueFactory<>("totalPrice"));
+        amountColumn.setStyle("-fx-alignment: CENTER;");
+
         statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
+        statusColumn.setStyle("-fx-alignment: CENTER;");
 
         // Setup action buttons column
         actionsColumn.setCellFactory(col -> new TableCell<Order, Void>() {
             private final Button processButton = new Button("Process");
             private final Button rejectButton = new Button("Reject");
             {
-                processButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
-                rejectButton.setStyle("-fx-background-color: #f44336; -fx-text-fill: white;");
+                // Smaller button styling
+                processButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 10px; -fx-padding: 2 8 2 8;");
+                rejectButton.setStyle("-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-size: 10px; -fx-padding: 2 8 2 8;");
 
                 processButton.setOnAction(e -> handleProcessCancellation(getTableView().getItems().get(getIndex())));
                 rejectButton.setOnAction(e -> handleRejectCancellation(getTableView().getItems().get(getIndex())));
@@ -163,6 +174,7 @@ public class AdminCancellationsController {
                     Order order = getTableView().getItems().get(getIndex());
                     if ("PENDING".equals(order.getStatus())) {
                         HBox buttons = new HBox(5, processButton, rejectButton);
+                        buttons.setAlignment(Pos.CENTER);
                         setGraphic(buttons);
                     } else {
                         setGraphic(null); // No buttons for non-pending orders

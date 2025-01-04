@@ -44,13 +44,32 @@ public class AddMovieDialogController {
             String title = titleField.getText().trim();
             String genre = genreComboBox.getValue();
             String summary = summaryField.getText().trim();
-            int duration = Integer.parseInt(durationField.getText().trim());
+            String durationStr = durationField.getText().trim();
 
-            if (title.isEmpty() || genre.isEmpty() || summary.isEmpty() || genre == null) {
+            // Validate all fields are filled
+            if (title.isEmpty() || genre == null || summary.isEmpty() || durationStr.isEmpty()) {
                 showAlert("Validation Error", "Please fill in all fields.");
                 return;
             }
 
+            // Parse and validate duration
+            int duration;
+            try {
+                duration = Integer.parseInt(durationStr);
+            } catch (NumberFormatException e) {
+                showAlert("Error", "Invalid duration format. Please enter a valid number.");
+                return;
+            }
+
+            // Validate duration range
+            if (duration < 60 || duration > 120) {
+                showAlert("Invalid Duration",
+                        "Movie duration must be between 60 and 120 minutes.\n" +
+                                "Please enter a duration between 1 and 2 hours.");
+                return;
+            }
+
+            // Create new movie
             Movie newMovie = new Movie(title, genre, summary, currentPosterPath, duration);
 
             if (movieDAO.addMovie(newMovie)) {
@@ -59,8 +78,8 @@ public class AddMovieDialogController {
             } else {
                 showAlert("Error", "Failed to add movie.");
             }
-        } catch (NumberFormatException e) {
-            showAlert("Error", "Invalid duration format.");
+        } catch (Exception e) {
+            showAlert("Error", "An unexpected error occurred: " + e.getMessage());
         }
     }
 
