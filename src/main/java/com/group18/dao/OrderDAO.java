@@ -2,6 +2,8 @@ package com.group18.dao;
 
 import com.group18.model.Order;
 import com.group18.model.OrderItem;
+import com.group18.model.Product;
+
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -239,8 +241,7 @@ public class OrderDAO {
         }
         return items;
     }
-
-
+    
     private Order extractOrderFromResultSet(ResultSet rs) throws SQLException {
         Order order = new Order();
         order.setOrderId(rs.getInt("order_id"));

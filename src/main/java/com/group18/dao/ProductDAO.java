@@ -201,6 +201,33 @@ public class ProductDAO {
         return null;
     }
 
+    public boolean hasActiveOrders(Product product) {
+        String query = """
+        SELECT COUNT(*) 
+        FROM order_items 
+        WHERE product_id = ? 
+        AND item_type = 'product' 
+        AND order_id IN (
+            SELECT order_id 
+            FROM orders 
+            WHERE status != 'PROCESSED'
+        )
+    """;
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, product.getProductId());
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     private Product extractProductFromResultSet(ResultSet rs) throws SQLException {
         Product product = new Product();
         product.setProductId(rs.getInt("product_id"));

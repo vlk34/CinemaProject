@@ -150,28 +150,39 @@ public class EditProductDialog extends Dialog<Product> {
     }
 
     private void setupValidation() {
-        // Price validation
+        // Price validation - allow decimal numbers only
         priceField.textProperty().addListener((observable, oldValue, newValue) -> {
-            try {
-                new BigDecimal(newValue);
-            } catch (NumberFormatException e) {
+            // Only allow numbers and one decimal point
+            if (!newValue.matches("\\d*\\.?\\d*")) {
                 priceField.setText(oldValue);
             }
         });
 
-        // Stock validation (only numbers)
+        // Stock validation (only positive numbers)
         stockField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue.matches("\\d*")) {
                 stockField.setText(newValue.replaceAll("[^\\d]", ""));
             }
         });
 
-        // Name validation (prevent empty)
-        nameField.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue.trim().isEmpty()) {
-                nameField.setText(oldValue);
-            }
-        });
+        // Enable/disable OK button based on valid input
+        Button okButton = (Button) getDialogPane().lookupButton(ButtonType.OK);
+        okButton.setDisable(true);
+
+        // Enable OK button only when all fields are valid
+        nameField.textProperty().addListener((obs, old, newVal) -> validateOkButton(okButton));
+        priceField.textProperty().addListener((obs, old, newVal) -> validateOkButton(okButton));
+        stockField.textProperty().addListener((obs, old, newVal) -> validateOkButton(okButton));
+        categoryComboBox.valueProperty().addListener((obs, old, newVal) -> validateOkButton(okButton));
+    }
+
+    private void validateOkButton(Button okButton) {
+        boolean isValid = !nameField.getText().trim().isEmpty() &&
+                !priceField.getText().isEmpty() &&
+                !stockField.getText().isEmpty() &&
+                categoryComboBox.getValue() != null;
+
+        okButton.setDisable(!isValid);
     }
 
     private Product updateProduct() {

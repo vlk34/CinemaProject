@@ -280,23 +280,29 @@ public class CashierCustomerDetailsController {
     }
 
     private void updateCartProduct(Product product, int quantity) {
-        // Remove existing item if quantity is 0
-        cart.getItems().removeIf(item ->
-                item.getItemType().equals("product") &&
-                        item.getProductId() != null &&
-                        item.getProductId().equals(product.getProductId())
-        );
+        // Find and remove existing item if it exists
+        OrderItem existingItem = cart.getItems().stream()
+                .filter(item ->
+                        "product".equals(item.getItemType()) &&
+                                item.getProductId() != null &&
+                                item.getProductId().equals(product.getProductId())
+                )
+                .findFirst()
+                .orElse(null);
 
-        cashierController.getCartController().removeCartItem(product.getProductName());
+        if (existingItem != null) {
+            cart.removeItem(existingItem);
+            cashierController.getCartController().removeCartItem(product.getProductName());
+        }
 
-        // Add new item if quantity > 0
+        // Only add new item if quantity > 0
         if (quantity > 0) {
-            OrderItem item = new OrderItem();
-            item.setItemType("product");
-            item.setProductId(product.getProductId());
-            item.setQuantity(quantity);
-            item.setItemPrice(product.getPrice());
-            cart.addItem(item);
+            OrderItem newItem = new OrderItem();
+            newItem.setItemType("product");
+            newItem.setProductId(product.getProductId());
+            newItem.setQuantity(quantity);
+            newItem.setItemPrice(product.getPrice());
+            cart.addItem(newItem);
 
             // Update cart UI with new quantity
             if (cashierController != null && cashierController.getCartController() != null) {
@@ -307,8 +313,6 @@ public class CashierCustomerDetailsController {
                         "product"
                 );
             }
-        } else {
-            cashierController.getCartController().removeCartItem(product.getProductName());
         }
     }
 

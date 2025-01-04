@@ -38,6 +38,7 @@ public class ManagerPricingController {
 
     public void initialize() {
         priceDAO = new PriceDAO();
+        setupInputValidation();
         loadCurrentPrices();
         setupPriceHistoryTable();
         loadPriceHistory();
@@ -67,6 +68,12 @@ public class ManagerPricingController {
         try {
             double newPrice = Double.parseDouble(newPriceStr);
             double oldPrice = priceDAO.getTicketPrice(hall);
+
+            if (newPrice == oldPrice) {
+                showErrorAlert("Price is already set to " + newPrice + ". No update needed.");
+                return;
+            }
+
             if (priceDAO.updateTicketPrice(hall, newPrice)) {
                 showSuccessAlert(hall + " Ticket Price Updated");
                 logPriceChange(hall + " Ticket Price", oldPrice, newPrice);
@@ -92,6 +99,12 @@ public class ManagerPricingController {
             }
 
             double oldDiscount = priceDAO.getAgeDiscount();
+
+            if (newDiscount == oldDiscount) {
+                showErrorAlert("Discount is already set to " + newDiscount + "%. No update needed.");
+                return;
+            }
+
             if (priceDAO.updateAgeDiscount(newDiscount)) {
                 showSuccessAlert("Age Discount Updated");
                 logPriceChange("Age Discount", oldDiscount, newDiscount);
@@ -121,6 +134,29 @@ public class ManagerPricingController {
 
         updatedByColumn.setCellValueFactory(new PropertyValueFactory<>("updatedBy"));
         updatedByColumn.setStyle("-fx-alignment: CENTER;");
+    }
+
+    private void setupInputValidation() {
+        // Validate Hall A price input
+        hallAPriceField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.matches("\\d*\\.?\\d*")) {
+                hallAPriceField.setText(oldValue);
+            }
+        });
+
+        // Validate Hall B price input
+        hallBPriceField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.matches("\\d*\\.?\\d*")) {
+                hallBPriceField.setText(oldValue);
+            }
+        });
+
+        // Validate age discount input
+        ageDiscountField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.matches("\\d*\\.?\\d*")) {
+                ageDiscountField.setText(oldValue);
+            }
+        });
     }
 
     private void loadPriceHistory() {

@@ -121,13 +121,20 @@ public class AdminCancellationsController {
         // Custom cell factory for customer column
         customerColumn.setCellValueFactory(data -> {
             Order order = data.getValue();
-            List<OrderItem> items = order.getOrderItems(); // Use items from Order object
-            if (items != null && !items.isEmpty()) {
-                OrderItem firstItem = items.get(0);
-                String fullName = firstItem.getOccupantFirstName() + " " + firstItem.getOccupantLastName();
+            List<OrderItem> items = order.getOrderItems();
+
+            // Find the first "ticket" item and get the customer name
+            OrderItem ticketItem = items.stream()
+                    .filter(item -> "ticket".equals(item.getItemType()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (ticketItem != null) {
+                String fullName = ticketItem.getOccupantFirstName() + " " + ticketItem.getOccupantLastName();
                 return new SimpleStringProperty(fullName);
+            } else {
+                return new SimpleStringProperty("N/A");
             }
-            return new SimpleStringProperty("N/A");
         });
         customerColumn.setStyle("-fx-alignment: CENTER;");
 

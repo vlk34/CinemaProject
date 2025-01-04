@@ -32,8 +32,23 @@ public class ShoppingCart {
         recalculateTax();
     }
 
-    public void removeItem(OrderItem item) {
-        items.remove(item);
+    public void removeItem(OrderItem itemToRemove) {
+        // For products, remove by product ID
+        if ("product".equals(itemToRemove.getItemType())) {
+            items.removeIf(item ->
+                    "product".equals(item.getItemType()) &&
+                            item.getProductId() != null &&
+                            item.getProductId().equals(itemToRemove.getProductId())
+            );
+        }
+        // For tickets, remove by seat number
+        else if ("ticket".equals(itemToRemove.getItemType())) {
+            items.removeIf(item ->
+                    "ticket".equals(item.getItemType()) &&
+                            item.getSeatNumber() != null &&
+                            item.getSeatNumber().equals(itemToRemove.getSeatNumber())
+            );
+        }
         recalculateTax();
     }
 
@@ -94,7 +109,11 @@ public class ShoppingCart {
     public Order createOrder() {
         Order order = new Order();
         order.setCashierId(cashierId);
-        order.setOrderItems(new ArrayList<>(items));
+        // Only include non-null items with quantity > 0
+        List<OrderItem> validItems = items.stream()
+                .filter(item -> item != null && item.getQuantity() > 0)
+                .collect(java.util.stream.Collectors.toList());
+        order.setOrderItems(new ArrayList<>(validItems));
         order.setTotalPrice(getTotal());
         order.setOrderDate(LocalDateTime.now());
         return order;

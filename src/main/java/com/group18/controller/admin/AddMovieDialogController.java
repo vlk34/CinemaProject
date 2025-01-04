@@ -10,14 +10,9 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 
 public class AddMovieDialogController {
     @FXML private TextField titleField;
-    @FXML private TextField genreField;
     @FXML private TextArea summaryField;
     @FXML private TextField durationField;
     @FXML private ImageView posterImageView;
@@ -33,10 +28,62 @@ public class AddMovieDialogController {
     @FXML
     private void initialize() {
         movieDAO = new MovieDAO();
+
+        // Setup genre combo box
         genreComboBox.getItems().addAll("Action", "Comedy", "Drama", "Horror", "Science Fiction");
+
+        // Disable add movie button initially
+        addMovieButton.setDisable(true);
+
+        // Setup validation listeners
+        setupValidation();
+
         selectPosterButton.setOnAction(event -> handleSelectPoster());
         addMovieButton.setOnAction(event -> handleAddMovie());
         cancelButton.setOnAction(event -> dialogStage.close());
+    }
+
+    private void setupValidation() {
+        // Title validation
+        titleField.textProperty().addListener((observable, oldValue, newValue) -> {
+            validateInputs();
+        });
+
+        // Genre validation
+        genreComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+            validateInputs();
+        });
+
+        // Summary validation
+        summaryField.textProperty().addListener((observable, oldValue, newValue) -> {
+            validateInputs();
+        });
+
+        durationField.setText("120");
+        durationField.setEditable(false);
+    }
+
+    private void validateInputs() {
+        // Check all input fields
+        boolean isTitleValid = !titleField.getText().trim().isEmpty();
+        boolean isGenreValid = genreComboBox.getValue() != null;
+        boolean isSummaryValid = !summaryField.getText().trim().isEmpty();
+
+        // Validate duration
+        boolean isDurationValid = false;
+        try {
+            int duration = Integer.parseInt(durationField.getText().trim());
+            isDurationValid = duration >= 60 && duration <= 120;
+        } catch (NumberFormatException e) {
+            isDurationValid = false;
+        }
+
+        // Validate poster (optional)
+        boolean isPosterValid = currentPosterPath != null && !currentPosterPath.isEmpty();
+
+        // Enable/disable add movie button
+        addMovieButton.setDisable(!(isTitleValid && isGenreValid &&
+                isSummaryValid && isDurationValid && isPosterValid));
     }
 
     private void handleAddMovie() {
@@ -44,42 +91,19 @@ public class AddMovieDialogController {
             String title = titleField.getText().trim();
             String genre = genreComboBox.getValue();
             String summary = summaryField.getText().trim();
-            String durationStr = durationField.getText().trim();
-
-            // Validate all fields are filled
-            if (title.isEmpty() || genre == null || summary.isEmpty() || durationStr.isEmpty()) {
-                showAlert("Validation Error", "Please fill in all fields.");
-                return;
-            }
-
-            // Parse and validate duration
-            int duration;
-            try {
-                duration = Integer.parseInt(durationStr);
-            } catch (NumberFormatException e) {
-                showAlert("Error", "Invalid duration format. Please enter a valid number.");
-                return;
-            }
-
-            // Validate duration range
-            if (duration < 60 || duration > 120) {
-                showAlert("Invalid Duration",
-                        "Movie duration must be between 60 and 120 minutes.\n" +
-                                "Please enter a duration between 1 and 2 hours.");
-                return;
-            }
+            int duration = 120;
 
             // Create new movie
             Movie newMovie = new Movie(title, genre, summary, currentPosterPath, duration);
 
             if (movieDAO.addMovie(newMovie)) {
-                showAlert("Success", "Movie added successfully.");
+                showAlert(Alert.AlertType.INFORMATION, "Success", "Movie added successfully.");
                 dialogStage.close();
             } else {
-                showAlert("Error", "Failed to add movie.");
+                showAlert(Alert.AlertType.ERROR, "Error", "Failed to add movie.");
             }
         } catch (Exception e) {
-            showAlert("Error", "An unexpected error occurred: " + e.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Error", "An unexpected error occurred: " + e.getMessage());
         }
     }
 
@@ -99,14 +123,17 @@ public class AddMovieDialogController {
 
                 // Store the relative path for database
                 currentPosterPath = "/images/movies/" + selectedFile.getName();
+
+                // Validate inputs after poster selection
+                validateInputs();
             } catch (Exception e) {
-                showAlert("Error", "Failed to select poster: " + e.getMessage());
+                showAlert(Alert.AlertType.ERROR, "Error", "Failed to select poster: " + e.getMessage());
             }
         }
     }
 
-    private void showAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+    private void showAlert(Alert.AlertType type, String title, String content) {
+        Alert alert = new Alert(type);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(content);

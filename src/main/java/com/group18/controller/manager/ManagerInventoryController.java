@@ -357,6 +357,16 @@ public class ManagerInventoryController implements Initializable {
      * Delete a product from inventory
      */
     private void deleteProduct(Product product) {
+        // First check if product exists in any orders
+        if (productDAO.hasActiveOrders(product)) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Cannot Delete Product");
+            alert.setHeaderText(null);
+            alert.setContentText("This product cannot be deleted because it exists in active orders. Consider setting stock to 0 instead.");
+            alert.showAndWait();
+            return;
+        }
+
         Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
         confirmDialog.setTitle("Delete Product");
         confirmDialog.setHeaderText("Are you sure you want to delete " + product.getProductName() + "?");
@@ -364,23 +374,29 @@ public class ManagerInventoryController implements Initializable {
 
         confirmDialog.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                // Actual deletion would be implemented in ProductDAO
-                boolean deleted = productDAO.deleteProduct(product.getProductId());
+                try {
+                    boolean deleted = productDAO.deleteProduct(product.getProductId());
+                    if (deleted) {
+                        masterData.remove(product);
+                        updateCategoryCards();
 
-                if (deleted) {
-                    masterData.remove(product);
-                    updateCategoryCards();
-
-                    Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
-                    successAlert.setTitle("Product Deleted");
-                    successAlert.setHeaderText(null);
-                    successAlert.setContentText("Product has been successfully deleted.");
-                    successAlert.showAndWait();
-                } else {
+                        Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                        successAlert.setTitle("Product Deleted");
+                        successAlert.setHeaderText(null);
+                        successAlert.setContentText("Product has been successfully deleted.");
+                        successAlert.showAndWait();
+                    } else {
+                        Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                        errorAlert.setTitle("Deletion Failed");
+                        errorAlert.setHeaderText(null);
+                        errorAlert.setContentText("Could not delete the product. The product may be referenced in existing orders.");
+                        errorAlert.showAndWait();
+                    }
+                } catch (Exception e) {
                     Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-                    errorAlert.setTitle("Deletion Failed");
+                    errorAlert.setTitle("System Error");
                     errorAlert.setHeaderText(null);
-                    errorAlert.setContentText("Could not delete the product. Please try again.");
+                    errorAlert.setContentText("An unexpected error occurred while trying to delete the product: " + e.getMessage());
                     errorAlert.showAndWait();
                 }
             }

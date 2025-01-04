@@ -70,17 +70,11 @@ public class AddProductDialog extends Dialog<Product> {
         getDialogPane().setContent(grid);
 
         // Add buttons
-        getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        ButtonType addButtonType = ButtonType.OK;
+        getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
 
         // Add validation
-        Button okButton = (Button) getDialogPane().lookupButton(ButtonType.OK);
-        okButton.setDisable(true);
-
-        // Add listeners for validation
-        nameField.textProperty().addListener((obs, old, newValue) -> validateInput(okButton));
-        priceField.textProperty().addListener((obs, old, newValue) -> validateInput(okButton));
-        stockField.textProperty().addListener((obs, old, newValue) -> validateInput(okButton));
-        categoryComboBox.valueProperty().addListener((obs, old, newValue) -> validateInput(okButton));
+        setupValidation();
 
         // Validate and process input
         setResultConverter(buttonType -> {
@@ -123,33 +117,40 @@ public class AddProductDialog extends Dialog<Product> {
         }
     }
 
-    private void validateInput(Button okButton) {
+    private void setupValidation() {
+        // Price validation - allow decimal numbers only
+        priceField.textProperty().addListener((observable, oldValue, newValue) -> {
+            // Only allow numbers and one decimal point
+            if (!newValue.matches("\\d*\\.?\\d*")) {
+                priceField.setText(oldValue);
+            }
+        });
+
+        // Stock validation (only positive numbers)
+        stockField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.matches("\\d*")) {
+                stockField.setText(newValue.replaceAll("[^\\d]", ""));
+            }
+        });
+
+        // Enable/disable OK button based on valid input
+        Button okButton = (Button) getDialogPane().lookupButton(ButtonType.OK);
+        okButton.setDisable(true);
+
+        // Enable OK button only when all fields are valid
+        nameField.textProperty().addListener((obs, old, newVal) -> validateOkButton(okButton));
+        priceField.textProperty().addListener((obs, old, newVal) -> validateOkButton(okButton));
+        stockField.textProperty().addListener((obs, old, newVal) -> validateOkButton(okButton));
+        categoryComboBox.valueProperty().addListener((obs, old, newVal) -> validateOkButton(okButton));
+    }
+
+    private void validateOkButton(Button okButton) {
         boolean isValid = !nameField.getText().trim().isEmpty() &&
-                !priceField.getText().trim().isEmpty() &&
-                isValidPrice(priceField.getText().trim()) &&
-                !stockField.getText().trim().isEmpty() &&
-                isValidStock(stockField.getText().trim()) &&
+                !priceField.getText().isEmpty() &&
+                !stockField.getText().isEmpty() &&
                 categoryComboBox.getValue() != null;
 
         okButton.setDisable(!isValid);
-    }
-
-    private boolean isValidPrice(String price) {
-        try {
-            new BigDecimal(price);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
-        }
-    }
-
-    private boolean isValidStock(String stock) {
-        try {
-            int value = Integer.parseInt(stock);
-            return value >= 0;
-        } catch (NumberFormatException e) {
-            return false;
-        }
     }
 
     private Product createProduct() {

@@ -88,19 +88,17 @@ public class ManagerRevenueController {
 
         for (Order order : orders) {
             // Skip cancelled orders
-            if (!"PROCESSED".equals(order.getStatus()) && !"PENDING".equals(order.getStatus())) {
-                continue;
-            }
-
-            for (OrderItem item : order.getOrderItems()) {
-                if ("ticket".equals(item.getItemType())) {
-                    stats.ticketRevenue = stats.ticketRevenue.add(item.getItemPrice());
-                    stats.ticketCount++;
-                    stats.ticketVAT = stats.ticketVAT.add(item.getItemPrice().multiply(TICKET_VAT_RATE));
-                } else {
-                    stats.productRevenue = stats.productRevenue.add(item.getItemPrice());
-                    stats.productCount++;
-                    stats.productVAT = stats.productVAT.add(item.getItemPrice().multiply(PRODUCT_VAT_RATE));
+            if ("REJECTED".equals(order.getStatus()) || "PENDING".equals(order.getStatus())) {
+                for (OrderItem item : order.getOrderItems()) {
+                    if ("ticket".equals(item.getItemType())) {
+                        stats.ticketRevenue = stats.ticketRevenue.add(item.getItemPrice());
+                        stats.ticketCount++;
+                        stats.ticketVAT = stats.ticketVAT.add(item.getItemPrice().multiply(TICKET_VAT_RATE));
+                    } else {
+                        stats.productRevenue = stats.productRevenue.add(item.getItemPrice());
+                        stats.productCount++;
+                        stats.productVAT = stats.productVAT.add(item.getItemPrice().multiply(PRODUCT_VAT_RATE));
+                    }
                 }
             }
         }
@@ -149,27 +147,25 @@ public class ManagerRevenueController {
 
         for (Order order : orders) {
             // Skip cancelled orders
-            if (!"PROCESSED".equals(order.getStatus()) && !"PENDING".equals(order.getStatus())) {
-                continue;
+            if ("REJECTED".equals(order.getStatus()) || "PENDING".equals(order.getStatus())) {
+                String date = order.getOrderDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+                // Group items by type
+                Map<String, BigDecimal> typeRevenue = order.getOrderItems().stream()
+                        .collect(Collectors.groupingBy(
+                                OrderItem::getItemType,
+                                Collectors.reducing(
+                                        BigDecimal.ZERO,
+                                        OrderItem::getItemPrice,
+                                        BigDecimal::add
+                                )
+                        ));
+
+                // Add entries for each type
+                typeRevenue.forEach((type, amount) -> {
+                    entries.add(new RevenueEntry(date, type, amount));
+                });
             }
-
-            String date = order.getOrderDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
-            // Group items by type
-            Map<String, BigDecimal> typeRevenue = order.getOrderItems().stream()
-                    .collect(Collectors.groupingBy(
-                            OrderItem::getItemType,
-                            Collectors.reducing(
-                                    BigDecimal.ZERO,
-                                    OrderItem::getItemPrice,
-                                    BigDecimal::add
-                            )
-                    ));
-
-            // Add entries for each type
-            typeRevenue.forEach((type, amount) -> {
-                entries.add(new RevenueEntry(date, type, amount));
-            });
         }
 
         revenueTable.setItems(entries);
