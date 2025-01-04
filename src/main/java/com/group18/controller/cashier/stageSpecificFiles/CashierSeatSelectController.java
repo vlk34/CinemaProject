@@ -94,7 +94,17 @@ public class CashierSeatSelectController {
 
     private void loadOccupiedSeats() {
         occupiedSeats.clear();
-        String query = "SELECT seat_number FROM order_items WHERE schedule_id = ? AND item_type = 'ticket'";
+        String query = """
+        SELECT seat_number 
+        FROM order_items 
+        WHERE schedule_id = ? 
+          AND item_type = 'ticket'
+          AND order_id IN (
+              SELECT order_id 
+              FROM orders 
+              WHERE status NOT IN ('PROCESSED', 'REJECTED')
+          )
+    """;
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -229,7 +239,7 @@ public class CashierSeatSelectController {
         confirm.setTitle("Confirm Seats");
         confirm.setHeaderText("Selected Seats: " + String.join(", ", selectedSeats));
         confirm.setContentText(String.format(
-                "Total Price: ₺%.2f%n%nDo you want to proceed with these seats? Any additional products in your cart will be reset.",
+                "Total Price: ₺%.2f%n%nDo you want to proceed with these seats? Any products in your cart will be reset.",
                 selectedSeats.size() * ticketPrice
         ));
 

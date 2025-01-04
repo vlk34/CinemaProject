@@ -170,14 +170,19 @@ public class ScheduleDAO {
 
     public int getAvailableSeatsCount(int scheduleId) {
         String query = """
-            SELECT h.capacity - COUNT(oi.order_item_id) as available_seats
-            FROM schedules s
-            JOIN halls h ON s.hall_id = h.hall_id
-            LEFT JOIN order_items oi ON s.schedule_id = oi.schedule_id 
-                AND oi.item_type = 'ticket'
-            WHERE s.schedule_id = ?
-            GROUP BY s.schedule_id, h.capacity
-        """;
+        SELECT h.capacity - COUNT(DISTINCT oi.seat_number) as available_seats
+        FROM schedules s
+        JOIN halls h ON s.hall_id = h.hall_id
+        LEFT JOIN order_items oi ON s.schedule_id = oi.schedule_id 
+            AND oi.item_type = 'ticket'
+            AND oi.order_id IN (
+                SELECT order_id 
+                FROM orders 
+                WHERE status NOT IN ('PROCESSED', 'REJECTED')
+            )
+        WHERE s.schedule_id = ?
+        GROUP BY s.schedule_id, h.capacity
+    """;
 
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setInt(1, scheduleId);

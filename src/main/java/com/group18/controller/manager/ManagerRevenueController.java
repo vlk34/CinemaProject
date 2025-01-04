@@ -90,14 +90,20 @@ public class ManagerRevenueController {
             // Skip cancelled orders
             if ("REJECTED".equals(order.getStatus()) || "PENDING".equals(order.getStatus())) {
                 for (OrderItem item : order.getOrderItems()) {
+                    BigDecimal itemTotalPrice = item.getItemPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
+
                     if ("ticket".equals(item.getItemType())) {
-                        stats.ticketRevenue = stats.ticketRevenue.add(item.getItemPrice());
-                        stats.ticketCount++;
-                        stats.ticketVAT = stats.ticketVAT.add(item.getItemPrice().multiply(TICKET_VAT_RATE));
+                        stats.ticketRevenue = stats.ticketRevenue.add(itemTotalPrice);
+                        stats.ticketCount += item.getQuantity();
+                        stats.ticketVAT = stats.ticketVAT.add(
+                                itemTotalPrice.multiply(TICKET_VAT_RATE)
+                        );
                     } else {
-                        stats.productRevenue = stats.productRevenue.add(item.getItemPrice());
-                        stats.productCount++;
-                        stats.productVAT = stats.productVAT.add(item.getItemPrice().multiply(PRODUCT_VAT_RATE));
+                        stats.productRevenue = stats.productRevenue.add(itemTotalPrice);
+                        stats.productCount += item.getQuantity();
+                        stats.productVAT = stats.productVAT.add(
+                                itemTotalPrice.multiply(PRODUCT_VAT_RATE)
+                        );
                     }
                 }
             }
@@ -150,20 +156,30 @@ public class ManagerRevenueController {
             if ("REJECTED".equals(order.getStatus()) || "PENDING".equals(order.getStatus())) {
                 String date = order.getOrderDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-                // Group items by type
+                // Group items by type and calculate total amount considering quantity
                 Map<String, BigDecimal> typeRevenue = order.getOrderItems().stream()
                         .collect(Collectors.groupingBy(
                                 OrderItem::getItemType,
                                 Collectors.reducing(
                                         BigDecimal.ZERO,
-                                        OrderItem::getItemPrice,
+                                        item -> item.getItemPrice().multiply(BigDecimal.valueOf(item.getQuantity())),
                                         BigDecimal::add
                                 )
                         ));
 
                 // Add entries for each type
                 typeRevenue.forEach((type, amount) -> {
-                    entries.add(new RevenueEntry(date, type, amount));
+                    // Calculate total quantity for this type
+                    int totalQuantity = order.getOrderItems().stream()
+                            .filter(item -> item.getItemType().equals(type))
+                            .mapToInt(OrderItem::getQuantity)
+                            .sum();
+
+                    entries.add(new RevenueEntry(
+                            date,
+                            String.format("%s (x%d)", type, totalQuantity),
+                            amount
+                    ));
                 });
             }
         }

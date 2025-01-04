@@ -23,6 +23,8 @@ public class OrderDAO {
                 "discount_applied, occupant_first_name, occupant_last_name, product_id, " +
                 "quantity, item_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
+        ProductDAO productDAO = new ProductDAO();
+
         try {
             connection.setAutoCommit(false);
 
@@ -46,9 +48,16 @@ public class OrderDAO {
                 }
             }
 
-            // Create each order item
+            // Create each order item and update stock
             try (PreparedStatement itemStmt = connection.prepareStatement(itemQuery)) {
                 for (OrderItem item : order.getOrderItems()) {
+                    // Process product items by reducing stock
+                    if ("product".equals(item.getItemType()) && item.getProductId() != null) {
+                        if (!productDAO.decreaseStock(item.getProductId(), item.getQuantity())) {
+                            throw new SQLException("Failed to decrease stock for product: " + item.getProductId());
+                        }
+                    }
+
                     itemStmt.setInt(1, order.getOrderId());
                     itemStmt.setString(2, item.getItemType());
                     itemStmt.setObject(3, item.getScheduleId());
@@ -82,6 +91,67 @@ public class OrderDAO {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    // Method to restore product stock when a cancellation is processed
+    public boolean restoreProductStock(int orderId) {
+        String query = """
+            SELECT product_id, quantity 
+            FROM order_items 
+            WHERE order_id = ? AND item_type = 'product' 
+            AND product_id IS NOT NULL
+        """;
+
+        ProductDAO productDAO = new ProductDAO();
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, orderId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                int productId = rs.getInt("product_id");
+                int quantity = rs.getInt("quantity");
+
+                // Restore stock for each product
+                if (!productDAO.increaseStock(productId, quantity)) {
+                    return false;
+                }
+            }
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Method to restore seats when a cancellation is processed
+    public boolean restoreSeats(int orderId) {
+        String query = """
+            UPDATE schedules s
+            SET s.available_seats = s.available_seats + 
+                (SELECT COUNT(*) 
+                 FROM order_items oi 
+                 WHERE oi.order_id = ? 
+                 AND oi.item_type = 'ticket' 
+                 AND oi.schedule_id = s.schedule_id)
+            WHERE EXISTS (
+                SELECT 1 
+                FROM order_items oi 
+                WHERE oi.order_id = ? 
+                AND oi.item_type = 'ticket' 
+                AND oi.schedule_id = s.schedule_id
+            )
+        """;
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, orderId);
+            stmt.setInt(2, orderId);
+
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         }
     }
 
@@ -123,19 +193,21 @@ public class OrderDAO {
         return orders;
     }
 
+    // Modified processCancellation to handle both product stock and seats
     public boolean processCancellation(int orderId) {
         try {
             connection.setAutoCommit(false);
 
-            // First get all items to restore inventory
-            List<OrderItem> items = getOrderItemsForOrder(orderId);
-            ProductDAO productDAO = new ProductDAO();
+            // Restore product stock
+            if (!restoreProductStock(orderId)) {
+                connection.rollback();
+                return false;
+            }
 
-            // Restore product inventory
-            for (OrderItem item : items) {
-                if ("product".equals(item.getItemType()) && item.getProductId() != null) {
-                    productDAO.increaseStock(item.getProductId(), item.getQuantity());
-                }
+            // Restore seat availability
+            if (!restoreSeats(orderId)) {
+                connection.rollback();
+                return false;
             }
 
             // Update order status
@@ -241,7 +313,7 @@ public class OrderDAO {
         }
         return items;
     }
-    
+
     private Order extractOrderFromResultSet(ResultSet rs) throws SQLException {
         Order order = new Order();
         order.setOrderId(rs.getInt("order_id"));

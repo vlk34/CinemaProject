@@ -9,7 +9,7 @@ public class Schedule {
     private int hallId;  // References halls table
     private LocalDate sessionDate;
     private LocalTime sessionTime;
-
+    private int availableSeats;
     public Schedule() {}
 
     public Schedule(int movieId, int hallId, LocalDate sessionDate, LocalTime sessionTime) {
@@ -19,6 +19,13 @@ public class Schedule {
         this.sessionTime = sessionTime;
     }
 
+    public int getAvailableSeats() {
+        return availableSeats;
+    }
+
+    public void setAvailableSeats(int availableSeats) {
+        this.availableSeats = availableSeats;
+    }
     // Getters and Setters
     public int getScheduleId() {
         return scheduleId;
