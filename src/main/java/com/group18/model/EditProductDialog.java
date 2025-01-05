@@ -156,6 +156,7 @@ public class EditProductDialog extends Dialog<Product> {
             if (!newValue.matches("\\d*\\.?\\d*")) {
                 priceField.setText(oldValue);
             }
+            validateOkButton();
         });
 
         // Stock validation (only positive numbers)
@@ -163,20 +164,23 @@ public class EditProductDialog extends Dialog<Product> {
             if (!newValue.matches("\\d*")) {
                 stockField.setText(newValue.replaceAll("[^\\d]", ""));
             }
+            validateOkButton();
         });
 
         // Enable/disable OK button based on valid input
         Button okButton = (Button) getDialogPane().lookupButton(ButtonType.OK);
-        okButton.setDisable(true);
 
         // Enable OK button only when all fields are valid
-        nameField.textProperty().addListener((obs, old, newVal) -> validateOkButton(okButton));
-        priceField.textProperty().addListener((obs, old, newVal) -> validateOkButton(okButton));
-        stockField.textProperty().addListener((obs, old, newVal) -> validateOkButton(okButton));
-        categoryComboBox.valueProperty().addListener((obs, old, newVal) -> validateOkButton(okButton));
+        nameField.textProperty().addListener((obs, old, newVal) -> validateOkButton());
+        categoryComboBox.valueProperty().addListener((obs, old, newVal) -> validateOkButton());
+
+        // Initial validation
+        validateOkButton();
     }
 
-    private void validateOkButton(Button okButton) {
+    private void validateOkButton() {
+        Button okButton = (Button) getDialogPane().lookupButton(ButtonType.OK);
+
         boolean isValid = !nameField.getText().trim().isEmpty() &&
                 !priceField.getText().isEmpty() &&
                 !stockField.getText().isEmpty() &&

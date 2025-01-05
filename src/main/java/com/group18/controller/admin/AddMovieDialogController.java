@@ -10,6 +10,11 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.Optional;
 
 public class AddMovieDialogController {
     @FXML private TextField titleField;
@@ -107,10 +112,10 @@ public class AddMovieDialogController {
         }
     }
 
+    @FXML
     private void handleSelectPoster() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select Movie Poster");
-        fileChooser.setInitialDirectory(new File("src/main/resources/images/movies"));
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif")
         );
@@ -119,15 +124,58 @@ public class AddMovieDialogController {
 
         if (selectedFile != null) {
             try {
-                posterImageView.setImage(new Image(selectedFile.toURI().toString()));
+                // Create movies directory if it doesn't exist
+                Path moviesDir = Paths.get("src/main/resources/images/movies");
+                Files.createDirectories(moviesDir);
 
-                // Store the relative path for database
-                currentPosterPath = "/images/movies/" + selectedFile.getName();
+                // Use the original filename
+                String fileName = selectedFile.getName();
+                Path targetPath = moviesDir.resolve(fileName);
+
+                // Check if file already exists
+                if (Files.exists(targetPath)) {
+                    Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+                    confirmAlert.setTitle("File Already Exists");
+                    confirmAlert.setHeaderText("A file with the name '" + fileName + "' already exists.");
+                    confirmAlert.setContentText("Do you want to replace the existing file?");
+
+                    Optional<ButtonType> result = confirmAlert.showAndWait();
+                    if (result.isEmpty() || result.get() != ButtonType.OK) {
+                        // User chose not to replace, so open file chooser again
+                        handleSelectPoster();
+                        return;
+                    }
+                }
+
+                // Copy file
+                Files.copy(selectedFile.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+
+                // Set the relative path for database storage
+                currentPosterPath = "/images/movies/" + fileName;
+
+                // Debug information
+                System.out.println("Selected file path: " + selectedFile.getAbsolutePath());
+                System.out.println("Target path: " + targetPath.toString());
+                System.out.println("Current poster path: " + currentPosterPath);
+
+                // Verify file exists after copying
+                File copiedFile = targetPath.toFile();
+                if (copiedFile.exists()) {
+                    System.out.println("File copied successfully. Size: " + copiedFile.length() + " bytes");
+                } else {
+                    System.err.println("File copy failed");
+                }
+
+                // Load and display the copied image
+                Image image = new Image(targetPath.toUri().toString());
+                posterImageView.setImage(image);
 
                 // Validate inputs after poster selection
                 validateInputs();
+
             } catch (Exception e) {
-                showAlert(Alert.AlertType.ERROR, "Error", "Failed to select poster: " + e.getMessage());
+                e.printStackTrace();
+                showAlert(Alert.AlertType.ERROR, "Error", "Failed to copy image file: " + e.getMessage());
             }
         }
     }

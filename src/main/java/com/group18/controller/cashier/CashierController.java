@@ -186,6 +186,10 @@ public class CashierController {
             if (selectedSeats != null && !selectedSeats.isEmpty()) {
                 customerDetailsController.setSelectedSeats(selectedSeats);
             }
+
+            if (actionBarController != null) {
+                actionBarController.updateButtonStates(currentStageIndex);
+            }
         }
         else if (controller instanceof CashierPaymentController) {
             ((CashierPaymentController) controller).setCashierController(this);
@@ -205,6 +209,11 @@ public class CashierController {
         // Clear the cart using the injected controller
         if (cashierCartController != null) {
             cashierCartController.clearCart();
+        }
+
+        // Clear persistent customer details
+        if (customerDetailsController != null) {
+            customerDetailsController.clearPersistentDetails();
         }
     }
 

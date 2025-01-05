@@ -14,6 +14,7 @@ import com.group18.model.MovieSession;
 import java.io.File;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class CashierSessionSelectController {
     @FXML private ImageView moviePosterView;
@@ -24,9 +25,12 @@ public class CashierSessionSelectController {
 
     private Movie selectedMovie;
     private Schedule selectedSchedule;
-    private List<Schedule> availableSchedules = new ArrayList<>();
+    private List<Schedule> allAvailableSchedules = new ArrayList<>();  // For all dates
+    private List<Schedule> currentDateSchedules = new ArrayList<>();   // For current date
     private ScheduleDAO scheduleDAO;
     private CashierController cashierController;
+    private MovieSession previouslySelectedSession;
+    private LocalDate previouslySelectedDate;
 
     @FXML
     private void initialize() {
@@ -35,8 +39,9 @@ public class CashierSessionSelectController {
     }
 
     private void setupDatePicker() {
-        datePicker.setValue(LocalDate.now());
-        updateAvailableDates(); // Call this whenever movie changes
+        LocalDate initialDate = previouslySelectedDate != null ? previouslySelectedDate : LocalDate.now();
+        datePicker.setValue(initialDate);
+        updateAvailableDates();
 
         datePicker.setDayCellFactory(picker -> new DateCell() {
             @Override
@@ -44,8 +49,7 @@ public class CashierSessionSelectController {
                 super.updateItem(date, empty);
                 LocalDate today = LocalDate.now();
 
-                // Disable if: empty, past date, more than 30 days ahead, or no schedules
-                boolean hasSchedules = availableSchedules.stream()
+                boolean hasSchedules = allAvailableSchedules.stream()
                         .anyMatch(s -> s.getSessionDate().equals(date));
 
                 setDisable(empty ||
@@ -53,7 +57,6 @@ public class CashierSessionSelectController {
                         date.compareTo(today.plusDays(30)) > 0 ||
                         !hasSchedules);
 
-                // Optional: Style disabled dates differently
                 if (isDisabled()) {
                     setStyle("-fx-background-color: #f0f0f0;");
                 }
@@ -61,19 +64,23 @@ public class CashierSessionSelectController {
         });
     }
 
-    // Add this method to update available dates when movie changes
     private void updateAvailableDates() {
         if (selectedMovie != null) {
             LocalDate today = LocalDate.now();
             LocalDate endDate = today.plusDays(30);
-            availableSchedules = scheduleDAO.getSchedulesBetweenDates(
+
+            // Load all available schedules
+            allAvailableSchedules = scheduleDAO.getSchedulesBetweenDates(
                     selectedMovie.getMovieId(),
                     today,
                     endDate
             );
 
-            // Optional: Trigger a refresh of the date picker to reflect available dates
             datePicker.setDayCellFactory(datePicker.getDayCellFactory());
+
+            if (datePicker.getValue() != null) {
+                handleShowSessions();
+            }
         }
     }
 
@@ -81,12 +88,23 @@ public class CashierSessionSelectController {
         this.cashierController = controller;
     }
 
-    // Update setMovie to also refresh available dates
     public void setMovie(Movie movie) {
         this.selectedMovie = movie;
         updateMovieDetails();
-        updateAvailableDates(); // Add this line
-        datePicker.setValue(LocalDate.now()); // Reset to today's date
+        updateAvailableDates();
+    }
+
+    public void restorePreviousSelection(MovieSession session, LocalDate date) {
+        this.previouslySelectedSession = session;
+        this.previouslySelectedDate = date;
+
+        if (date != null) {
+            datePicker.setValue(date);
+        }
+
+        if (selectedMovie != null && date != null) {
+            handleShowSessions();
+        }
     }
 
     private void updateMovieDetails() {
@@ -99,64 +117,48 @@ public class CashierSessionSelectController {
 
     private void loadMoviePoster() {
         if (selectedMovie == null || selectedMovie.getPosterPath() == null) {
-            // Set default image if no movie or poster path
             moviePosterView.setImage(new Image(getClass().getResourceAsStream("/images/movies/default_poster.jpg")));
             return;
         }
 
         try {
-            // Try loading from resource path first
             Image resourceImage = new Image(getClass().getResourceAsStream(selectedMovie.getPosterPath()));
 
-            // If resource image is valid, use it
             if (resourceImage.isError()) {
-                // If resource loading fails, try file path
                 File posterFile = new File(selectedMovie.getPosterPath());
                 if (posterFile.exists()) {
                     resourceImage = new Image(posterFile.toURI().toString());
                 }
             }
 
-            // Set image, fallback to default if still invalid
             moviePosterView.setImage(resourceImage.isError()
                     ? new Image(getClass().getResourceAsStream("/images/movies/default_poster.jpg"))
                     : resourceImage);
 
         } catch (Exception e) {
-            // Fallback to default image if any exception occurs
             moviePosterView.setImage(new Image(getClass().getResourceAsStream("/images/movies/default_poster.jpg")));
             System.err.println("Error loading poster: " + e.getMessage());
         }
-    }
-
-    private Image getDefaultImage() {
-        return new Image(getClass().getResourceAsStream("/images/movies/default_poster.jpg"));
     }
 
     @FXML
     private void handleShowSessions() {
         LocalDate selectedDate = datePicker.getValue();
         if (selectedDate != null && selectedMovie != null) {
-            List<Schedule> sessionsForDate = scheduleDAO.getAvailableSchedules(selectedMovie.getMovieId(), selectedDate);
+            // Filter schedules for the selected date from all available schedules
+            currentDateSchedules = allAvailableSchedules.stream()
+                    .filter(s -> s.getSessionDate().equals(selectedDate))
+                    .collect(Collectors.toList());
 
-            if (sessionsForDate.isEmpty()) {
-                // Clear the grid and show an informative message
+            if (currentDateSchedules.isEmpty()) {
                 clearSessionsGrid();
-
-                // Add a label to inform the user no sessions are available
                 Label noSessionsLabel = new Label("No sessions available for the selected date.");
                 noSessionsLabel.setStyle("-fx-text-fill: red; -fx-font-weight: bold; -fx-padding: 10;");
                 sessionsGrid.addRow(1, noSessionsLabel);
             } else {
-                // Update available schedules and display them
-                availableSchedules = sessionsForDate;
                 displaySessions();
             }
         }
-    }
-
-    private void loadAvailableSessions(LocalDate date) {
-        availableSchedules = scheduleDAO.getAvailableSchedules(selectedMovie.getMovieId(), date);
     }
 
     private void displaySessions() {
@@ -172,7 +174,7 @@ public class CashierSessionSelectController {
 
     private void populateSessionsGrid() {
         int row = 1;
-        for (Schedule schedule : availableSchedules) {
+        for (Schedule schedule : currentDateSchedules) {
             int availableSeats = scheduleDAO.getAvailableSeatsCount(schedule.getScheduleId());
             String hallName = schedule.getHallId() == 1 ? "Hall_A" : "Hall_B";
 
@@ -198,6 +200,12 @@ public class CashierSessionSelectController {
         seatsLabel.setStyle("-fx-padding: 8 15; -fx-alignment: CENTER;");
 
         Button selectButton = createSelectButton(session);
+
+        if (previouslySelectedSession != null &&
+                previouslySelectedSession.getScheduleId() == session.getScheduleId()) {
+            selectButton.setStyle(selectButton.getStyle() + "; -fx-background-color: #4a3b55;");
+        }
+
         HBox buttonBox = new HBox(selectButton);
         buttonBox.setAlignment(Pos.CENTER);
         buttonBox.setStyle("-fx-padding: 8 15;");

@@ -38,10 +38,25 @@ public class CashierCustomerDetailsController {
     private boolean isDiscountApplicable = false;
     private boolean customerDetailsValidated = false;
 
-    private String previousFirstName = "";
-    private String previousLastName = "";
-    private String previousAge = "";
-    private boolean previousDiscountApplicable = false;
+    // Persistent customer details storage
+    private static class CustomerDetails {
+        String firstName;
+        String lastName;
+        String age;
+        boolean discountApplicable;
+        boolean validated;
+
+        CustomerDetails(String firstName, String lastName, String age,
+                        boolean discountApplicable, boolean validated) {
+            this.firstName = firstName;
+            this.lastName = lastName;
+            this.age = age;
+            this.discountApplicable = discountApplicable;
+            this.validated = validated;
+        }
+    }
+
+    private static CustomerDetails persistentCustomerDetails = null;
 
     @FXML
     private void initialize() {
@@ -58,23 +73,82 @@ public class CashierCustomerDetailsController {
 
         // Setup customer details validation
         setupCustomerDetailsValidation();
+
+        restorePersistentDetails();
     }
 
-    // Method to restore previous input
-    public void restorePreviousInput() {
-        firstNameField.setText(previousFirstName);
-        lastNameField.setText(previousLastName);
-        ageField.setText(previousAge);
+    private void restorePersistentDetails() {
+        if (persistentCustomerDetails != null) {
+            firstNameField.setText(persistentCustomerDetails.firstName);
+            lastNameField.setText(persistentCustomerDetails.lastName);
+            ageField.setText(persistentCustomerDetails.age);
 
-        // If we had a previous validation, restore its state
-        if (previousDiscountApplicable) {
-            handleVerifyAge(false);
+            isDiscountApplicable = persistentCustomerDetails.discountApplicable;
+            customerDetailsValidated = persistentCustomerDetails.validated;
+
+            // If validated before, trigger verification
+            if (customerDetailsValidated) {
+                verifyAgeButton.setDisable(false);
+                validateCustomerDetails();
+            }
         }
+    }
+
+    private void savePersistentDetails() {
+        String firstName = firstNameField.getText().trim();
+        String lastName = lastNameField.getText().trim();
+        String age = ageField.getText().trim();
+
+        if (!firstName.isEmpty() && !lastName.isEmpty() && !age.isEmpty()) {
+            persistentCustomerDetails = new CustomerDetails(
+                    firstName,
+                    lastName,
+                    age,
+                    isDiscountApplicable,
+                    customerDetailsValidated
+            );
+        }
+    }
+
+    public void clearPersistentDetails() {
+        persistentCustomerDetails = null;
+        firstNameField.clear();
+        lastNameField.clear();
+        ageField.clear();
+        verifyAgeButton.setDisable(true);
+        isDiscountApplicable = false;
+        customerDetailsValidated = false;
     }
 
     @FXML
     private void handleVerifyAge() {
-        handleVerifyAge(true);
+        if (ageField.getText().isEmpty()) {
+            showError("Invalid Input", "Please enter customer's age.");
+            return;
+        }
+
+        int age = Integer.parseInt(ageField.getText());
+        isDiscountApplicable = age < 18 || age > 60;
+
+        // Show result alert
+        Alert alert = new Alert(
+                isDiscountApplicable ? Alert.AlertType.INFORMATION : Alert.AlertType.WARNING,
+                isDiscountApplicable ? "Age discount will be applied!" : "No age discount applicable."
+        );
+        alert.setHeaderText(null);
+        alert.showAndWait();
+
+        // Update all ticket items in cart with customer details and discount
+        updateTicketsInCart();
+
+        // Mark customer details as validated
+        customerDetailsValidated = true;
+
+        // Save details for persistence
+        savePersistentDetails();
+
+        // Update the action bar buttons
+        updateActionBarState();
     }
 
     public boolean isCustomerDetailsValidated() {
@@ -94,6 +168,27 @@ public class CashierCustomerDetailsController {
                 !ageField.getText().trim().isEmpty();
 
         verifyAgeButton.setDisable(!detailsValid);
+
+        // If customer details have been previously validated, keep that state
+        if (customerDetailsValidated) {
+            updateActionBarState();
+        }
+    }
+
+    private void updateActionBarState() {
+        // Update action bar if we have a valid controller
+        if (cashierController != null && cashierController.getActionBarController() != null) {
+            cashierController.getActionBarController().updateButtonStates(
+                    cashierController.getCurrentStageIndex()
+            );
+        }
+    }
+
+    public boolean hasValidDetailsAndVerification() {
+        return !firstNameField.getText().trim().isEmpty() &&
+                !lastNameField.getText().trim().isEmpty() &&
+                !ageField.getText().trim().isEmpty() &&
+                customerDetailsValidated;
     }
 
     private void loadProducts() {
@@ -316,80 +411,6 @@ public class CashierCustomerDetailsController {
         }
     }
 
-    private void handleVerifyAge(boolean showAlert) {
-        if (ageField.getText().isEmpty()) {
-            showError("Invalid Input", "Please enter customer's age.");
-            return;
-        }
-
-        // Store current input before validation
-        previousFirstName = firstNameField.getText().trim();
-        previousLastName = lastNameField.getText().trim();
-        previousAge = ageField.getText().trim();
-
-        int age = Integer.parseInt(ageField.getText());
-        isDiscountApplicable = age < 18 || age > 60;
-        previousDiscountApplicable = isDiscountApplicable;
-
-        // Show result if requested
-        if (showAlert) {
-            Alert alert = new Alert(
-                    isDiscountApplicable ? Alert.AlertType.INFORMATION : Alert.AlertType.WARNING,
-                    isDiscountApplicable ? "Age discount will be applied!" : "No age discount applicable."
-            );
-            alert.setHeaderText(null);
-            alert.showAndWait();
-        }
-
-        // Update all ticket items in cart with customer details and discount
-        updateTicketsInCart();
-
-        customerDetailsValidated = true;
-
-        // Update the action bar buttons
-        if (cashierController != null && cashierController.getActionBarController() != null) {
-            cashierController.getActionBarController().updateButtonStates(
-                    cashierController.getCurrentStageIndex()
-            );
-        }
-    }
-
-    public void clearProductSelections() {
-        // Clear all quantity labels and reset buttons
-        for (Node node : beveragesContainer.getChildren()) {
-            if (node instanceof VBox) {
-                resetProductCard((VBox) node);
-            }
-        }
-        for (Node node : biscuitsContainer.getChildren()) {
-            if (node instanceof VBox) {
-                resetProductCard((VBox) node);
-            }
-        }
-        for (Node node : toysContainer.getChildren()) {
-            if (node instanceof VBox) {
-                resetProductCard((VBox) node);
-            }
-        }
-    }
-
-    private void resetProductCard(VBox card) {
-        // Find the quantity label and buttons within the card
-        for (Node node : card.getChildren()) {
-            if (node instanceof HBox && ((HBox) node).getChildren().size() == 3) {
-                HBox quantityBox = (HBox) node;
-                Button minusButton = (Button) quantityBox.getChildren().get(0);
-                Label quantityLabel = (Label) quantityBox.getChildren().get(1);
-                Button plusButton = (Button) quantityBox.getChildren().get(2);
-
-                // Reset quantity to 0
-                quantityLabel.setText("0");
-                minusButton.setDisable(true);
-                plusButton.setDisable(false);
-            }
-        }
-    }
-
     private void updateTicketsInCart() {
         if (firstNameField.getText().isEmpty() || lastNameField.getText().isEmpty()) {
             showError("Invalid Input", "Please fill in customer name details.");
@@ -476,7 +497,7 @@ public class CashierCustomerDetailsController {
         this.cashierController = controller;
         // Load products for each category
         loadProducts();
-        restorePreviousInput();
+        restorePersistentDetails();
     }
 
     public void setSelectedSeats(Set<String> seats) {

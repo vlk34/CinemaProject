@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Optional;
 
 public class AdminMoviesController {
     @FXML private TextField titleField;
@@ -58,6 +59,9 @@ public class AdminMoviesController {
 
         // Initialize filterGenreComboBox with "All Genres"
         filterGenreComboBox.setValue("All Genres");
+
+        // Make duration field non-editable
+        durationField.setEditable(false);
 
         setupTableColumns();
         setupGenreComboBoxes();
@@ -118,18 +122,66 @@ public class AdminMoviesController {
         titleField.setText(movie.getTitle());
         genreComboBox.setValue(movie.getGenre());
         summaryField.setText(movie.getSummary());
-        durationField.setText(String.valueOf(movie.getDuration()));
+
+        durationField.setText("120");
+        durationField.setEditable(false);
 
         if (movie.getPosterPath() != null && !movie.getPosterPath().isEmpty()) {
             try {
-                // Load image using getResource since we're using a relative path
-                Image image = new Image(getClass().getResourceAsStream(movie.getPosterPath()));
-                posterImageView.setImage(image);
-                currentPosterPath = movie.getPosterPath();
+
+                Image image = null;
+
+                // 1. Try loading from file system directly
+                try {
+                    File posterFile = new File("src/main/resources" + movie.getPosterPath());
+                    if (posterFile.exists()) {
+                        image = new Image(posterFile.toURI().toString());
+                    }
+                } catch (Exception e) {
+                    System.err.println("File system loading failed: " + e.getMessage());
+                }
+
+                // 2. Try resource stream
+                if (image == null || image.isError()) {
+                    try {
+                        String fileName = movie.getPosterPath().substring(movie.getPosterPath().lastIndexOf('/') + 1);
+                        String fullResourcePath = "/images/movies/" + fileName;
+
+                        image = new Image(getClass().getResourceAsStream(fullResourcePath));
+
+                        if (image.isError()) {
+                            System.err.println("Resource stream image is error");
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Resource stream failed: " + e.getMessage());
+                    }
+                }
+
+                // 3. Absolute file path
+                if (image == null || image.isError()) {
+                    try {
+                        File absoluteFile = new File(movie.getPosterPath());
+                        if (absoluteFile.exists()) {
+                            image = new Image(absoluteFile.toURI().toString());
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Absolute path loading failed: " + e.getMessage());
+                    }
+                }
+
+                // Set the image if successfully loaded
+                if (image != null && !image.isError()) {
+                    posterImageView.setImage(image);
+                    currentPosterPath = movie.getPosterPath();
+                } else {
+                    System.err.println("Failed to load image from all sources");
+                    posterImageView.setImage(null);
+                    currentPosterPath = null;
+                }
             } catch (Exception e) {
                 e.printStackTrace();
-                // Optionally set a default image if loading fails
                 posterImageView.setImage(null);
+                currentPosterPath = null;
             }
         } else {
             posterImageView.setImage(null);
@@ -141,7 +193,6 @@ public class AdminMoviesController {
     private void handleSelectPoster() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select Movie Poster");
-        fileChooser.setInitialDirectory(new File("src/main/resources/images/movies")); // Set initial directory
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif")
         );
@@ -150,13 +201,53 @@ public class AdminMoviesController {
 
         if (selectedFile != null) {
             try {
-                // Just use the selected file directly
-                posterImageView.setImage(new Image(selectedFile.toURI().toString()));
+                // Create movies directory if it doesn't exist
+                Path moviesDir = Paths.get("src/main/resources/images/movies");
+                Files.createDirectories(moviesDir);
 
-                // Store the relative path
-                currentPosterPath = "/images/movies/" + selectedFile.getName();
+                // Use the original filename
+                String fileName = selectedFile.getName();
+                Path targetPath = moviesDir.resolve(fileName);
+
+                // Check if file already exists
+                if (Files.exists(targetPath)) {
+                    Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+                    confirmAlert.setTitle("File Already Exists");
+                    confirmAlert.setHeaderText("A file with the name '" + fileName + "' already exists.");
+                    confirmAlert.setContentText("Do you want to replace the existing file?");
+
+                    Optional<ButtonType> result = confirmAlert.showAndWait();
+                    if (result.isEmpty() || result.get() != ButtonType.OK) {
+                        // User chose not to replace, so return
+                        return;
+                    }
+                }
+
+                // Use Platform.runLater to move file copying to background thread
+                javafx.application.Platform.runLater(() -> {
+                    try {
+                        // Copy file
+                        Files.copy(selectedFile.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+
+                        // Set the relative path for database storage
+                        currentPosterPath = "/images/movies/" + fileName;
+
+                        // Update UI on JavaFX Application Thread
+                        javafx.application.Platform.runLater(() -> {
+                            // Load and display the copied image
+                            Image image = new Image(targetPath.toUri().toString());
+                            posterImageView.setImage(image);
+                        });
+                    } catch (Exception e) {
+                        // Show error on JavaFX Application Thread
+                        javafx.application.Platform.runLater(() ->
+                                showAlert("Error", "Failed to copy image file: " + e.getMessage())
+                        );
+                    }
+                });
+
             } catch (Exception e) {
-                showAlert("Error", "Failed to select poster: " + e.getMessage());
+                showAlert("Error", "Failed to prepare image file: " + e.getMessage());
             }
         }
     }
@@ -195,32 +286,22 @@ public class AdminMoviesController {
             return;
         }
 
-        try {
-            int duration = Integer.parseInt(durationField.getText().trim());
+        // Set duration statically to 120 minutes
+        durationField.setText("120");
+        durationField.setEditable(false);
 
-            // Add duration validation
-            if (duration < 60 || duration > 120) {
-                showAlert("Invalid Duration",
-                        "Movie duration must be between 60 and 120 minutes.\n" +
-                                "Please enter a duration between 1 and 2 hours.");
-                return;
-            }
+        selectedMovie.setTitle(titleField.getText().trim());
+        selectedMovie.setGenre(genreComboBox.getValue());
+        selectedMovie.setSummary(summaryField.getText().trim());
+        selectedMovie.setDuration(120);  // Hardcoded to 120 minutes
+        selectedMovie.setPosterPath(currentPosterPath);
 
-            selectedMovie.setTitle(titleField.getText().trim());
-            selectedMovie.setGenre(genreComboBox.getValue());
-            selectedMovie.setSummary(summaryField.getText().trim());
-            selectedMovie.setDuration(duration);
-            selectedMovie.setPosterPath(currentPosterPath);
-
-            if (movieDAO.updateMovie(selectedMovie)) {
-                loadMovies();
-                clearFields();
-                showAlert("Success", "Movie updated successfully");
-            } else {
-                showAlert("Error", "Failed to update movie");
-            }
-        } catch (NumberFormatException e) {
-            showAlert("Error", "Invalid duration format. Please enter a valid number of minutes.");
+        if (movieDAO.updateMovie(selectedMovie)) {
+            loadMovies();
+            clearFields();
+            showAlert("Success", "Movie updated successfully");
+        } else {
+            showAlert("Error", "Failed to update movie");
         }
     }
 

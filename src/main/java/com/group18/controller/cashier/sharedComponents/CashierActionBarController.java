@@ -48,7 +48,8 @@ public class CashierActionBarController {
 
         // Update next button text and state
         if (currentStage == 4) { // Final stage
-            nextButton.setText("Confirm Payment");
+            nextButton.setText("Next");
+            nextButton.setDisable(true);
         } else {
             nextButton.setText("Next");
         }
