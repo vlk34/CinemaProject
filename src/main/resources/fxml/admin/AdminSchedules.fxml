@@ -87,13 +87,5 @@
                 </TableView>
             </VBox>
         </GridPane>
-
-        <!-- Legend -->
-        <HBox spacing="20" style="-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 15;">
-            <Label text="Status Legend:" style="-fx-font-weight: bold"/>
-            <Label text="● Available" style="-fx-text-fill: #2ECC71"/>
-            <Label text="● Has Bookings" style="-fx-text-fill: #F1C40F"/>
-            <Label text="● Full" style="-fx-text-fill: #E74C3C"/>
-        </HBox>
     </VBox>
 </ScrollPane>

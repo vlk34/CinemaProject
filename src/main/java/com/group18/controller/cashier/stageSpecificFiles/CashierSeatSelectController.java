@@ -102,7 +102,7 @@ public class CashierSeatSelectController {
           AND order_id IN (
               SELECT order_id 
               FROM orders 
-              WHERE status NOT IN ('PROCESSED', 'REJECTED')
+              WHERE status NOT IN ('PROCESSED')
           )
     """;
 

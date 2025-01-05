@@ -122,33 +122,42 @@ public class CashierCustomerDetailsController {
 
     @FXML
     private void handleVerifyAge() {
-        if (ageField.getText().isEmpty()) {
+        String ageText = ageField.getText().trim();
+        if (ageText.isEmpty()) {
             showError("Invalid Input", "Please enter customer's age.");
             return;
         }
 
-        int age = Integer.parseInt(ageField.getText());
-        isDiscountApplicable = age < 18 || age > 60;
+        try {
+            int age = Integer.parseInt(ageText);
+            if (age < 1 || age > 90) {
+                throw new NumberFormatException();
+            }
 
-        // Show result alert
-        Alert alert = new Alert(
-                isDiscountApplicable ? Alert.AlertType.INFORMATION : Alert.AlertType.WARNING,
-                isDiscountApplicable ? "Age discount will be applied!" : "No age discount applicable."
-        );
-        alert.setHeaderText(null);
-        alert.showAndWait();
+            isDiscountApplicable = age < 18 || age > 60;
 
-        // Update all ticket items in cart with customer details and discount
-        updateTicketsInCart();
+            // Show result alert
+            Alert alert = new Alert(
+                    isDiscountApplicable ? Alert.AlertType.INFORMATION : Alert.AlertType.WARNING,
+                    isDiscountApplicable ? "Age discount will be applied!" : "No age discount applicable."
+            );
+            alert.setHeaderText(null);
+            alert.showAndWait();
 
-        // Mark customer details as validated
-        customerDetailsValidated = true;
+            // Update all ticket items in cart with customer details and discount
+            updateTicketsInCart();
 
-        // Save details for persistence
-        savePersistentDetails();
+            // Mark customer details as validated
+            customerDetailsValidated = true;
 
-        // Update the action bar buttons
-        updateActionBarState();
+            // Save details for persistence
+            savePersistentDetails();
+
+            // Update the action bar buttons
+            updateActionBarState();
+        } catch (NumberFormatException e) {
+            showError("Invalid Input", "Age must be a valid number between 1 and 90.");
+        }
     }
 
     public boolean isCustomerDetailsValidated() {
