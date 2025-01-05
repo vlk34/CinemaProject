@@ -28,11 +28,11 @@ public class MovieDAO {
     }
 
     public List<Movie> searchByGenre(String genre) {
-        String query = "SELECT * FROM movies WHERE genre = ?";
+        String query = "SELECT * FROM movies WHERE genre LIKE ?";
         List<Movie> movies = new ArrayList<>();
 
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setString(1, genre);
+            stmt.setString(1, "%" + genre + "%");
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
@@ -83,18 +83,24 @@ public class MovieDAO {
 
         try (PreparedStatement stmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, movie.getTitle());
-            stmt.setString(2, movie.getGenre());
+            stmt.setString(2, movie.getGenresAsString());
             stmt.setString(3, movie.getSummary());
             stmt.setString(4, movie.getPosterPath());
             stmt.setInt(5, movie.getDuration());
 
             int affectedRows = stmt.executeUpdate();
-            if (affectedRows > 0) {
-                ResultSet rs = stmt.getGeneratedKeys();
-                if (rs.next()) {
-                    movie.setMovieId(rs.getInt(1));
+
+            if (affectedRows == 0) {
+                throw new SQLException("Creating movie failed, no rows affected.");
+            }
+
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    movie.setMovieId(generatedKeys.getInt(1));
+                    return true;
+                } else {
+                    throw new SQLException("Creating movie failed, no ID obtained.");
                 }
-                return true;
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -107,7 +113,7 @@ public class MovieDAO {
 
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, movie.getTitle());
-            stmt.setString(2, movie.getGenre());
+            stmt.setString(2, movie.getGenresAsString());
             stmt.setString(3, movie.getSummary());
             stmt.setString(4, movie.getPosterPath());
             stmt.setInt(5, movie.getDuration());
@@ -140,7 +146,7 @@ public class MovieDAO {
         Movie movie = new Movie();
         movie.setMovieId(rs.getInt("movie_id"));
         movie.setTitle(rs.getString("title"));
-        movie.setGenre(rs.getString("genre"));
+        movie.setGenresFromString(rs.getString("genre"));
         movie.setSummary(rs.getString("summary"));
         movie.setPosterPath(rs.getString("poster_path"));
         movie.setDuration(rs.getInt("duration"));

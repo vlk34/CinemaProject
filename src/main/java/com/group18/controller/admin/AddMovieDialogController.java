@@ -3,11 +3,16 @@ package com.group18.controller.admin;
 import com.group18.dao.MovieDAO;
 import com.group18.model.Movie;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.FlowPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.scene.layout.VBox;
+import java.util.Set;
+import java.util.HashSet;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -24,18 +29,33 @@ public class AddMovieDialogController {
     @FXML private Button selectPosterButton;
     @FXML private Button addMovieButton;
     @FXML private Button cancelButton;
-    @FXML private ComboBox<String> genreComboBox;
+    @FXML private FlowPane genreContainer;
 
     private MovieDAO movieDAO;
     private String currentPosterPath;
     private Stage dialogStage;
+    private Set<String> selectedGenres;
 
     @FXML
     private void initialize() {
         movieDAO = new MovieDAO();
+        selectedGenres = new HashSet<>();
 
-        // Setup genre combo box
-        genreComboBox.getItems().addAll("Action", "Comedy", "Drama", "Horror", "Science Fiction");
+        // Create checkboxes for genres
+        String[] genres = {"Action", "Comedy", "Drama", "Horror", "Science Fiction", "Fantasy"};
+        for (String genre : genres) {
+            CheckBox checkBox = new CheckBox(genre);
+            checkBox.setPadding(new Insets(0, 10, 0, 0));  // Add padding for spacing
+            checkBox.setOnAction(e -> {
+                if (checkBox.isSelected()) {
+                    selectedGenres.add(genre);
+                } else {
+                    selectedGenres.remove(genre);
+                }
+                validateInputs();
+            });
+            genreContainer.getChildren().add(checkBox);
+        }
 
         // Disable add movie button initially
         addMovieButton.setDisable(true);
@@ -54,11 +74,6 @@ public class AddMovieDialogController {
             validateInputs();
         });
 
-        // Genre validation
-        genreComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
-            validateInputs();
-        });
-
         // Summary validation
         summaryField.textProperty().addListener((observable, oldValue, newValue) -> {
             validateInputs();
@@ -71,7 +86,7 @@ public class AddMovieDialogController {
     private void validateInputs() {
         // Check all input fields
         boolean isTitleValid = !titleField.getText().trim().isEmpty();
-        boolean isGenreValid = genreComboBox.getValue() != null;
+        boolean isGenreValid = !selectedGenres.isEmpty();  // Must select at least one genre
         boolean isSummaryValid = !summaryField.getText().trim().isEmpty();
 
         // Validate duration
@@ -94,12 +109,16 @@ public class AddMovieDialogController {
     private void handleAddMovie() {
         try {
             String title = titleField.getText().trim();
-            String genre = genreComboBox.getValue();
             String summary = summaryField.getText().trim();
             int duration = 120;
 
-            // Create new movie
-            Movie newMovie = new Movie(title, genre, summary, currentPosterPath, duration);
+            // Create new movie with multiple genres
+            Movie newMovie = new Movie();
+            newMovie.setTitle(title);
+            newMovie.setGenres(selectedGenres);
+            newMovie.setSummary(summary);
+            newMovie.setPosterPath(currentPosterPath);
+            newMovie.setDuration(duration);
 
             if (movieDAO.addMovie(newMovie)) {
                 showAlert(Alert.AlertType.INFORMATION, "Success", "Movie added successfully.");

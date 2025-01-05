@@ -28,18 +28,38 @@
                 <!-- Search by Title -->
                 <VBox spacing="5" HBox.hgrow="ALWAYS">
                     <Label text="Search by Title"/>
-                    <TextField fx:id="titleSearchField" promptText="Enter movie title..."/>
+                    <TextField fx:id="titleSearchField" promptText="Enter movie title..."
+                               style="-fx-background-color: #f8f9fa;
+                                      -fx-background-radius: 5;
+                                      -fx-border-color: #dee2e6;
+                                      -fx-border-radius: 5;
+                                      -fx-padding: 8;
+                                      -fx-pref-height: 35px;"/>
                 </VBox>
 
-                <!-- Search by Genre -->
+                <!-- Filter by Genre -->
                 <VBox spacing="5">
                     <Label text="Filter by Genre"/>
-                    <ComboBox fx:id="genreComboBox" prefWidth="200"/>
+                    <MenuButton fx:id="genreMenuButton"
+                                style="-fx-background-color: #f8f9fa;
+                                       -fx-background-radius: 5;
+                                       -fx-border-color: #dee2e6;
+                                       -fx-border-radius: 5;
+                                       -fx-padding: 0 8;
+                                       -fx-pref-width: 200px;
+                                       -fx-pref-height: 35px;">
+                        <text>Select Genres</text>
+                    </MenuButton>
                 </VBox>
 
                 <!-- Search Button -->
                 <Button text="Search" onAction="#handleSearch"
-                        style="-fx-background-color: #2a1b35; -fx-text-fill: white;">
+                        style="-fx-background-color: #2A1B35;
+                               -fx-text-fill: white;
+                               -fx-background-radius: 5;
+                               -fx-cursor: hand;
+                               -fx-padding: 8 15;
+                               -fx-pref-height: 35px;">
                     <HBox.margin>
                         <Insets top="20"/>
                     </HBox.margin>
@@ -64,6 +84,7 @@
                 <VBox.margin>
                     <Insets top="20"/>
                 </VBox.margin>
+                <!-- Movie cards will be added here programmatically -->
             </FlowPane>
         </VBox>
     </VBox>

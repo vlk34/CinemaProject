@@ -5,7 +5,9 @@
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
-<ScrollPane fitToWidth="true" style="-fx-background: #F5F7FA; -fx-background-color: #F5F7FA;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.group18.controller.cashier.stageSpecificFiles.CashierSessionSelectController">
+<ScrollPane fitToWidth="true" style="-fx-background: #F5F7FA; -fx-background-color: #F5F7FA;"
+            xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.group18.controller.cashier.stageSpecificFiles.CashierSessionSelectController">
 
     <VBox spacing="20">
         <padding>
@@ -22,7 +24,11 @@
                 <ImageView fx:id="moviePosterView" fitHeight="180" fitWidth="120" />
                 <VBox spacing="5">
                     <Label fx:id="movieTitleLabel" style="-fx-font-size: 18px; -fx-font-weight: bold;" />
-                    <Label fx:id="movieGenresLabel" style="-fx-text-fill: #666666;" />
+                    <!-- Changed from Label to FlowPane for genres -->
+                    <FlowPane fx:id="genresContainer" hgap="5" vgap="5"
+                              style="-fx-padding: 5 0;">
+                        <!-- Genre labels will be added here programmatically -->
+                    </FlowPane>
                     <Label style="-fx-text-fill: #666666;" text="Duration: 2 hours" />
                 </VBox>
             </HBox>
@@ -48,7 +54,9 @@
                     </tooltip>
                 </DatePicker>
 
-                <Button onAction="#handleShowSessions" style="-fx-background-color: #2a1b35; -fx-text-fill: white;" text="Show Available Sessions">
+                <Button onAction="#handleShowSessions"
+                        style="-fx-background-color: #2a1b35; -fx-text-fill: white;"
+                        text="Show Available Sessions">
                     <tooltip>
                         <Tooltip text="Click to view sessions for the selected date" />
                     </tooltip>
@@ -62,27 +70,40 @@
                 </padding>
 
                 <!-- Headers -->
-                <Label style="-fx-font-weight: bold; -fx-alignment: CENTER;" text="Time" GridPane.columnIndex="0" GridPane.halignment="CENTER" GridPane.rowIndex="0" />
-                <Label style="-fx-font-weight: bold; -fx-alignment: CENTER;" text="Hall" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="0" />
-                <Label style="-fx-font-weight: bold; -fx-alignment: CENTER;" text="Available Seats" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="0" />
-                <Label style="-fx-font-weight: bold; -fx-alignment: CENTER;" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowIndex="0" />
+                <Label style="-fx-font-weight: bold; -fx-alignment: CENTER;"
+                       text="Time" GridPane.columnIndex="0"
+                       GridPane.halignment="CENTER" GridPane.rowIndex="0" />
+                <Label style="-fx-font-weight: bold; -fx-alignment: CENTER;"
+                       text="Hall" GridPane.columnIndex="1"
+                       GridPane.halignment="CENTER" GridPane.rowIndex="0" />
+                <Label style="-fx-font-weight: bold; -fx-alignment: CENTER;"
+                       text="Available Seats" GridPane.columnIndex="2"
+                       GridPane.halignment="CENTER" GridPane.rowIndex="0" />
+                <Label style="-fx-font-weight: bold; -fx-alignment: CENTER;"
+                       GridPane.columnIndex="3" GridPane.halignment="CENTER"
+                       GridPane.rowIndex="0" />
 
                 <columnConstraints>
-                    <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="100" prefWidth="150" />
-                    <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="100" prefWidth="150" />
-                    <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="100" prefWidth="150" />
-                    <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="100" prefWidth="150" />
+                    <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES"
+                                       minWidth="100" prefWidth="150" />
+                    <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES"
+                                       minWidth="100" prefWidth="150" />
+                    <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES"
+                                       minWidth="100" prefWidth="150" />
+                    <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES"
+                                       minWidth="100" prefWidth="150" />
                 </columnConstraints>
-            <rowConstraints>
-               <RowConstraints />
-            </rowConstraints>
+                <rowConstraints>
+                    <RowConstraints />
+                </rowConstraints>
             </GridPane>
         </VBox>
 
         <!-- Hall Information -->
         <HBox spacing="20">
             <!-- Hall A Info -->
-            <VBox spacing="10" style="-fx-background-color: white; -fx-background-radius: 10;" styleClass="card" HBox.hgrow="ALWAYS">
+            <VBox spacing="10" style="-fx-background-color: white; -fx-background-radius: 10;"
+                  styleClass="card" HBox.hgrow="ALWAYS">
                 <padding>
                     <Insets bottom="15" left="20" right="20" top="15" />
                 </padding>
@@ -93,7 +114,8 @@
             </VBox>
 
             <!-- Hall B Info -->
-            <VBox spacing="10" style="-fx-background-color: white; -fx-background-radius: 10;" styleClass="card" HBox.hgrow="ALWAYS">
+            <VBox spacing="10" style="-fx-background-color: white; -fx-background-radius: 10;"
+                  styleClass="card" HBox.hgrow="ALWAYS">
                 <padding>
                     <Insets bottom="15" left="20" right="20" top="15" />
                 </padding>

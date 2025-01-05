@@ -39,8 +39,11 @@
                 <Label text="Title:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
                 <TextField fx:id="titleField" GridPane.columnIndex="1" GridPane.rowIndex="0" />
 
-                <Label text="Genre:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
-                <ComboBox fx:id="genreComboBox" prefWidth="150" promptText="Genre" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                <Label text="Genres:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                <FlowPane fx:id="genreContainer" hgap="10" vgap="5"
+                          GridPane.columnIndex="1" GridPane.rowIndex="1">
+                    <!-- CheckBoxes will be added here programmatically -->
+                </FlowPane>
 
                 <Label text="Duration (min):" GridPane.columnIndex="0" GridPane.rowIndex="2" />
                 <TextField fx:id="durationField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
@@ -53,14 +56,14 @@
                     <Button fx:id="selectPosterButton" onAction="#handleSelectPoster" text="Select Poster" />
                     <ImageView fx:id="posterImageView" fitHeight="100" fitWidth="75" preserveRatio="true" />
                 </HBox>
-            <rowConstraints>
-               <RowConstraints />
-               <RowConstraints />
-               <RowConstraints />
-               <RowConstraints />
-               <RowConstraints />
-               <RowConstraints />
-            </rowConstraints>
+                <rowConstraints>
+                    <RowConstraints />
+                    <RowConstraints />
+                    <RowConstraints />
+                    <RowConstraints />
+                    <RowConstraints />
+                    <RowConstraints />
+                </rowConstraints>
             </GridPane>
 
             <HBox alignment="CENTER_RIGHT" spacing="10">
@@ -75,14 +78,22 @@
             </padding>
 
             <!-- Search and Filter -->
-            <!-- Search and Filter -->
             <HBox alignment="CENTER_LEFT" spacing="15">
                 <TextField fx:id="searchField" prefWidth="300" promptText="Search movies...">
                     <padding>
                         <Insets bottom="8" left="15" right="15" top="8" />
                     </padding>
                 </TextField>
-                <ComboBox fx:id="filterGenreComboBox" prefWidth="150" promptText="Genre" />
+                <MenuButton fx:id="filterGenreMenuButton"
+                            style="-fx-background-color: #f8f9fa;
+                                   -fx-background-radius: 5;
+                                   -fx-border-color: #dee2e6;
+                                   -fx-border-radius: 5;
+                                   -fx-padding: 0 8;
+                                   -fx-pref-height: 31px;
+                                   -fx-pref-width: 200px;">
+                    <text>Select Genres</text>
+                </MenuButton>
             </HBox>
 
             <!-- Movies Table -->
@@ -92,7 +103,7 @@
                 </VBox.margin>
                 <columns>
                     <TableColumn fx:id="titleColumn" prefWidth="250" text="Title" />
-                    <TableColumn fx:id="genreColumn" prefWidth="150" text="Genre" />
+                    <TableColumn fx:id="genreColumn" prefWidth="250" text="Genres" />
                     <TableColumn fx:id="durationColumn" prefWidth="120" text="Duration (min)" />
                     <TableColumn fx:id="actionsColumn" prefWidth="100" text="Actions" />
                 </columns>

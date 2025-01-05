@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 public class CashierMovieSearchController {
     @FXML private TextField titleSearchField;
-    @FXML private ComboBox<String> genreComboBox;
+    @FXML private MenuButton genreMenuButton;
     @FXML private FlowPane movieGrid;
     @FXML private Label resultCountLabel;
 
@@ -28,21 +28,18 @@ public class CashierMovieSearchController {
     private ObservableList<Movie> allMovies;
     private Movie selectedMovie;
 
+    private static final String[] GENRE_OPTIONS = {
+            "Action", "Comedy", "Drama", "Horror",
+            "Science Fiction", "Fantasy"
+    };
+
     @FXML
     private void initialize() {
         movieDAO = new MovieDAO();
         allMovies = FXCollections.observableArrayList();
 
-        List<String> genres = Arrays.asList(
-                "All Genres",
-                "Action",
-                "Comedy",
-                "Drama",
-                "Horror",
-                "Science Fiction"
-        );
-        genreComboBox.setItems(FXCollections.observableArrayList(genres));
-        genreComboBox.setValue("All Genres");
+        // Setup genre menu items
+        setupGenreMenuItems();
 
         titleSearchField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue.length() != 1) {
@@ -50,13 +47,61 @@ public class CashierMovieSearchController {
             }
         });
 
-        genreComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                performSearch();
-            }
-        });
-
         loadMovies();
+    }
+
+    private void setupGenreMenuItems() {
+        // Clear existing items
+        genreMenuButton.getItems().clear();
+
+        // Add individual genre checkboxes
+        for (String genre : GENRE_OPTIONS) {
+            CheckMenuItem genreItem = new CheckMenuItem(genre);
+            genreItem.setOnAction(event -> {
+                updateGenreButtonText();
+                performSearch();
+            });
+            genreMenuButton.getItems().add(genreItem);
+        }
+    }
+
+    private void updateAllGenresCheckbox() {
+        CheckMenuItem allGenresItem = (CheckMenuItem) genreMenuButton.getItems().get(0);
+
+        // Check if all genre checkboxes are selected
+        boolean allSelected = true;
+        for (int i = 1; i < genreMenuButton.getItems().size(); i++) {
+            CheckMenuItem item = (CheckMenuItem) genreMenuButton.getItems().get(i);
+            if (!item.isSelected()) {
+                allSelected = false;
+                break;
+            }
+        }
+
+        // Update "All Genres" checkbox
+        allGenresItem.setSelected(allSelected);
+    }
+
+    private void updateGenreButtonText() {
+        List<String> selectedGenres = getSelectedGenres();
+
+        if (selectedGenres.isEmpty()) {
+            genreMenuButton.setText("Select Genres");
+        } else {
+            genreMenuButton.setText(String.join(", ", selectedGenres));
+        }
+    }
+
+    private List<String> getSelectedGenres() {
+        List<String> selectedGenres = new ArrayList<>();
+
+        for (MenuItem item : genreMenuButton.getItems()) {
+            if (item instanceof CheckMenuItem && ((CheckMenuItem) item).isSelected()) {
+                selectedGenres.add(item.getText());
+            }
+        }
+
+        return selectedGenres;
     }
 
     public void setCashierController(CashierController controller) {
@@ -69,13 +114,32 @@ public class CashierMovieSearchController {
     }
 
     private void performSearch() {
-        String searchText = titleSearchField.getText().toLowerCase();
-        String selectedGenre = genreComboBox.getValue();
+        // Normalize search text - convert all variations of i/I to a single character
+        String searchText = titleSearchField.getText()
+                .replace('i', 'i')
+                .replace('I', 'i')
+                .replace('ı', 'i')
+                .replace('İ', 'i')
+                .toLowerCase();
+
+        List<String> selectedGenres = getSelectedGenres();
 
         List<Movie> filteredMovies = allMovies.stream()
-                .filter(movie ->
-                        (searchText.isEmpty() || movie.getTitle().toLowerCase().contains(searchText)) &&
-                                (selectedGenre.equals("All Genres") || movie.getGenre().contains(selectedGenre)))
+                .filter(movie -> {
+                    // Normalize movie title - convert all variations of i/I to a single character
+                    String movieTitle = movie.getTitle()
+                            .replace('i', 'i')
+                            .replace('I', 'i')
+                            .replace('ı', 'i')
+                            .replace('İ', 'i')
+                            .toLowerCase();
+
+                    boolean titleMatch = (searchText.isEmpty() || movieTitle.contains(searchText));
+                    boolean genreMatch = selectedGenres.isEmpty() ||
+                            selectedGenres.stream().anyMatch(movie.getGenres()::contains);
+
+                    return titleMatch && genreMatch;
+                })
                 .collect(Collectors.toList());
 
         displayMovies(filteredMovies);
@@ -105,9 +169,25 @@ public class CashierMovieSearchController {
         ImageView posterView = new ImageView();
         if (movie.getPosterPath() != null && !movie.getPosterPath().isEmpty()) {
             try {
-                // Use getResourceAsStream with the poster path
-                Image image = new Image(getClass().getResourceAsStream(movie.getPosterPath()));
-                posterView.setImage(image);
+                Image image = null;
+
+                // First try loading from the file system directly
+                File imageFile = new File("src/main/resources" + movie.getPosterPath());
+                if (imageFile.exists()) {
+                    image = new Image(imageFile.toURI().toString());
+                }
+
+                // If file system loading fails, try resource stream
+                if (image == null || image.isError()) {
+                    image = new Image(getClass().getResourceAsStream(movie.getPosterPath()));
+                }
+
+                if (image != null && !image.isError()) {
+                    posterView.setImage(image);
+                } else {
+                    // Set default image if both methods fail
+                    posterView.setImage(new Image(getClass().getResourceAsStream("/images/movies/dark_knight.jpg")));
+                }
             } catch (Exception e) {
                 e.printStackTrace();
                 // Set default image if loading fails
@@ -120,12 +200,12 @@ public class CashierMovieSearchController {
         posterView.setFitWidth(180);
         posterView.setFitHeight(270);
 
-        // Rest of the method remains the same
         Label titleLabel = new Label(movie.getTitle());
         titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14;");
         titleLabel.setWrapText(true);
 
-        Label genreLabel = new Label(movie.getGenre());
+        // Using getGenresAsString() for displaying genres
+        Label genreLabel = new Label(movie.getGenresAsString());
         genreLabel.setStyle("-fx-text-fill: #666666;");
         genreLabel.setWrapText(true);
 

@@ -49,13 +49,14 @@ public class CashierActionBarController {
         // Update next button text and state
         if (currentStage == 4) { // Final stage
             nextButton.setText("Next");
-            nextButton.setDisable(true);
+            nextButton.setDisable(validateCurrentStage());
         } else {
             nextButton.setText("Next");
+            nextButton.setDisable(!validateCurrentStage());
         }
 
         // Disable next button if current stage isn't valid
-        nextButton.setDisable(!validateCurrentStage());
+
     }
 
     public void setMainController(CashierController controller) {

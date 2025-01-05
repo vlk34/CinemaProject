@@ -1,20 +1,24 @@
 package com.group18.model;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Movie {
     private int movieId;
     private String title;
-    private String genre;
+    private Set<String> genres;
     private String summary;
     private String posterPath;
     private int duration;
 
     public Movie() {}
 
-    public Movie(String title, String genre, String summary, String posterPath, int duration) {
+    public Movie(String title, Set<String> genres, String summary, String posterPath, int duration) {
         this.title = title;
-        this.genre = genre;
+        this.genres = genres != null ? genres : new HashSet<>();
         this.summary = summary;
         this.posterPath = posterPath;
         this.duration = duration;
@@ -36,12 +40,40 @@ public class Movie {
         this.title = title;
     }
 
-    public String getGenre() {
-        return genre;
+    public Set<String> getGenres() {
+        return genres;
     }
 
-    public void setGenre(String genre) {
-        this.genre = genre;
+    public void setGenres(Set<String> genres) {
+        this.genres = genres;
+    }
+
+    public void addGenre(String genre) {
+        if (this.genres == null) {
+            this.genres = new HashSet<>();
+        }
+        this.genres.add(genre);
+    }
+
+    public void removeGenre(String genre) {
+        if (this.genres != null) {
+            this.genres.remove(genre);
+        }
+    }
+
+    // Helper methods for database storage
+    public String getGenresAsString() {
+        return String.join(",", genres);
+    }
+
+    public void setGenresFromString(String genresStr) {
+        if (genresStr != null && !genresStr.trim().isEmpty()) {
+            this.genres = Arrays.stream(genresStr.split(","))
+                    .map(String::trim)
+                    .collect(Collectors.toSet());
+        } else {
+            this.genres = new HashSet<>();
+        }
     }
 
     public String getSummary() {

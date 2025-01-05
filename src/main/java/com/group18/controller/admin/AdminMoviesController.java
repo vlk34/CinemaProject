@@ -2,6 +2,7 @@ package com.group18.controller.admin;
 
 import com.group18.dao.MovieDAO;
 import com.group18.model.Movie;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -12,6 +13,8 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -25,8 +28,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class AdminMoviesController {
     @FXML private TextField titleField;
@@ -41,30 +47,29 @@ public class AdminMoviesController {
     @FXML private TableColumn<Movie, String> genreColumn;
     @FXML private TableColumn<Movie, Integer> durationColumn;
     @FXML private TableColumn<Movie, Void> actionsColumn;
-    @FXML private ComboBox<String> genreComboBox;
+    @FXML private FlowPane genreContainer;
+    @FXML private MenuButton filterGenreMenuButton;
     @FXML private ComboBox<String> filterGenreComboBox;
     @FXML private TextField searchField;
 
     private MovieDAO movieDAO;
     private Movie selectedMovie;
     private String currentPosterPath;
-
+    private Set<String> selectedGenres;
+    private static final String[] AVAILABLE_GENRES = {"Action", "Comedy", "Drama", "Horror", "Science Fiction", "Fantasy"};
     @FXML
     private void initialize() {
         movieDAO = new MovieDAO();
+        selectedGenres = new HashSet<>();
 
-        // Initialize ComboBox items
-        genreComboBox.getItems().addAll("Action", "Comedy", "Drama", "Horror", "Science Fiction");
-        filterGenreComboBox.getItems().addAll("All Genres", "Action", "Comedy", "Drama", "Horror", "Science Fiction");
-
-        // Initialize filterGenreComboBox with "All Genres"
-        filterGenreComboBox.setValue("All Genres");
+        setupGenreCheckboxes();
+        setupFilterGenreMenuButton();
 
         // Make duration field non-editable
         durationField.setEditable(false);
 
         setupTableColumns();
-        setupGenreComboBoxes();
+        setupSearchField();
         loadMovies();
 
         moviesTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
@@ -75,25 +80,79 @@ public class AdminMoviesController {
         });
     }
 
+    private void setupFilterGenreMenuButton() {
+        // Clear existing items
+        filterGenreMenuButton.getItems().clear();
+
+        // Create menu items with listeners
+        for (String genre : AVAILABLE_GENRES) {
+            CheckMenuItem genreItem = new CheckMenuItem(genre);
+            genreItem.setOnAction(event -> {
+                updateFilterGenreButtonText();
+                filterMovies();
+            });
+            filterGenreMenuButton.getItems().add(genreItem);
+        }
+    }
+
+    private void updateFilterGenreButtonText() {
+        List<String> selectedFilterGenres = filterGenreMenuButton.getItems().stream()
+                .filter(item -> item instanceof CheckMenuItem && ((CheckMenuItem) item).isSelected())
+                .map(MenuItem::getText)
+                .collect(Collectors.toList());
+
+        if (selectedFilterGenres.isEmpty()) {
+            filterGenreMenuButton.setText("Select Genres");
+        } else {
+            filterGenreMenuButton.setText(String.join(", ", selectedFilterGenres));
+        }
+    }
+
+    private void setupSearchField() {
+        searchField.textProperty().addListener((obs, oldVal, newVal) -> {
+            filterMovies();
+        });
+    }
+
+    private void setupGenreCheckboxes() {
+        genreContainer.getChildren().clear();
+
+        for (String genre : AVAILABLE_GENRES) {
+            CheckBox checkBox = new CheckBox(genre);
+            checkBox.setPadding(new Insets(0, 10, 0, 0));  // Add some spacing between checkboxes
+            checkBox.setOnAction(e -> {
+                if (checkBox.isSelected()) {
+                    selectedGenres.add(genre);
+                } else {
+                    selectedGenres.remove(genre);
+                }
+            });
+            genreContainer.getChildren().add(checkBox);
+        }
+    }
+
     private void setupGenreComboBoxes() {
-        // Add listener to filter genre ComboBox
         filterGenreComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            // Implement filtering logic here
             filterMovies();
         });
     }
 
     private void filterMovies() {
-        String selectedGenre = filterGenreComboBox.getValue();
         String searchText = searchField.getText().toLowerCase();
+        List<String> selectedFilterGenres = filterGenreMenuButton.getItems().stream()
+                .filter(item -> item instanceof CheckMenuItem && ((CheckMenuItem) item).isSelected())
+                .map(MenuItem::getText)
+                .collect(Collectors.toList());
 
         ObservableList<Movie> allMovies = FXCollections.observableArrayList(movieDAO.getAllMovies());
         ObservableList<Movie> filteredMovies = allMovies.filtered(movie -> {
-            boolean matchesGenre = selectedGenre == null || selectedGenre.equals("All Genres") ||
-                    selectedGenre.equals(movie.getGenre());
-            boolean matchesSearch = searchText == null || searchText.isEmpty() ||
+            boolean matchesSearch = searchText.isEmpty() ||
                     movie.getTitle().toLowerCase().contains(searchText);
-            return matchesGenre && matchesSearch;
+
+            boolean matchesGenre = selectedFilterGenres.isEmpty() ||
+                    selectedFilterGenres.stream().anyMatch(movie.getGenres()::contains);
+
+            return matchesSearch && matchesGenre;
         });
 
         moviesTable.setItems(filteredMovies);
@@ -103,7 +162,12 @@ public class AdminMoviesController {
         titleColumn.setCellValueFactory(new PropertyValueFactory<>("title"));
         titleColumn.setStyle("-fx-alignment: CENTER;");
 
-        genreColumn.setCellValueFactory(new PropertyValueFactory<>("genre"));
+        genreColumn.setCellValueFactory(cellData -> {
+            // Join genres with comma and space
+            String genres = cellData.getValue().getGenres().stream()
+                    .collect(Collectors.joining(", "));
+            return new SimpleStringProperty(genres);
+        });
         genreColumn.setStyle("-fx-alignment: CENTER;");
 
         durationColumn.setCellValueFactory(new PropertyValueFactory<>("duration"));
@@ -120,11 +184,19 @@ public class AdminMoviesController {
 
     private void populateMovieDetails(Movie movie) {
         titleField.setText(movie.getTitle());
-        genreComboBox.setValue(movie.getGenre());
         summaryField.setText(movie.getSummary());
-
         durationField.setText("120");
         durationField.setEditable(false);
+
+        // Reset all checkboxes
+        genreContainer.getChildren().forEach(node -> {
+            if (node instanceof CheckBox) {
+                CheckBox checkBox = (CheckBox) node;
+                checkBox.setSelected(movie.getGenres().contains(checkBox.getText()));
+            }
+        });
+
+        selectedGenres = new HashSet<>(movie.getGenres());
 
         if (movie.getPosterPath() != null && !movie.getPosterPath().isEmpty()) {
             try {
@@ -286,12 +358,8 @@ public class AdminMoviesController {
             return;
         }
 
-        // Set duration statically to 120 minutes
-        durationField.setText("120");
-        durationField.setEditable(false);
-
         selectedMovie.setTitle(titleField.getText().trim());
-        selectedMovie.setGenre(genreComboBox.getValue());
+        selectedMovie.setGenres(selectedGenres);
         selectedMovie.setSummary(summaryField.getText().trim());
         selectedMovie.setDuration(120);  // Hardcoded to 120 minutes
         selectedMovie.setPosterPath(currentPosterPath);
@@ -366,11 +434,18 @@ public class AdminMoviesController {
 
     private void clearFields() {
         titleField.clear();
-        genreComboBox.setValue(null);
         summaryField.clear();
         durationField.clear();
         posterImageView.setImage(null);
         selectedMovie = null;
         currentPosterPath = null;
+        selectedGenres.clear();
+
+        // Uncheck all genre checkboxes
+        genreContainer.getChildren().forEach(node -> {
+            if (node instanceof CheckBox) {
+                ((CheckBox) node).setSelected(false);
+            }
+        });
     }
 }

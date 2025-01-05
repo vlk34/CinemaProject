@@ -3,6 +3,7 @@ package com.group18.controller.cashier.stageSpecificFiles;
 import com.group18.controller.cashier.CashierController;
 import com.group18.dao.ScheduleDAO;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.image.*;
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 public class CashierSessionSelectController {
     @FXML private ImageView moviePosterView;
     @FXML private Label movieTitleLabel;
-    @FXML private Label movieGenresLabel;
+    @FXML private FlowPane genresContainer;
     @FXML private DatePicker datePicker;
     @FXML private GridPane sessionsGrid;
 
@@ -111,7 +112,23 @@ public class CashierSessionSelectController {
         if (selectedMovie != null) {
             loadMoviePoster();
             movieTitleLabel.setText(selectedMovie.getTitle());
-            movieGenresLabel.setText(selectedMovie.getGenre());
+            updateGenresDisplay();
+        }
+    }
+
+    private void updateGenresDisplay() {
+        genresContainer.getChildren().clear();
+
+        // Create a label for each genre
+        for (String genre : selectedMovie.getGenres()) {
+            Label genreLabel = new Label(genre);
+            genreLabel.setStyle("-fx-background-color: #f0f0f0; " +
+                    "-fx-padding: 5 10; " +
+                    "-fx-background-radius: 15; " +
+                    "-fx-text-fill: #2a1b35;");
+            // Add margin between genre labels
+            FlowPane.setMargin(genreLabel, new Insets(0, 5, 5, 0));
+            genresContainer.getChildren().add(genreLabel);
         }
     }
 

@@ -14,7 +14,8 @@ public class CashierMovieDetailsController {
 
     public void setMovie(Movie movie) {
         titleLabel.setText(movie.getTitle());
-        genresLabel.setText(String.join(", ", movie.getGenre()));
+        // Now using getGenresAsString() which joins the Set of genres
+        genresLabel.setText(movie.getGenresAsString());
         summaryArea.setText(movie.getSummary());
 
         if (movie.getPosterPath() != null && !movie.getPosterPath().isEmpty()) {
