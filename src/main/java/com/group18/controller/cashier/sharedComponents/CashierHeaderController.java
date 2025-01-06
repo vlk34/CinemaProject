@@ -1,5 +1,8 @@
 package com.group18.controller.cashier.sharedComponents;
 
+import com.group18.controller.cashier.stageSpecificFiles.CashierCustomerDetailsController;
+import com.group18.controller.cashier.stageSpecificFiles.CashierSeatSelectController;
+import com.group18.model.ShoppingCart;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -12,6 +15,8 @@ import javafx.util.Duration;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+
+import static com.group18.controller.cashier.stageSpecificFiles.CashierCustomerDetailsController.clearPersistentDetailsStatic;
 
 public class CashierHeaderController {
     @FXML
@@ -52,6 +57,11 @@ public class CashierHeaderController {
             if (clock != null) {
                 clock.stop();
             }
+
+            // Reset persistent customer info
+            clearPersistentDetailsStatic();
+            CashierSeatSelectController.clearSelectedSeatsStatic();
+            ShoppingCart.getInstance().clear();
 
             // Get current stage
             Stage currentStage = (Stage) logoutButton.getScene().getWindow();

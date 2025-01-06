@@ -47,6 +47,7 @@ public class CashierSeatSelectController {
     private static final int HALL_B_SIZE = 48; // 6x8
 
     private CashierController cashierController;
+    private static CashierSeatSelectController currentInstance;
 
     public void setCashierController(CashierController controller) {
         this.cashierController = controller;
@@ -57,6 +58,38 @@ public class CashierSeatSelectController {
         confirmButton.setDisable(true);
         priceDAO = new PriceDAO();
         cart = ShoppingCart.getInstance();
+
+        currentInstance = this;
+    }
+
+    public void resetSeats() {
+        System.out.println("Selected Seats before clear: " + selectedSeats); // Before clearing
+        selectedSeats.clear();
+        System.out.println("Selected Seats after clear: " + selectedSeats); // After clearing
+        updateSelectionSummary();
+        if (seatGrid != null) {
+            createSeatGrid(); // Recreate the grid to reset all visual states
+        }
+
+        // Reset labels and button
+        if (selectedSeatsLabel != null) {
+            selectedSeatsLabel.setText("");
+        }
+        if (totalPriceLabel != null) {
+            totalPriceLabel.setText("₺0.00");
+        }
+        if (confirmButton != null) {
+            confirmButton.setDisable(true);
+        }
+    }
+
+    public static void clearSelectedSeatsStatic() {
+        // This static method will be called when logging out or selecting a new movie
+        ShoppingCart.getInstance().clear();
+
+        if (currentInstance != null) {
+            currentInstance.resetSeats();
+        }
     }
 
     public void setSessionInfo(Movie movie, MovieSession session, LocalDate date) {
@@ -193,6 +226,7 @@ public class CashierSeatSelectController {
                 if (seatLabel.getText().equals(seatId)) {
                     Circle seatCircle = (Circle) seatPane.getChildren().get(0);
 
+                    System.out.println("adding selected seats to grid");
                     // Add seat to selection
                     selectedSeats.add(seatId);
                     seatCircle.setFill(javafx.scene.paint.Color.valueOf("#3498DB")); // Blue for selected

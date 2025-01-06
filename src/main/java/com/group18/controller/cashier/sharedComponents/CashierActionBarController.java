@@ -1,5 +1,6 @@
 package com.group18.controller.cashier.sharedComponents;
 
+import com.group18.controller.cashier.stageSpecificFiles.CashierCustomerDetailsController;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Alert;
@@ -32,10 +33,17 @@ public class CashierActionBarController {
                         !mainController.getSelectedSeats().isEmpty();
 
             case 3: // Customer Details
+                CashierCustomerDetailsController customerDetailsController =
+                        mainController.getCustomerDetailsController();
+
+                // Check if we have persistent details or current details are validated
+                boolean hasPersistentDetails = customerDetailsController != null &&
+                        customerDetailsController.hasValidDetailsAndVerification();
+
                 return mainController.getCartController() != null &&
-                        mainController.getCustomerDetailsController() != null &&
-                        mainController.getCustomerDetailsController().hasItems() &&
-                        mainController.getCustomerDetailsController().isCustomerDetailsValidated();
+                        customerDetailsController != null &&
+                        (customerDetailsController.hasItems() ||
+                                hasPersistentDetails);
 
             default:
                 return true;

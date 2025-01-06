@@ -25,3 +25,4 @@
     <!-- Action Bar Component -->
     <fx:include source="sharedComponents/CashierActionBar.fxml" fx:id="actionBar"/>
 </VBox>
+

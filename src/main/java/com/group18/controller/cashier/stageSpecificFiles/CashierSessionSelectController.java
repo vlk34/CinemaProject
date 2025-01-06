@@ -1,6 +1,7 @@
 package com.group18.controller.cashier.stageSpecificFiles;
 
 import com.group18.controller.cashier.CashierController;
+import com.group18.controller.cashier.sharedComponents.CashierCartController;
 import com.group18.dao.ScheduleDAO;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -242,6 +243,17 @@ public class CashierSessionSelectController {
         Alert confirm = createConfirmationDialog(session);
         confirm.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK && cashierController != null) {
+                // Clear cart when selecting a new session and force UI update
+                CashierCartController cartController = cashierController.getCartController();
+                if (cartController != null) {
+                    cartController.clearCart();
+                    // Explicitly update the summary
+                    cartController.updateSummary();
+                }
+
+                CashierSeatSelectController.clearSelectedSeatsStatic();
+
+
                 Map<String, Object> sessionData = new HashMap<>();
                 sessionData.put("session", session);
                 sessionData.put("date", datePicker.getValue());

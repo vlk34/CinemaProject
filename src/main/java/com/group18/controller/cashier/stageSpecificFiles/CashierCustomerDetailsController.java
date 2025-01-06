@@ -74,7 +74,18 @@ public class CashierCustomerDetailsController {
         // Setup customer details validation
         setupCustomerDetailsValidation();
 
+        resetUI();
+
         restorePersistentDetails();
+    }
+
+    public boolean hasValidDetailsAndVerification() {
+        // Check if all fields are filled and details have been validated previously
+        return !firstNameField.getText().trim().isEmpty() &&
+                !lastNameField.getText().trim().isEmpty() &&
+                !ageField.getText().trim().isEmpty() &&
+                (customerDetailsValidated ||
+                        (persistentCustomerDetails != null && persistentCustomerDetails.validated));
     }
 
     private void restorePersistentDetails() {
@@ -86,10 +97,31 @@ public class CashierCustomerDetailsController {
             isDiscountApplicable = persistentCustomerDetails.discountApplicable;
             customerDetailsValidated = persistentCustomerDetails.validated;
 
-            // If validated before, trigger verification
+            // Automatically validate if persistent details exist and were previously validated
             if (customerDetailsValidated) {
                 verifyAgeButton.setDisable(false);
                 validateCustomerDetails();
+
+                // Only update tickets if cashier controller is set
+                if (cashierController != null &&
+                        cashierController.getSelectedSession() != null &&
+                        selectedSeats != null && !selectedSeats.isEmpty()) {
+                    try {
+                        int age = Integer.parseInt(ageField.getText().trim());
+
+                        // Recompute discount applicability
+                        isDiscountApplicable = age < 18 || age > 60;
+
+                        // Update tickets in cart with the discount
+                        updateTicketsInCart();
+
+                        // Update action bar state
+                        updateActionBarState();
+                    } catch (NumberFormatException e) {
+                        // This shouldn't happen if details were previously validated
+                        showError("Error", "Invalid age in persistent details.");
+                    }
+                }
             }
         }
     }
@@ -110,6 +142,15 @@ public class CashierCustomerDetailsController {
         }
     }
 
+    public void resetUI() {
+        firstNameField.clear();
+        lastNameField.clear();
+        ageField.clear();
+        verifyAgeButton.setDisable(true);
+        isDiscountApplicable = false;
+        customerDetailsValidated = false;
+    }
+
     public void clearPersistentDetails() {
         persistentCustomerDetails = null;
         firstNameField.clear();
@@ -118,6 +159,11 @@ public class CashierCustomerDetailsController {
         verifyAgeButton.setDisable(true);
         isDiscountApplicable = false;
         customerDetailsValidated = false;
+    }
+
+    // In CashierCustomerDetailsController.java
+    public static void clearPersistentDetailsStatic() {
+        persistentCustomerDetails = null;
     }
 
     @FXML
@@ -191,13 +237,6 @@ public class CashierCustomerDetailsController {
                     cashierController.getCurrentStageIndex()
             );
         }
-    }
-
-    public boolean hasValidDetailsAndVerification() {
-        return !firstNameField.getText().trim().isEmpty() &&
-                !lastNameField.getText().trim().isEmpty() &&
-                !ageField.getText().trim().isEmpty() &&
-                customerDetailsValidated;
     }
 
     private void loadProducts() {
@@ -504,8 +543,16 @@ public class CashierCustomerDetailsController {
 
     public void setCashierController(CashierController controller) {
         this.cashierController = controller;
+
+        // Initialize selectedSeats if not already set
+        if (this.selectedSeats == null) {
+            this.selectedSeats = controller.getSelectedSeats();
+        }
+
         // Load products for each category
         loadProducts();
+
+        // Restore persistent details
         restorePersistentDetails();
     }
 

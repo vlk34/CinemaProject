@@ -200,7 +200,7 @@ public class CashierCartController {
     }
 
     // Modify the updateSummary method to be more compact
-    private void updateSummary() {
+    public void updateSummary() {
         double total = subtotal - discounts + tax;
 
         // Update compact summary

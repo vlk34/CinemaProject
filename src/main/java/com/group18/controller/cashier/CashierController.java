@@ -17,6 +17,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static com.group18.controller.cashier.stageSpecificFiles.CashierCustomerDetailsController.clearPersistentDetailsStatic;
+
 public class CashierController {
     @FXML private VBox root;
     @FXML private Node currentStage;
@@ -74,7 +76,12 @@ public class CashierController {
             case 0: // Movie Search
                 Movie newMovie = (Movie) data;
                 if (newMovie != selectedMovie) {
+                    System.out.println("selected new movie resetting ui and data");
+                    clearPersistentDetailsStatic();
+                    CashierSeatSelectController.clearSelectedSeatsStatic();
                     selectedMovie = newMovie;
+                    selectedSeats = new HashSet<>();
+                    cashierCartController.clearCart();
                     dataChanged = true;
                 }
                 break;
@@ -86,6 +93,7 @@ public class CashierController {
                     LocalDate newDate = (LocalDate) sessionData.get("date");
 
                     if (newSession != selectedSession || newDate != selectedDate) {
+                        selectedSeats = new HashSet<>();
                         selectedSession = newSession;
                         selectedDate = newDate;
                         dataChanged = true;
@@ -200,7 +208,8 @@ public class CashierController {
         // Reset all stored data
         selectedMovie = null;
         selectedSession = null;
-        selectedSeats = null;
+        selectedSeats = new HashSet<>(); // Reset to empty set rather than null
+        CashierSeatSelectController.clearSelectedSeatsStatic();
 
         // Reset to first stage
         currentStageIndex = 0;
@@ -213,7 +222,7 @@ public class CashierController {
 
         // Clear persistent customer details
         if (customerDetailsController != null) {
-            customerDetailsController.clearPersistentDetails();
+            customerDetailsController.resetUI();
         }
     }
 
