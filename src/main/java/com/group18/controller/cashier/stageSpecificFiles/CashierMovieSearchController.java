@@ -12,6 +12,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.Image;
+
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -167,36 +169,25 @@ public class CashierMovieSearchController {
         card.setStyle("-fx-background-color: white; -fx-padding: 10; -fx-background-radius: 5;");
 
         ImageView posterView = new ImageView();
-        if (movie.getPosterPath() != null && !movie.getPosterPath().isEmpty()) {
+
+        // Handle poster image using byte array data
+        if (movie.getPosterData() != null && movie.getPosterData().length > 0) {
             try {
-                Image image = null;
-
-                // First try loading from the file system directly
-                File imageFile = new File("src/main/resources" + movie.getPosterPath());
-                if (imageFile.exists()) {
-                    image = new Image(imageFile.toURI().toString());
-                }
-
-                // If file system loading fails, try resource stream
-                if (image == null || image.isError()) {
-                    image = new Image(getClass().getResourceAsStream(movie.getPosterPath()));
-                }
-
-                if (image != null && !image.isError()) {
+                Image image = new Image(new ByteArrayInputStream(movie.getPosterData()));
+                if (!image.isError()) {
                     posterView.setImage(image);
                 } else {
-                    // Set default image if both methods fail
-                    posterView.setImage(new Image(getClass().getResourceAsStream("/images/movies/dark_knight.jpg")));
+                    // Set default image if poster data is invalid
+                    setDefaultPoster(posterView);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                // Set default image if loading fails
-                posterView.setImage(new Image(getClass().getResourceAsStream("/images/movies/dark_knight.jpg")));
+                setDefaultPoster(posterView);
             }
         } else {
-            // Set default image if no poster path
-            posterView.setImage(new Image(getClass().getResourceAsStream("/images/movies/dark_knight.jpg")));
+            setDefaultPoster(posterView);
         }
+
         posterView.setFitWidth(180);
         posterView.setFitHeight(270);
 
@@ -204,7 +195,6 @@ public class CashierMovieSearchController {
         titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14;");
         titleLabel.setWrapText(true);
 
-        // Using getGenresAsString() for displaying genres
         Label genreLabel = new Label(movie.getGenresAsString());
         genreLabel.setStyle("-fx-text-fill: #666666;");
         genreLabel.setWrapText(true);
@@ -218,6 +208,18 @@ public class CashierMovieSearchController {
 
         card.getChildren().addAll(posterView, titleLabel, genreLabel, durationLabel, detailsButton);
         return card;
+    }
+
+    private void setDefaultPoster(ImageView posterView) {
+        try {
+            byte[] defaultImageData = getClass().getResourceAsStream("/images/movies/dark_knight.jpg").readAllBytes();
+            Image defaultImage = new Image(new ByteArrayInputStream(defaultImageData));
+            posterView.setImage(defaultImage);
+        } catch (IOException e) {
+            e.printStackTrace();
+            // If even default image fails, leave the ImageView empty
+            posterView.setImage(null);
+        }
     }
 
     private void showMovieDetails(Movie movie) {

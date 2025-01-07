@@ -3,10 +3,17 @@ package com.group18.model;
 import com.group18.dao.ProductDAO;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,9 +25,9 @@ public class AddProductDialog extends Dialog<Product> {
     private TextField nameField;
     private TextField priceField;
     private TextField stockField;
-    private TextField imagePathField;
+    private ImageView imagePreview;
     private ComboBox<String> categoryComboBox;
-    private String currentImagePath;
+    private byte[] currentImageData;
 
     public AddProductDialog(ProductDAO productDAO) {
         this.productDAO = productDAO;
@@ -35,17 +42,19 @@ public class AddProductDialog extends Dialog<Product> {
         nameField = new TextField();
         priceField = new TextField();
         stockField = new TextField();
-        imagePathField = new TextField();
-        imagePathField.setEditable(false);
+        imagePreview = new ImageView();
+        imagePreview.setFitHeight(150);
+        imagePreview.setFitWidth(150);
+        imagePreview.setPreserveRatio(true);
         categoryComboBox = new ComboBox<>();
 
         // Create select image button
         Button selectImageButton = new Button("Select Image");
         selectImageButton.setOnAction(e -> handleSelectImage());
 
-        // Create image path layout
-        HBox imageBox = new HBox(10);
-        imageBox.getChildren().addAll(imagePathField, selectImageButton);
+        // Create image preview layout
+        VBox imageBox = new VBox(10);
+        imageBox.getChildren().addAll(imagePreview, selectImageButton);
 
         categoryComboBox.getItems().addAll("Beverage", "Biscuit", "Toy");
 
@@ -53,7 +62,7 @@ public class AddProductDialog extends Dialog<Product> {
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
-        grid.setPadding(new Insets(20, 150, 10, 10));
+        grid.setPadding(new Insets(20));
 
         grid.add(new Label("Name:"), 0, 0);
         grid.add(nameField, 1, 0);
@@ -66,23 +75,15 @@ public class AddProductDialog extends Dialog<Product> {
         grid.add(new Label("Image:"), 0, 4);
         grid.add(imageBox, 1, 4);
 
-        // Set content
         getDialogPane().setContent(grid);
-
-        // Add buttons
         ButtonType addButtonType = ButtonType.OK;
         getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
 
-        // Add validation
         setupValidation();
+        setResultConverter(buttonType -> buttonType == ButtonType.OK ? createProduct() : null);
 
-        // Validate and process input
-        setResultConverter(buttonType -> {
-            if (buttonType == ButtonType.OK) {
-                return createProduct();
-            }
-            return null;
-        });
+        // Set default image
+        setDefaultImage();
     }
 
     private void handleSelectImage() {
@@ -96,24 +97,30 @@ public class AddProductDialog extends Dialog<Product> {
 
         if (selectedFile != null) {
             try {
-                // Create products directory if it doesn't exist
-                Path productsDir = Paths.get("src/main/resources/images/products");
-                Files.createDirectories(productsDir);
+                // Read file into byte array
+                currentImageData = Files.readAllBytes(selectedFile.toPath());
 
-                // Generate unique filename
-                String fileName = System.currentTimeMillis() + "_" + selectedFile.getName();
-                Path targetPath = productsDir.resolve(fileName);
-
-                // Copy file
-                Files.copy(selectedFile.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-
-                // Set the relative path for database storage
-                currentImagePath = "/images/products/" + fileName;
-                imagePathField.setText(fileName);
-
-            } catch (Exception e) {
-                showError("Error", "Failed to copy image file: " + e.getMessage());
+                // Update image preview
+                Image image = new Image(new ByteArrayInputStream(currentImageData));
+                imagePreview.setImage(image);
+            } catch (IOException e) {
+                showError("Error", "Failed to read image file: " + e.getMessage());
+                setDefaultImage();
             }
+        }
+    }
+
+    private void setDefaultImage() {
+        try {
+            InputStream defaultImageStream = getClass().getResourceAsStream("/images/no-image.png");
+            if (defaultImageStream != null) {
+                currentImageData = defaultImageStream.readAllBytes();
+                Image defaultImage = new Image(new ByteArrayInputStream(currentImageData));
+                imagePreview.setImage(defaultImage);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            imagePreview.setImage(null);
         }
     }
 
@@ -160,10 +167,9 @@ public class AddProductDialog extends Dialog<Product> {
                     categoryComboBox.getValue().toLowerCase(),
                     new BigDecimal(priceField.getText().trim()),
                     Integer.parseInt(stockField.getText().trim()),
-                    currentImagePath
+                    currentImageData
             );
 
-            // Save to database and get the saved product with ID
             return productDAO.addProduct(newProduct);
         } catch (Exception e) {
             showError("Error", "Failed to create product: " + e.getMessage());

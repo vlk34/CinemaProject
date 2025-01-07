@@ -137,14 +137,14 @@ public class ProductDAO {
     }
 
     public Product addProduct(Product product) {
-        String query = "INSERT INTO products (product_name, product_type, price, stock, image_path) VALUES (?, ?, ?, ?, ?)";
+        String query = "INSERT INTO products (product_name, product_type, price, stock, image_data) VALUES (?, ?, ?, ?, ?)";
 
         try (PreparedStatement stmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, product.getProductName());
             stmt.setString(2, product.getProductType());
             stmt.setBigDecimal(3, product.getPrice());
             stmt.setInt(4, product.getStock());
-            stmt.setString(5, product.getImagePath());
+            stmt.setBytes(5, product.getImageData());  // Changed to setBytes for BLOB
 
             int affectedRows = stmt.executeUpdate();
 
@@ -180,14 +180,14 @@ public class ProductDAO {
     }
 
     public Product updateProduct(Product product) {
-        String query = "UPDATE products SET product_name = ?, product_type = ?, price = ?, stock = ?, image_path = ? WHERE product_id = ?";
+        String query = "UPDATE products SET product_name = ?, product_type = ?, price = ?, stock = ?, image_data = ? WHERE product_id = ?";
 
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, product.getProductName());
             stmt.setString(2, product.getProductType());
             stmt.setBigDecimal(3, product.getPrice());
             stmt.setInt(4, product.getStock());
-            stmt.setString(5, product.getImagePath());
+            stmt.setBytes(5, product.getImageData());  // Changed to setBytes for BLOB
             stmt.setInt(6, product.getProductId());
 
             int affectedRows = stmt.executeUpdate();
@@ -235,7 +235,7 @@ public class ProductDAO {
         product.setProductType(rs.getString("product_type"));
         product.setPrice(rs.getBigDecimal("price"));
         product.setStock(rs.getInt("stock"));
-        product.setImagePath(rs.getString("image_path"));
+        product.setImageData(rs.getBytes("image_data"));  // Changed to getBytes for BLOB
         return product;
     }
 }

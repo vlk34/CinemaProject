@@ -13,6 +13,7 @@ import com.group18.model.Movie;
 import com.group18.model.Schedule;
 import com.group18.model.MovieSession;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.time.LocalDate;
 import java.util.*;
@@ -157,28 +158,33 @@ public class CashierSessionSelectController {
     }
 
     private void loadMoviePoster() {
-        if (selectedMovie == null || selectedMovie.getPosterPath() == null) {
-            moviePosterView.setImage(new Image(getClass().getResourceAsStream("/images/movies/default_poster.jpg")));
-            return;
-        }
-
-        try {
-            Image resourceImage = new Image(getClass().getResourceAsStream(selectedMovie.getPosterPath()));
-
-            if (resourceImage.isError()) {
-                File posterFile = new File(selectedMovie.getPosterPath());
-                if (posterFile.exists()) {
-                    resourceImage = new Image(posterFile.toURI().toString());
+        // Handle poster image using byte array data
+        if (selectedMovie != null && selectedMovie.getPosterData() != null &&
+                selectedMovie.getPosterData().length > 0) {
+            try {
+                Image image = new Image(new ByteArrayInputStream(selectedMovie.getPosterData()));
+                if (!image.isError()) {
+                    moviePosterView.setImage(image);
+                } else {
+                    setDefaultPoster();
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
+                setDefaultPoster();
             }
+        } else {
+            setDefaultPoster();
+        }
+    }
 
-            moviePosterView.setImage(resourceImage.isError()
-                    ? new Image(getClass().getResourceAsStream("/images/movies/default_poster.jpg"))
-                    : resourceImage);
-
+    private void setDefaultPoster() {
+        try {
+            byte[] defaultImageData = getClass().getResourceAsStream("/images/movies/dark_knight.jpg").readAllBytes();
+            Image defaultImage = new Image(new ByteArrayInputStream(defaultImageData));
+            moviePosterView.setImage(defaultImage);
         } catch (Exception e) {
-            moviePosterView.setImage(new Image(getClass().getResourceAsStream("/images/movies/default_poster.jpg")));
-            System.err.println("Error loading poster: " + e.getMessage());
+            e.printStackTrace();
+            moviePosterView.setImage(null);
         }
     }
 

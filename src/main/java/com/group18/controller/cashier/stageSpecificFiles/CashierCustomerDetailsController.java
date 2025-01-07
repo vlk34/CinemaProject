@@ -15,6 +15,9 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.text.TextAlignment;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -271,54 +274,37 @@ public class CashierCustomerDetailsController {
         imageView.setFitHeight(100);
         imageView.setFitWidth(100);
         imageView.setPreserveRatio(true);
-        // Add better image loading with fallback
-        if (product.getImagePath() != null) {
+
+        // Handle image loading with BLOB data
+        if (product.getImageData() != null && product.getImageData().length > 0) {
             try {
-                // First try loading from resources
-                String imagePath = product.getImagePath();
-                Image image;
-                try {
-                    // Try loading using getResource
-                    image = new Image(getClass().getResource(imagePath).toExternalForm());
-                } catch (Exception e) {
-                    // If that fails, try loading from file system
-                    image = new Image("file:src/main/resources" + imagePath);
+                Image image = new Image(new ByteArrayInputStream(product.getImageData()));
+                if (!image.isError()) {
+                    imageView.setImage(image);
+                } else {
+                    setDefaultProductImage(imageView);
                 }
-                imageView.setImage(image);
             } catch (Exception e) {
                 System.err.println("Failed to load image for product: " + product.getProductName());
                 e.printStackTrace();
-                // Load a default "no image" placeholder
-                try {
-                    Image defaultImage = new Image(getClass().getResource("/images/no-image.png").toExternalForm());
-                    imageView.setImage(defaultImage);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
+                setDefaultProductImage(imageView);
             }
         } else {
-            // Load default "no image" placeholder for products without image path
-            try {
-                Image defaultImage = new Image(getClass().getResource("/images/no-image.png").toExternalForm());
-                imageView.setImage(defaultImage);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            setDefaultProductImage(imageView);
         }
+
         imageContainer.getChildren().add(imageView);
 
-        // Product name with wrapping
+        // Rest of the card creation code remains the same
         Label nameLabel = new Label(product.getProductName());
         nameLabel.getStyleClass().add("product-name");
         nameLabel.setWrapText(true);
         nameLabel.setTextAlignment(TextAlignment.CENTER);
         nameLabel.setAlignment(Pos.CENTER);
 
-        // Price with currency
         Label priceLabel = new Label(String.format("₺%.2f", product.getPrice()));
         priceLabel.getStyleClass().add("product-price");
 
-        // Stock status indicator
         Label stockLabel = new Label();
         stockLabel.getStyleClass().addAll("stock-status");
         if (product.getStock() == 0) {
@@ -332,7 +318,7 @@ public class CashierCustomerDetailsController {
             stockLabel.setText("In Stock");
         }
 
-        // Quantity controls with enhanced styling
+        // Quantity controls
         HBox quantityBox = new HBox(10);
         quantityBox.getStyleClass().add("quantity-control");
         quantityBox.setAlignment(Pos.CENTER);
@@ -366,33 +352,29 @@ public class CashierCustomerDetailsController {
         minusButton.setDisable(initialQuantity == 0);
         plusButton.setDisable(initialQuantity == product.getStock() || product.getStock() == 0);
 
+        // Minus button handler
         minusButton.setOnAction(e -> {
             int quantity = Integer.parseInt(quantityLabel.getText());
             if (quantity > 0) {
                 quantity--;
                 quantityLabel.setText(String.valueOf(quantity));
                 updateCartProduct(product, quantity);
-
-                // Enable plus button when decreasing from max stock
                 plusButton.setDisable(false);
             }
-            // Disable minus button when reaching 0
             if (quantity == 0) {
                 minusButton.setDisable(true);
             }
         });
 
+        // Plus button handler
         plusButton.setOnAction(e -> {
             int quantity = Integer.parseInt(quantityLabel.getText());
             if (quantity < product.getStock()) {
                 quantity++;
                 quantityLabel.setText(String.valueOf(quantity));
                 updateCartProduct(product, quantity);
-
-                // Enable minus button when increasing from 0
                 minusButton.setDisable(false);
             }
-            // Disable plus button when reaching max stock
             if (quantity == product.getStock()) {
                 plusButton.setDisable(true);
             }
@@ -400,7 +382,7 @@ public class CashierCustomerDetailsController {
 
         quantityBox.getChildren().addAll(minusButton, quantityLabel, plusButton);
 
-        // Add elements to card
+        // Add all elements to card
         card.getChildren().addAll(
                 imageContainer,
                 nameLabel,
@@ -409,7 +391,7 @@ public class CashierCustomerDetailsController {
                 quantityBox
         );
 
-        // Add hover effect handler
+        // Add hover effects
         card.setOnMouseEntered(e -> {
             if (product.getStock() > 0) {
                 card.getStyleClass().add("product-card-hover");
@@ -420,6 +402,17 @@ public class CashierCustomerDetailsController {
         });
 
         return card;
+    }
+
+    private void setDefaultProductImage(ImageView imageView) {
+        try {
+            byte[] defaultImageData = getClass().getResourceAsStream("/images/no-image.png").readAllBytes();
+            Image defaultImage = new Image(new ByteArrayInputStream(defaultImageData));
+            imageView.setImage(defaultImage);
+        } catch (IOException e) {
+            e.printStackTrace();
+            imageView.setImage(null);
+        }
     }
 
     private void updateCartProduct(Product product, int quantity) {

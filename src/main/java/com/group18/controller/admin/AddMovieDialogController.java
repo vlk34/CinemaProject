@@ -11,6 +11,9 @@ import javafx.scene.layout.FlowPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.scene.layout.VBox;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.Set;
 import java.util.HashSet;
 
@@ -32,7 +35,7 @@ public class AddMovieDialogController {
     @FXML private FlowPane genreContainer;
 
     private MovieDAO movieDAO;
-    private String currentPosterPath;
+    private byte[] currentPosterData;
     private Stage dialogStage;
     private Set<String> selectedGenres;
 
@@ -45,7 +48,7 @@ public class AddMovieDialogController {
         String[] genres = {"Action", "Comedy", "Drama", "Horror", "Science Fiction", "Fantasy"};
         for (String genre : genres) {
             CheckBox checkBox = new CheckBox(genre);
-            checkBox.setPadding(new Insets(0, 10, 0, 0));  // Add padding for spacing
+            checkBox.setPadding(new Insets(0, 10, 0, 0));
             checkBox.setOnAction(e -> {
                 if (checkBox.isSelected()) {
                     selectedGenres.add(genre);
@@ -84,24 +87,14 @@ public class AddMovieDialogController {
     }
 
     private void validateInputs() {
-        // Check all input fields
         boolean isTitleValid = !titleField.getText().trim().isEmpty();
-        boolean isGenreValid = !selectedGenres.isEmpty();  // Must select at least one genre
+        boolean isGenreValid = !selectedGenres.isEmpty();
         boolean isSummaryValid = !summaryField.getText().trim().isEmpty();
-
-        // Validate duration
-        boolean isDurationValid = false;
-        try {
-            int duration = Integer.parseInt(durationField.getText().trim());
-            isDurationValid = duration >= 60 && duration <= 120;
-        } catch (NumberFormatException e) {
-            isDurationValid = false;
-        }
+        boolean isDurationValid = true; // Always true since it's fixed at 120
 
         // Validate poster (optional)
-        boolean isPosterValid = currentPosterPath != null && !currentPosterPath.isEmpty();
+        boolean isPosterValid = currentPosterData != null && currentPosterData.length > 0;
 
-        // Enable/disable add movie button
         addMovieButton.setDisable(!(isTitleValid && isGenreValid &&
                 isSummaryValid && isDurationValid && isPosterValid));
     }
@@ -112,12 +105,11 @@ public class AddMovieDialogController {
             String summary = summaryField.getText().trim();
             int duration = 120;
 
-            // Create new movie with multiple genres
             Movie newMovie = new Movie();
             newMovie.setTitle(title);
             newMovie.setGenres(selectedGenres);
             newMovie.setSummary(summary);
-            newMovie.setPosterPath(currentPosterPath);
+            newMovie.setPosterData(currentPosterData);  // Using new poster data field
             newMovie.setDuration(duration);
 
             if (movieDAO.addMovie(newMovie)) {
@@ -143,58 +135,28 @@ public class AddMovieDialogController {
 
         if (selectedFile != null) {
             try {
-                // Create movies directory if it doesn't exist
-                Path moviesDir = Paths.get("src/main/resources/images/movies");
-                Files.createDirectories(moviesDir);
+                // Read file into byte array
+                byte[] imageData = Files.readAllBytes(selectedFile.toPath());
 
-                // Use the original filename
-                String fileName = selectedFile.getName();
-                Path targetPath = moviesDir.resolve(fileName);
-
-                // Check if file already exists
-                if (Files.exists(targetPath)) {
-                    Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
-                    confirmAlert.setTitle("File Already Exists");
-                    confirmAlert.setHeaderText("A file with the name '" + fileName + "' already exists.");
-                    confirmAlert.setContentText("Do you want to replace the existing file?");
-
-                    Optional<ButtonType> result = confirmAlert.showAndWait();
-                    if (result.isEmpty() || result.get() != ButtonType.OK) {
-                        // User chose not to replace, so open file chooser again
-                        handleSelectPoster();
-                        return;
+                // Validate image data
+                try (ByteArrayInputStream bis = new ByteArrayInputStream(imageData)) {
+                    Image testImage = new Image(bis);
+                    if (testImage.isError()) {
+                        throw new IOException("Invalid image data");
                     }
                 }
 
-                // Copy file
-                Files.copy(selectedFile.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-
-                // Set the relative path for database storage
-                currentPosterPath = "/images/movies/" + fileName;
-
-                // Debug information
-                System.out.println("Selected file path: " + selectedFile.getAbsolutePath());
-                System.out.println("Target path: " + targetPath.toString());
-                System.out.println("Current poster path: " + currentPosterPath);
-
-                // Verify file exists after copying
-                File copiedFile = targetPath.toFile();
-                if (copiedFile.exists()) {
-                    System.out.println("File copied successfully. Size: " + copiedFile.length() + " bytes");
-                } else {
-                    System.err.println("File copy failed");
-                }
-
-                // Load and display the copied image
-                Image image = new Image(targetPath.toUri().toString());
+                // If valid, update UI and store the data
+                Image image = new Image(new ByteArrayInputStream(imageData));
                 posterImageView.setImage(image);
+                currentPosterData = imageData;
 
-                // Validate inputs after poster selection
+                // Validate inputs after successful poster selection
                 validateInputs();
 
-            } catch (Exception e) {
+            } catch (IOException e) {
                 e.printStackTrace();
-                showAlert(Alert.AlertType.ERROR, "Error", "Failed to copy image file: " + e.getMessage());
+                showAlert(Alert.AlertType.ERROR, "Error", "Failed to load image file: " + e.getMessage());
             }
         }
     }

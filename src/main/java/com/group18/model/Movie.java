@@ -1,5 +1,8 @@
 package com.group18.model;
 
+import javafx.scene.image.Image;
+
+import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -11,17 +14,36 @@ public class Movie {
     private String title;
     private Set<String> genres;
     private String summary;
-    private String posterPath;
+    private byte[] posterData;
     private int duration;
 
     public Movie() {}
 
-    public Movie(String title, Set<String> genres, String summary, String posterPath, int duration) {
+    public Movie(String title, Set<String> genres, String summary, byte[] posterData, int duration) {
         this.title = title;
         this.genres = genres != null ? genres : new HashSet<>();
         this.summary = summary;
-        this.posterPath = posterPath;
+        this.posterData = posterData;
         this.duration = duration;
+    }
+
+    public byte[] getPosterData() {
+        return posterData;
+    }
+
+    public void setPosterData(byte[] posterData) {
+        this.posterData = posterData;
+    }
+
+    public Image getPosterImage() {
+        if (posterData != null) {
+            try {
+                return new Image(new ByteArrayInputStream(posterData));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
     }
 
     public int getMovieId() {
@@ -82,14 +104,6 @@ public class Movie {
 
     public void setSummary(String summary) {
         this.summary = summary;
-    }
-
-    public String getPosterPath() {
-        return posterPath;
-    }
-
-    public void setPosterPath(String posterPath) {
-        this.posterPath = posterPath;
     }
 
     public int getDuration() {

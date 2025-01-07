@@ -5,6 +5,8 @@ import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.Image;
 import com.group18.model.Movie;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 
 public class CashierMovieDetailsController {
     @FXML private ImageView posterImageView;
@@ -14,25 +16,35 @@ public class CashierMovieDetailsController {
 
     public void setMovie(Movie movie) {
         titleLabel.setText(movie.getTitle());
-        // Now using getGenresAsString() which joins the Set of genres
         genresLabel.setText(movie.getGenresAsString());
         summaryArea.setText(movie.getSummary());
 
-        if (movie.getPosterPath() != null && !movie.getPosterPath().isEmpty()) {
+        // Handle poster image using byte array data
+        if (movie.getPosterData() != null && movie.getPosterData().length > 0) {
             try {
-                // Use getResourceAsStream to load the image
-                Image image = new Image(getClass().getResourceAsStream(movie.getPosterPath()));
-                posterImageView.setImage(image);
+                Image image = new Image(new ByteArrayInputStream(movie.getPosterData()));
+                if (!image.isError()) {
+                    posterImageView.setImage(image);
+                } else {
+                    setDefaultPoster();
+                }
             } catch (Exception e) {
                 e.printStackTrace();
-                // Set default image if loading fails
-                posterImageView.setImage(new Image(getClass().getResourceAsStream("/images/movies/dark_knight.jpg")));
+                setDefaultPoster();
             }
         } else {
-            // Set default image if no poster path
-            posterImageView.setImage(new Image(getClass().getResourceAsStream("/images/movies/dark_knight.jpg")));
+            setDefaultPoster();
         }
+    }
 
-        System.out.println("Poster path used: " + movie.getPosterPath());
+    private void setDefaultPoster() {
+        try {
+            byte[] defaultImageData = getClass().getResourceAsStream("/images/movies/dark_knight.jpg").readAllBytes();
+            Image defaultImage = new Image(new ByteArrayInputStream(defaultImageData));
+            posterImageView.setImage(defaultImage);
+        } catch (IOException e) {
+            e.printStackTrace();
+            posterImageView.setImage(null);
+        }
     }
 }
