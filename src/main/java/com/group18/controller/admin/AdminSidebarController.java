@@ -5,6 +5,8 @@ import com.group18.dao.UserDAO;
 import com.group18.model.User;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -40,30 +42,24 @@ public class AdminSidebarController {
         initializeUserInfo();
     }
 
+    public void setCurrentUser(User user) {
+        this.currentUser = user;
+        initializeUserInfo();
+    }
+
     private void initializeUserInfo() {
-        try {
-            // Get the currently logged-in admin
-            currentUser = userDAO.authenticateUser("admin1", "admin1");
+        if (currentUser != null && "admin".equals(currentUser.getRole())) {
+            // Set the full name
+            String fullName = String.format("%s %s", currentUser.getFirstName(), currentUser.getLastName());
+            userNameLabel.setText(fullName);
 
-            if (currentUser != null && "admin".equals(currentUser.getRole())) {
-                // Set the full name
-                String fullName = String.format("%s %s",
-                        currentUser.getFirstName(),
-                        currentUser.getLastName());
-                userNameLabel.setText(fullName);
-
-                // Set the role with first letter capitalized
-                String formattedRole = currentUser.getRole().substring(0, 1).toUpperCase() +
-                        currentUser.getRole().substring(1).toLowerCase();
-                roleLabel.setText(formattedRole);
-            } else {
-                handleLogout();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            handleLogout();
+            // Set the role
+            String formattedRole = currentUser.getRole().substring(0, 1).toUpperCase() +
+                    currentUser.getRole().substring(1).toLowerCase();
+            roleLabel.setText(formattedRole);
         }
     }
+
 
     public void setMainController(AdminController controller) {
         this.mainController = controller;
@@ -87,16 +83,17 @@ public class AdminSidebarController {
     @FXML
     private void handleLogout() {
         try {
-            // Get the current stage
-            Stage currentStage = (Stage) logoutButton.getScene().getWindow();
-
             // Load the login view
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/LoginView.fxml"));
-            Scene loginScene = new Scene(loader.load());
+            Parent loginView = loader.load();
+
+            // Get the current stage from the logout button's scene
+            Stage stage = (Stage) logoutButton.getScene().getWindow();
 
             // Set the login scene
-            currentStage.setScene(loginScene);
-            currentStage.show();
+            Scene loginScene = new Scene(loginView);
+            stage.setScene(loginScene);
+            stage.show();
         } catch (IOException e) {
             e.printStackTrace();
         }

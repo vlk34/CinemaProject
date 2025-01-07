@@ -31,14 +31,7 @@ public class ManagerSidebarController {
     @FXML private Label roleLabel;
 
     private ManagerController mainController;
-    private UserDAO userDAO;
     private User currentUser;
-
-//    @FXML
-//    private void initialize() {
-//        userDAO = new UserDAO();
-//        initializeUserInfo();
-//    }
 
     private void initializeUserInfo() {
         if (currentUser != null && "manager".equals(currentUser.getRole())) {

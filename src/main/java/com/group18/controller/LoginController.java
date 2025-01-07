@@ -1,5 +1,6 @@
 package com.group18.controller;
 
+import com.group18.controller.admin.AdminSidebarController;
 import com.group18.controller.cashier.CashierController;
 import com.group18.dao.UserDAO;
 import com.group18.model.User;
@@ -49,14 +50,19 @@ public class LoginController {
             wrongLoginLabel.setVisible(false);
             Stage stage = (Stage) usernameField.getScene().getWindow();
             String role = user.getRole();
-
+            FXMLLoader loader;
             switch (role.toLowerCase()) {
                 case "admin":
-                    SceneSwitcher.switchToScene("/fxml/admin/AdminView.fxml", stage);
+                    loader = SceneSwitcher.switchToSceneAndGetLoader("/fxml/admin/AdminView.fxml", stage);
+
+                    AdminSidebarController adminSidebarController = (AdminSidebarController) loader.getNamespace().get("sidebarController");
+                    if (adminSidebarController != null) {
+                        adminSidebarController.setCurrentUser(user);
+                    }
                     break;
                 case "manager":
                     // Use the new method to get the loader
-                    FXMLLoader loader = SceneSwitcher.switchToSceneAndGetLoader("/fxml/manager/ManagerView.fxml", stage);
+                    loader = SceneSwitcher.switchToSceneAndGetLoader("/fxml/manager/ManagerView.fxml", stage);
 
                     // Get the sidebar controller and set the current user
                     ManagerSidebarController sidebarController =
