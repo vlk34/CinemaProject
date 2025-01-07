@@ -4,6 +4,7 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -23,7 +24,16 @@ public class MainApp extends Application {
         Scene scene = new Scene(root);
 
         // Set stage properties
-        primaryStage.setTitle("Cinema Management System");
+        primaryStage.setTitle("Group18 CinemaCenter");
+
+        // Set the application icon
+        try {
+            Image icon = new Image(getClass().getResourceAsStream("/images/cinema-icon.png"));
+            primaryStage.getIcons().add(icon);
+        } catch (Exception e) {
+            System.err.println("Failed to load application icon: " + e.getMessage());
+        }
+
         primaryStage.setScene(scene);
 
         // Set window size

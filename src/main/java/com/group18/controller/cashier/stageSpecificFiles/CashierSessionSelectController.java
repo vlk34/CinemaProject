@@ -88,11 +88,34 @@ public class CashierSessionSelectController {
 
     public void setCashierController(CashierController controller) {
         this.cashierController = controller;
+
+        // Get previous session and date from cashier controller
+        MovieSession prevSession = controller.getSelectedSession();
+        LocalDate prevDate = controller.getSelectedDate();
+
+        if (prevSession != null && prevDate != null) {
+            // Set these as our previously selected values
+            this.previouslySelectedSession = prevSession;
+            this.previouslySelectedDate = prevDate;
+
+            // If we already have a movie set, we can restore the session display
+            if (selectedMovie != null) {
+                datePicker.setValue(prevDate);
+                updateAvailableDates();
+                handleShowSessions();
+            }
+        }
     }
 
     public void setMovie(Movie movie) {
         this.selectedMovie = movie;
         updateMovieDetails();
+
+        // If we have a previous selection, use it
+        if (previouslySelectedDate != null) {
+            datePicker.setValue(previouslySelectedDate);
+        }
+
         updateAvailableDates();
     }
 

@@ -37,7 +37,6 @@
                 <HBox alignment="CENTER_LEFT" spacing="12.0">
                     <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" smooth="true">
                         <image>
-                            <!-- movie.png  -->
                             <Image url="@/images/add.png" />
                         </image>
                         <effect>
@@ -90,7 +89,6 @@
                 <HBox alignment="CENTER_LEFT" spacing="12.0">
                     <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" smooth="true">
                         <image>
-                            <!-- refund.png  -->
                             <Image url="@/images/quote-request.png" />
                         </image>
                         <effect>
@@ -108,6 +106,24 @@
     </VBox>
 
     <Region VBox.vgrow="ALWAYS" />
+
+    <!-- User Info Section -->
+    <HBox alignment="CENTER_LEFT" spacing="12" style="-fx-padding: 0 0 12 20;">
+        <ImageView fitHeight="32.0" fitWidth="32.0">
+            <Image url="@/images/user2.png"/>
+            <effect>
+                <ColorAdjust brightness="1.0" />
+            </effect>
+        </ImageView>
+        <VBox spacing="2">
+            <Label fx:id="userNameLabel" textFill="WHITE" style="-fx-font-size: 14;">
+                <font>
+                    <Font name="System Bold" size="14.0" />
+                </font>
+            </Label>
+            <Label fx:id="roleLabel" style="-fx-text-fill: #2ECC71; -fx-font-size: 12; -fx-font-weight: bold;"/>
+        </VBox>
+    </HBox>
 
     <!-- Logout Button -->
     <Button fx:id="logoutButton" mnemonicParsing="false" onAction="#handleLogout"

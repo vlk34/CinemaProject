@@ -58,9 +58,10 @@
                     style="-fx-background-color: #4a2b6b; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;">
                <text>Login</text>
             </Button>
-            <Label fx:id="wrongLoginLabel" style="-fx-text-fill: #D32F2F;" visible="false">
+            <Label fx:id="wrongLoginLabel" style="-fx-text-fill: #D32F2F;" visible="false" text="Invalid username or password"
+                   alignment="CENTER">
                <font>
-                  <Font name="System Bold" size="13.0" />
+                  <Font name="Segoe UI" size="13.0" />
                </font>
             </Label>
          </children>

@@ -77,7 +77,7 @@
                     <Insets top="20"/>
                 </VBox.margin>
                 <columns>
-                    <TableColumn fx:id="requestIdColumn" text="Request ID" prefWidth="100"/>
+                    <TableColumn fx:id="orderIdColumn" text="Order ID" prefWidth="100"/>
                     <TableColumn fx:id="customerColumn" text="Customer" prefWidth="150"/>
                     <TableColumn fx:id="bookingIdColumn" text="Booking ID" prefWidth="100"/>
                     <TableColumn fx:id="typeColumn" text="Type" prefWidth="100"/>
@@ -85,6 +85,7 @@
                     <TableColumn fx:id="amountColumn" text="Amount" prefWidth="100"/>
                     <TableColumn fx:id="statusColumn" text="Status" prefWidth="100"/>
                     <TableColumn fx:id="actionsColumn" text="Actions" prefWidth="150"/>
+                    <TableColumn fx:id="receiptColumn" text="Actions" prefWidth="150"/>
                 </columns>
             </TableView>
         </VBox>

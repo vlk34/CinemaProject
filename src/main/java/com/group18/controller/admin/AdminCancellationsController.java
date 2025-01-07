@@ -8,13 +8,20 @@ import com.group18.model.Order;
 import com.group18.model.OrderItem;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
+import javafx.stage.FileChooser;
 
+import java.awt.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,7 +30,7 @@ public class AdminCancellationsController {
     private TableView<Order> requestsTable;
 
     @FXML
-    private TableColumn<Order, String> requestIdColumn;
+    private TableColumn<Order, String> orderIdColumn;
     @FXML
     private TableColumn<Order, String> customerColumn;
     @FXML
@@ -38,6 +45,8 @@ public class AdminCancellationsController {
     private TableColumn<Order, String> statusColumn;
     @FXML
     private TableColumn<Order, Void> actionsColumn;
+    @FXML
+    private TableColumn<Order, Void> receiptColumn;
 
     @FXML
     private Button refreshButton;
@@ -112,8 +121,8 @@ public class AdminCancellationsController {
     }
 
     private void setupTableColumns() {
-        requestIdColumn.setCellValueFactory(new PropertyValueFactory<>("orderId"));
-        requestIdColumn.setStyle("-fx-alignment: CENTER;");
+        orderIdColumn.setCellValueFactory(new PropertyValueFactory<>("orderId"));
+        orderIdColumn.setStyle("-fx-alignment: CENTER;");
 
         bookingIdColumn.setCellValueFactory(new PropertyValueFactory<>("orderId"));
         bookingIdColumn.setStyle("-fx-alignment: CENTER;");
@@ -165,8 +174,8 @@ public class AdminCancellationsController {
             private final Button rejectButton = new Button("Reject");
             {
                 // Smaller button styling
-                processButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 10px; -fx-padding: 2 8 2 8;");
-                rejectButton.setStyle("-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-size: 10px; -fx-padding: 2 8 2 8;");
+                processButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 12px; -fx-padding: 2 6 2 6;");
+                rejectButton.setStyle("-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-size: 12px; -fx-padding: 2 6 2 6;");
 
                 processButton.setOnAction(e -> handleProcessCancellation(getTableView().getItems().get(getIndex())));
                 rejectButton.setOnAction(e -> handleRejectCancellation(getTableView().getItems().get(getIndex())));
@@ -189,6 +198,72 @@ public class AdminCancellationsController {
                 }
             }
         });
+
+        // Setup receipt column
+        receiptColumn.setCellFactory(col -> new TableCell<Order, Void>() {
+            private final Button viewReceiptButton = new Button("View Receipt");
+            {
+                // Styling for the button
+                viewReceiptButton.setStyle("-fx-background-color: #2a1b35; -fx-text-fill: white; -fx-font-size: 12px; -fx-padding: 2 6 2 6;");
+
+                viewReceiptButton.setOnAction(e -> {
+                    Order order = getTableView().getItems().get(getIndex());
+                    viewReceipt(order.getOrderId());
+                });
+            }
+
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    // Check if receipt exists before showing button
+                    byte[] receipt = orderDAO.retrieveReceipt(getTableView().getItems().get(getIndex()).getOrderId());
+                    if (receipt != null && receipt.length > 0) {
+                        setGraphic(viewReceiptButton);
+                    } else {
+                        setGraphic(null);
+                    }
+                }
+            }
+        });
+        receiptColumn.setStyle("-fx-alignment: CENTER;");
+    }
+
+    private void viewReceipt(int orderId) {
+        byte[] receiptPdf = orderDAO.retrieveReceipt(orderId);
+
+        if (receiptPdf != null) {
+            try {
+                // Create a temporary file
+                File tempFile = File.createTempFile("receipt_" + orderId, ".pdf");
+                tempFile.deleteOnExit(); // Ensure file is deleted when JVM exits
+
+                // Write PDF content to temp file
+                try (FileOutputStream fos = new FileOutputStream(tempFile)) {
+                    fos.write(receiptPdf);
+                }
+
+                // Open the PDF in default browser
+                Desktop.getDesktop().browse(tempFile.toURI());
+
+            } catch (IOException e) {
+                // Show error if opening fails
+                Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                errorAlert.setTitle("Receipt View Error");
+                errorAlert.setHeaderText(null);
+                errorAlert.setContentText("Could not open receipt: " + e.getMessage());
+                errorAlert.showAndWait();
+            }
+        } else {
+            // Show error if no receipt found
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Receipt Not Found");
+            errorAlert.setHeaderText(null);
+            errorAlert.setContentText("No receipt found for this order.");
+            errorAlert.showAndWait();
+        }
     }
 
     private String determineOrderType(Order order) {

@@ -45,8 +45,12 @@
                     <ColorAdjust brightness="1.0" />
                 </effect>
             </ImageView>
-            <Label fx:id="cashierNameLabel"
-                   style="-fx-text-fill: white; -fx-font-size: 14px;"/>
+            <VBox alignment="CENTER_LEFT" spacing="2">
+                <Label fx:id="cashierNameLabel"
+                       style="-fx-text-fill: white; -fx-font-size: 14px;"/>
+                <Label fx:id="roleLabel"
+                       style="-fx-text-fill: #2ECC71; -fx-font-size: 12px; -fx-font-weight: bold;"/>
+            </VBox>
         </HBox>
 
         <Button fx:id="logoutButton" text="Logout" onAction="#handleLogout"

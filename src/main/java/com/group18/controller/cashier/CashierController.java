@@ -6,6 +6,7 @@ import com.group18.controller.cashier.sharedComponents.CashierStepperController;
 import com.group18.controller.cashier.stageSpecificFiles.*;
 import com.group18.model.MovieSession;
 import com.group18.model.Movie;
+import com.group18.model.User;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -41,6 +42,17 @@ public class CashierController {
     private MovieSession selectedSession;
     private Set<String> selectedSeats = new HashSet<>();
     private LocalDate selectedDate;
+    private User currentUser; // Add this field
+
+    // Method to set the current user during login
+    public void setCurrentUser(User user) {
+        this.currentUser = user;
+    }
+
+    // Method to get the current user
+    public User getCurrentUser() {
+        return currentUser;
+    }
 
     @FXML
     private void initialize() {
@@ -80,6 +92,8 @@ public class CashierController {
                     clearPersistentDetailsStatic();
                     CashierSeatSelectController.clearSelectedSeatsStatic();
                     selectedMovie = newMovie;
+                    selectedSession = null;
+                    selectedDate = null;
                     selectedSeats = new HashSet<>();
                     cashierCartController.clearCart();
                     dataChanged = true;

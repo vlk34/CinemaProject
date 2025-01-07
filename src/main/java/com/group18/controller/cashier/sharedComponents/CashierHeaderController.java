@@ -2,10 +2,13 @@ package com.group18.controller.cashier.sharedComponents;
 
 import com.group18.controller.cashier.stageSpecificFiles.CashierCustomerDetailsController;
 import com.group18.controller.cashier.stageSpecificFiles.CashierSeatSelectController;
+import com.group18.dao.UserDAO;
 import com.group18.model.ShoppingCart;
+import com.group18.model.User;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.stage.Stage;
@@ -26,17 +29,52 @@ public class CashierHeaderController {
     private Label cashierNameLabel;
 
     @FXML
+    private Label roleLabel;
+
+    @FXML
     private Button logoutButton;
 
     private Timeline clock;
+    private UserDAO userDAO;
+    private User currentCashier;
 
     @FXML
     private void initialize() {
-        // Set cashier name from login session
-        cashierNameLabel.setText("Cashier1"); // This should come from session
-
-        // Initialize clock
+        userDAO = new UserDAO();
+        initializeUserInfo();
         initializeClock();
+    }
+
+    private void initializeUserInfo() {
+        try {
+            // Get the currently logged-in cashier
+            currentCashier = userDAO.authenticateUser("cashier1", "cashier1");
+
+            if (currentCashier != null && "cashier".equals(currentCashier.getRole())) {
+                // Set the full name of the cashier
+                String fullName = String.format("%s %s",
+                        currentCashier.getFirstName(),
+                        currentCashier.getLastName());
+                cashierNameLabel.setText(fullName);
+
+                // Set the role with first letter capitalized
+                String formattedRole = currentCashier.getRole().substring(0, 1).toUpperCase() +
+                        currentCashier.getRole().substring(1).toLowerCase();
+                roleLabel.setText(formattedRole);
+
+                // Style role label
+                roleLabel.setStyle("-fx-text-fill: #2ECC71; -fx-font-weight: bold;");
+
+            } else {
+                showError("Authentication Error",
+                        "Unable to verify cashier credentials. Please log in again.");
+                handleLogout();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError("Database Error",
+                    "Unable to connect to the database. Please try again later.");
+        }
     }
 
     private void initializeClock() {
@@ -77,4 +115,18 @@ public class CashierHeaderController {
             e.printStackTrace();
         }
     }
+
+    private void showError(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
+
+    // Getter for current cashier (might be needed by other components)
+    public User getCurrentCashier() {
+        return currentCashier;
+    }
+
 }

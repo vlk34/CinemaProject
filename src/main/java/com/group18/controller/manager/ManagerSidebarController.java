@@ -1,9 +1,11 @@
 package com.group18.controller.manager;
 
+import com.group18.dao.UserDAO;
 import com.group18.model.User;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.fxml.FXMLLoader;
@@ -25,12 +27,39 @@ public class ManagerSidebarController {
     @FXML
     private Button logoutButton;
 
-    private ManagerController mainController;
+    @FXML private Label userNameLabel;
+    @FXML private Label roleLabel;
 
+    private ManagerController mainController;
+    private UserDAO userDAO;
     private User currentUser;
+
+//    @FXML
+//    private void initialize() {
+//        userDAO = new UserDAO();
+//        initializeUserInfo();
+//    }
+
+    private void initializeUserInfo() {
+        if (currentUser != null && "manager".equals(currentUser.getRole())) {
+            // Set the full name
+            String fullName = String.format("%s %s",
+                    currentUser.getFirstName(),
+                    currentUser.getLastName());
+            userNameLabel.setText(fullName);
+
+            // Set the role with first letter capitalized
+            String formattedRole = currentUser.getRole().substring(0, 1).toUpperCase() +
+                    currentUser.getRole().substring(1).toLowerCase();
+            roleLabel.setText(formattedRole);
+        } else {
+            handleLogout();
+        }
+    }
 
     public void setCurrentUser(User user) {
         this.currentUser = user;
+        initializeUserInfo();
     }
 
     // Method to set the main controller

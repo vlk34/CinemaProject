@@ -41,9 +41,7 @@ public class CashierActionBarController {
                         customerDetailsController.hasValidDetailsAndVerification();
 
                 return mainController.getCartController() != null &&
-                        customerDetailsController != null &&
-                        (customerDetailsController.hasItems() ||
-                                hasPersistentDetails);
+                        customerDetailsController != null && hasPersistentDetails;
 
             default:
                 return true;

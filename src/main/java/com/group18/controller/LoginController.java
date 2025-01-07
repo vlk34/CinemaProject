@@ -1,5 +1,6 @@
 package com.group18.controller;
 
+import com.group18.controller.cashier.CashierController;
 import com.group18.dao.UserDAO;
 import com.group18.model.User;
 import com.group18.util.SceneSwitcher;
@@ -28,6 +29,16 @@ public class LoginController {
     @FXML
     public void initialize() {
         System.out.println("LoginController init");
+        wrongLoginLabel.setVisible(false);
+
+        // Add listeners to clear error message when user starts typing
+        usernameField.textProperty().addListener((observable, oldValue, newValue) -> {
+            wrongLoginLabel.setVisible(false);
+        });
+
+        passwordField.textProperty().addListener((observable, oldValue, newValue) -> {
+            wrongLoginLabel.setVisible(false);
+        });
     }
 
     @FXML
@@ -35,6 +46,7 @@ public class LoginController {
         User user = checkLoginCredentials();
 
         if (user != null) {
+            wrongLoginLabel.setVisible(false);
             Stage stage = (Stage) usernameField.getScene().getWindow();
             String role = user.getRole();
 
@@ -56,7 +68,15 @@ public class LoginController {
                     }
                     break;
                 case "cashier":
-                    SceneSwitcher.switchToScene("/fxml/cashier/CashierView.fxml", stage);
+                    loader = SceneSwitcher.switchToSceneAndGetLoader("/fxml/cashier/CashierView.fxml", stage);
+
+                    // Directly get the controller from the loader
+                    CashierController cashierController = loader.getController();
+                    if (cashierController != null) {
+                        cashierController.setCurrentUser(user);
+                    } else {
+                        System.err.println("Warning: Could not find cashier controller");
+                    }
                     break;
                 default:
                     wrongLoginLabel.setText("Role is not valid.");
@@ -65,7 +85,8 @@ public class LoginController {
 
             System.out.println("Logged in as: " + user.getUsername() + " with role: " + user.getRole());
         } else {
-            wrongLoginLabel.setText("Username or password invalid.");
+            wrongLoginLabel.setText("Invalid username or password");
+            wrongLoginLabel.setVisible(true);
         }
     }
 

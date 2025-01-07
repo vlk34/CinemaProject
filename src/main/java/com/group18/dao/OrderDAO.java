@@ -51,21 +51,42 @@ public class OrderDAO {
             // Create each order item and update stock
             try (PreparedStatement itemStmt = connection.prepareStatement(itemQuery)) {
                 for (OrderItem item : order.getOrderItems()) {
-                    // Process product items by reducing stock
-                    if ("product".equals(item.getItemType()) && item.getProductId() != null) {
-                        if (!productDAO.decreaseStock(item.getProductId(), item.getQuantity())) {
-                            throw new SQLException("Failed to decrease stock for product: " + item.getProductId());
-                        }
-                    }
+                    System.out.println("Processing item type: " + item.getItemType());
 
                     itemStmt.setInt(1, order.getOrderId());
                     itemStmt.setString(2, item.getItemType());
-                    itemStmt.setObject(3, item.getScheduleId());
-                    itemStmt.setObject(4, item.getSeatNumber());
+
+                    // Handle schedule_id based on item type
+                    if ("ticket".equals(item.getItemType())) {
+                        itemStmt.setInt(3, item.getScheduleId());  // For tickets, use actual schedule_id
+                        itemStmt.setInt(4, item.getSeatNumber());  // For tickets, set seat number
+                    } else {
+                        itemStmt.setNull(3, Types.INTEGER);  // For products, set NULL
+                        itemStmt.setNull(4, Types.INTEGER);  // For products, set NULL
+                    }
+
                     itemStmt.setBoolean(5, item.getDiscountApplied());
-                    itemStmt.setString(6, item.getOccupantFirstName());
-                    itemStmt.setString(7, item.getOccupantLastName());
-                    itemStmt.setObject(8, item.getProductId());
+
+                    // Handle customer names based on item type
+                    if ("ticket".equals(item.getItemType())) {
+                        itemStmt.setString(6, item.getOccupantFirstName());
+                        itemStmt.setString(7, item.getOccupantLastName());
+                    } else {
+                        itemStmt.setNull(6, Types.VARCHAR);
+                        itemStmt.setNull(7, Types.VARCHAR);
+                    }
+
+                    // Handle product_id based on item type
+                    if ("product".equals(item.getItemType())) {
+                        itemStmt.setInt(8, item.getProductId());
+                        // Process product stock reduction
+                        if (!productDAO.decreaseStock(item.getProductId(), item.getQuantity())) {
+                            throw new SQLException("Failed to decrease stock for product: " + item.getProductId());
+                        }
+                    } else {
+                        itemStmt.setNull(8, Types.INTEGER);
+                    }
+
                     itemStmt.setInt(9, item.getQuantity());
                     itemStmt.setBigDecimal(10, item.getItemPrice());
 
@@ -312,6 +333,37 @@ public class OrderDAO {
             e.printStackTrace();
         }
         return items;
+    }
+
+    public boolean storeReceipt(int orderId, byte[] receiptPdf) {
+        String query = "UPDATE orders SET receipt_pdf = ? WHERE order_id = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setBytes(1, receiptPdf);
+            stmt.setInt(2, orderId);
+
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public byte[] retrieveReceipt(int orderId) {
+        String query = "SELECT receipt_pdf FROM orders WHERE order_id = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, orderId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getBytes("receipt_pdf");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private Order extractOrderFromResultSet(ResultSet rs) throws SQLException {

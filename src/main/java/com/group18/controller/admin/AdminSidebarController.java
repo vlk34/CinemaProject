@@ -1,10 +1,13 @@
 // AdminSidebarController.java
 package com.group18.controller.admin;
 
+import com.group18.dao.UserDAO;
+import com.group18.model.User;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.stage.Stage;
 import java.io.IOException;
 
@@ -21,7 +24,46 @@ public class AdminSidebarController {
     @FXML
     private Button logoutButton;
 
+    @FXML
+    private Label userNameLabel;
+    @FXML
+    private Label roleLabel;
+
+    private UserDAO userDAO;
+    private User currentUser;
+
     private AdminController mainController;
+
+    @FXML
+    private void initialize() {
+        userDAO = new UserDAO();
+        initializeUserInfo();
+    }
+
+    private void initializeUserInfo() {
+        try {
+            // Get the currently logged-in admin
+            currentUser = userDAO.authenticateUser("admin1", "admin1");
+
+            if (currentUser != null && "admin".equals(currentUser.getRole())) {
+                // Set the full name
+                String fullName = String.format("%s %s",
+                        currentUser.getFirstName(),
+                        currentUser.getLastName());
+                userNameLabel.setText(fullName);
+
+                // Set the role with first letter capitalized
+                String formattedRole = currentUser.getRole().substring(0, 1).toUpperCase() +
+                        currentUser.getRole().substring(1).toLowerCase();
+                roleLabel.setText(formattedRole);
+            } else {
+                handleLogout();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            handleLogout();
+        }
+    }
 
     public void setMainController(AdminController controller) {
         this.mainController = controller;
