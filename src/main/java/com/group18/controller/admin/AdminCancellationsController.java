@@ -172,11 +172,27 @@ public class AdminCancellationsController {
         actionsColumn.setCellFactory(col -> new TableCell<Order, Void>() {
             private final Button processButton = new Button("Process");
             private final Button rejectButton = new Button("Reject");
-            {
-                // Smaller button styling
-                processButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 12px; -fx-padding: 2 6 2 6;");
-                rejectButton.setStyle("-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-size: 12px; -fx-padding: 2 6 2 6;");
 
+            {
+                // Default styling for process button (less saturated green)
+                processButton.setStyle("-fx-background-color: #5CB85C; -fx-text-fill: white; -fx-font-size: 12px; -fx-padding: 2 6 2 6;");
+                processButton.setOnMouseEntered(event ->
+                        processButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 12px; -fx-padding: 2 6 2 6;")
+                );
+                processButton.setOnMouseExited(event ->
+                        processButton.setStyle("-fx-background-color: #5CB85C; -fx-text-fill: white; -fx-font-size: 12px; -fx-padding: 2 6 2 6;")
+                );
+
+                // Default styling for reject button (less saturated red)
+                rejectButton.setStyle("-fx-background-color: #D9534F; -fx-text-fill: white; -fx-font-size: 12px; -fx-padding: 2 6 2 6;");
+                rejectButton.setOnMouseEntered(event ->
+                        rejectButton.setStyle("-fx-background-color: #C9302C; -fx-text-fill: white; -fx-font-size: 12px; -fx-padding: 2 6 2 6;")
+                );
+                rejectButton.setOnMouseExited(event ->
+                        rejectButton.setStyle("-fx-background-color: #D9534F; -fx-text-fill: white; -fx-font-size: 12px; -fx-padding: 2 6 2 6;")
+                );
+
+                // Action handlers
                 processButton.setOnAction(e -> handleProcessCancellation(getTableView().getItems().get(getIndex())));
                 rejectButton.setOnAction(e -> handleRejectCancellation(getTableView().getItems().get(getIndex())));
             }
@@ -204,7 +220,15 @@ public class AdminCancellationsController {
             private final Button viewReceiptButton = new Button("View Receipt");
             {
                 // Styling for the button
-                viewReceiptButton.setStyle("-fx-background-color: #2a1b35; -fx-text-fill: white; -fx-font-size: 12px; -fx-padding: 2 6 2 6;");
+                viewReceiptButton.setStyle("-fx-background-color: #F6F2F8; -fx-text-fill: #333333; -fx-font-size: 12px; -fx-padding: 2 6 2 6;");
+
+                // Hover effect
+                viewReceiptButton.setOnMouseEntered(event ->
+                        viewReceiptButton.setStyle("-fx-background-color: #E2DFF1; -fx-text-fill: #333333; -fx-font-size: 12px; -fx-padding: 2 6 2 6;")
+                );
+                viewReceiptButton.setOnMouseExited(event ->
+                        viewReceiptButton.setStyle("-fx-background-color: #F6F2F8; -fx-text-fill: #333333; -fx-font-size: 12px; -fx-padding: 2 6 2 6;")
+                );
 
                 viewReceiptButton.setOnAction(e -> {
                     Order order = getTableView().getItems().get(getIndex());

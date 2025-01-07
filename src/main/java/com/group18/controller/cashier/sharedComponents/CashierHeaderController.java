@@ -1,5 +1,6 @@
 package com.group18.controller.cashier.sharedComponents;
 
+import com.group18.controller.cashier.CashierController;
 import com.group18.controller.cashier.stageSpecificFiles.CashierCustomerDetailsController;
 import com.group18.controller.cashier.stageSpecificFiles.CashierSeatSelectController;
 import com.group18.dao.UserDAO;
@@ -22,33 +23,51 @@ import java.time.format.DateTimeFormatter;
 import static com.group18.controller.cashier.stageSpecificFiles.CashierCustomerDetailsController.clearPersistentDetailsStatic;
 
 public class CashierHeaderController {
-    @FXML
-    private Label timeLabel;
-
-    @FXML
-    private Label cashierNameLabel;
-
-    @FXML
-    private Label roleLabel;
-
-    @FXML
-    private Button logoutButton;
+    @FXML private Label timeLabel;
+    @FXML private Label cashierNameLabel;
+    @FXML private Label roleLabel;
+    @FXML private Button logoutButton;
 
     private Timeline clock;
     private UserDAO userDAO;
     private User currentCashier;
+    private CashierController mainController;
 
     @FXML
     private void initialize() {
         userDAO = new UserDAO();
-        initializeUserInfo();
+        // Initialize clock, but no need to call initializeUserInfo here
         initializeClock();
+    }
+
+    public void setMainController(CashierController controller) {
+        this.mainController = controller;
+        if (mainController != null) {
+            System.out.println("main controller in header controller is not null ");
+            // Now that mainController is set, initialize the user info
+            initializeUserInfoAfterControllerSet();
+        }
+    }
+
+    public void getValidUser(User user) {
+        this.currentCashier = user;
+    }
+
+    private void initializeUserInfoAfterControllerSet() {
+        if (mainController != null) {
+            // returns null
+            currentCashier = mainController.getCurrentUser();
+            initializeUserInfo();
+        } else {
+            System.out.println("Main controller is not set yet.");
+        }
     }
 
     private void initializeUserInfo() {
         try {
+
             // Get the currently logged-in cashier
-            currentCashier = userDAO.authenticateUser("cashier1", "cashier1");
+            currentCashier = userDAO.authenticateUser(currentCashier.getUsername(), currentCashier.getPassword());
 
             if (currentCashier != null && "cashier".equals(currentCashier.getRole())) {
                 // Set the full name of the cashier

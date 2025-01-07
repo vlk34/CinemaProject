@@ -2,6 +2,7 @@ package com.group18.controller.cashier;
 
 import com.group18.controller.cashier.sharedComponents.CashierActionBarController;
 import com.group18.controller.cashier.sharedComponents.CashierCartController;
+import com.group18.controller.cashier.sharedComponents.CashierHeaderController;
 import com.group18.controller.cashier.sharedComponents.CashierStepperController;
 import com.group18.controller.cashier.stageSpecificFiles.*;
 import com.group18.model.MovieSession;
@@ -25,6 +26,7 @@ public class CashierController {
     @FXML private Node currentStage;
     @FXML private CashierStepperController stepperController;
     @FXML private CashierActionBarController actionBarController;
+    @FXML private CashierHeaderController headerController;
     @FXML private CashierCartController cashierCartController;
     @FXML private CashierCustomerDetailsController customerDetailsController;
 
@@ -42,11 +44,16 @@ public class CashierController {
     private MovieSession selectedSession;
     private Set<String> selectedSeats = new HashSet<>();
     private LocalDate selectedDate;
-    private User currentUser; // Add this field
+    private User currentUser;
 
-    // Method to set the current user during login
     public void setCurrentUser(User user) {
         this.currentUser = user;
+        headerController.setMainController(this);
+
+        // Perform actions that depend on the user being set
+        if (headerController != null) {
+            headerController.getValidUser(currentUser);
+        }
     }
 
     // Method to get the current user

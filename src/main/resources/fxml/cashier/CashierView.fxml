@@ -12,7 +12,7 @@
       fx:controller="com.group18.controller.cashier.CashierController">
 
     <!-- Header with integrated stepper -->
-    <fx:include source="sharedComponents/CashierHeader.fxml"/>
+    <fx:include source="sharedComponents/CashierHeader.fxml" fx:id="header"/>
 
     <!-- Main Content Area -->
     <StackPane VBox.vgrow="ALWAYS" style="-fx-padding: 20;">
