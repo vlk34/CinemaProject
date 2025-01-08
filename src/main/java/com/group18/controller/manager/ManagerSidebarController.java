@@ -62,7 +62,7 @@ public class ManagerSidebarController {
 
     @FXML
     private void handleInventory() {
-        mainController.switchContent("/fxml/manager/ManagerInventory.fxml");
+        mainController.switchContent("/fxml/manager/ManagerInventory.fxml", currentUser);
     }
 
     @FXML
@@ -76,7 +76,7 @@ public class ManagerSidebarController {
             controller.setCurrentUser(currentUser);
 
             // Switch the content
-            mainController.switchContent("/fxml/manager/ManagerStaff.fxml");
+            mainController.switchContent("/fxml/manager/ManagerStaff.fxml", currentUser);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -84,12 +84,12 @@ public class ManagerSidebarController {
 
     @FXML
     private void handlePricing() {
-        mainController.switchContent("/fxml/manager/ManagerPricing.fxml");
+        mainController.switchContent("/fxml/manager/ManagerPricing.fxml", currentUser);
     }
 
     @FXML
     private void handleRevenue() {
-        mainController.switchContent("/fxml/manager/ManagerRevenue.fxml");
+        mainController.switchContent("/fxml/manager/ManagerRevenue.fxml", currentUser);
     }
 
     @FXML

@@ -1,6 +1,7 @@
 // ManagerController.java
 package com.group18.controller.manager;
 
+import com.group18.model.User;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.BorderPane;
@@ -23,10 +24,17 @@ public class ManagerController {
         sidebarController.setMainController(this);
     }
 
-    public void switchContent(String fxmlPath) {
+    public void switchContent(String fxmlPath, User currentUser) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
             Node newContent = loader.load();
+
+            // For Pricing specific case
+            Object controller = loader.getController();
+            if (controller instanceof ManagerPricingController) {
+                ((ManagerPricingController) controller).setCurrentUser(currentUser);
+            }
+
             root.setCenter(newContent);
         } catch (IOException e) {
             e.printStackTrace();

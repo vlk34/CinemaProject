@@ -85,7 +85,7 @@ public class Movie {
 
     // Helper methods for database storage
     public String getGenresAsString() {
-        return String.join(",", genres);
+        return String.join(", ", genres);
     }
 
     public void setGenresFromString(String genresStr) {

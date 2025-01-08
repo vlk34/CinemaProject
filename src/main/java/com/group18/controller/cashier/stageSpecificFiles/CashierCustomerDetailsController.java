@@ -86,12 +86,26 @@ public class CashierCustomerDetailsController {
         // Find the HBox container
         HBox tooltipContainer = (HBox) infoIcon.getParent();
 
+        // Use Timeline for smooth opacity animation
+        Timeline fadeIn = new Timeline(
+                new KeyFrame(Duration.ZERO, new KeyValue(tooltipContainer.opacityProperty(), 0.6, Interpolator.EASE_OUT)),
+                new KeyFrame(Duration.millis(150), new KeyValue(tooltipContainer.opacityProperty(), 1.0, Interpolator.EASE_OUT))
+        );
+
+        Timeline fadeOut = new Timeline(
+                new KeyFrame(Duration.ZERO, new KeyValue(tooltipContainer.opacityProperty(), 1.0, Interpolator.EASE_OUT)),
+                new KeyFrame(Duration.millis(200), new KeyValue(tooltipContainer.opacityProperty(), 0.6, Interpolator.EASE_OUT))
+        );
+
+        tooltipContainer.setOnMouseEntered(e -> fadeIn.play());
+        tooltipContainer.setOnMouseExited(e -> fadeOut.play());
+
         // Increase icon size
-        infoIcon.setFitWidth(24);  // Slightly larger
-        infoIcon.setFitHeight(24);
+        infoIcon.setFitWidth(20);  // Slightly larger
+        infoIcon.setFitHeight(20);
 
         Tooltip tooltip = new Tooltip("Customers under 18 or over 60 years old qualify for age-based discounts");
-        tooltip.setShowDelay(Duration.millis(100));
+        tooltip.setShowDelay(Duration.millis(10));
 
         // Customize tooltip style
         tooltip.setStyle(

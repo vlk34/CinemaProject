@@ -47,9 +47,9 @@
                 <!-- Single line for age discount controls -->
                 <HBox alignment="CENTER_LEFT" spacing="10">
                     <Label text="Age-discounted tickets: " />
-                    <HBox alignment="CENTER" prefWidth="24" prefHeight="24" minWidth="24" minHeight="24" translateX="-4" opacity="0.5">
-                        <ImageView fx:id="infoIcon" fitHeight="24" fitWidth="24" translateY="0">
-                            <Image url="@/images/information.png" />
+                    <HBox alignment="CENTER" prefWidth="24" prefHeight="24" minWidth="24" minHeight="24" translateX="-4" opacity="0.3">
+                        <ImageView fx:id="infoIcon" fitHeight="20" fitWidth="20" translateY="0">
+                            <Image url="@/images/question.png" />
                             <effect>
                                 <ColorAdjust brightness="-0.3" saturation="-0.5" />
                             </effect>

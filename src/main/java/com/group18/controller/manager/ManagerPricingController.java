@@ -2,6 +2,7 @@ package com.group18.controller.manager;
 
 import com.group18.dao.PriceDAO;
 import com.group18.model.PriceHistory;
+import com.group18.model.User;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -35,6 +36,12 @@ public class ManagerPricingController {
     private TableColumn<PriceHistory, String> updatedByColumn;
 
     private PriceDAO priceDAO;
+
+    private User currentUser;
+
+    public void setCurrentUser(User user) {
+        this.currentUser = user;
+    }
 
     public void initialize() {
         priceDAO = new PriceDAO();
@@ -165,9 +172,12 @@ public class ManagerPricingController {
     }
 
     private void logPriceChange(String item, double oldPrice, double newPrice) {
-        String user = "Manager1"; // Get the actual logged in user
+        String user = currentUser != null
+                ? currentUser.getFirstName() + " " + currentUser.getLastName()
+                : "Unknown Manager";
+
         PriceHistory log = new PriceHistory(
-                LocalDate.now(),  // Using LocalDate.now() instead of formatted string
+                LocalDate.now(),
                 item,
                 oldPrice,
                 newPrice,
