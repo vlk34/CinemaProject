@@ -4,6 +4,9 @@ import com.group18.controller.cashier.CashierController;
 import com.group18.dao.PriceDAO;
 import com.group18.model.Movie;
 import com.group18.model.MovieSession;
+import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.TranslateTransition;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -13,6 +16,8 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
+import javafx.util.Duration;
+
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -29,6 +34,7 @@ public class CashierCartController {
     @FXML private Label totalLabel;
     @FXML private VBox cartDetailsContainer;
     @FXML private Button toggleDetailsButton;
+    @FXML private VBox cashierCart;
     private CashierController mainController;
     private PriceDAO priceDAO;
     private double subtotal = 0.0;
@@ -49,18 +55,40 @@ public class CashierCartController {
 
     @FXML
     private void toggleCartDetails() {
-        boolean isVisible = !cartDetailsContainer.isVisible();
-        cartDetailsContainer.setVisible(isVisible);
-        cartDetailsContainer.setManaged(isVisible);
+        boolean isCurrentlyVisible = cartDetailsContainer.isVisible();
 
-        // Update button icon based on visibility
-        ImageView icon = (ImageView) toggleDetailsButton.getGraphic();
-        if (isVisible) {
-            // When details are shown, show minimize icon
-            icon.setImage(new Image(getClass().getResourceAsStream("/images/minimize.png")));
-        } else {
-            // When details are hidden, show maximize icon
+        if (isCurrentlyVisible) {
+            // Simple, instant close
+            cartDetailsContainer.setVisible(false);
+            cartDetailsContainer.setManaged(false);
+
+            // Update button icon
+            ImageView icon = (ImageView) toggleDetailsButton.getGraphic();
             icon.setImage(new Image(getClass().getResourceAsStream("/images/maximize.png")));
+        } else {
+            // Animated open
+            cartDetailsContainer.setOpacity(0);
+            cartDetailsContainer.setTranslateY(10);
+            cartDetailsContainer.setVisible(true);
+            cartDetailsContainer.setManaged(true);
+
+            // Update button icon
+            ImageView icon = (ImageView) toggleDetailsButton.getGraphic();
+            icon.setImage(new Image(getClass().getResourceAsStream("/images/minimize.png")));
+
+            // Create fade transition
+            FadeTransition fadeTransition = new FadeTransition(Duration.millis(300), cartDetailsContainer);
+            fadeTransition.setFromValue(0.0);
+            fadeTransition.setToValue(1.0);
+
+            // Create translate transition
+            TranslateTransition translateTransition = new TranslateTransition(Duration.millis(300), cartDetailsContainer);
+            translateTransition.setFromY(10);
+            translateTransition.setToY(0);
+
+            // Combine transitions
+            ParallelTransition parallelTransition = new ParallelTransition(fadeTransition, translateTransition);
+            parallelTransition.play();
         }
     }
 

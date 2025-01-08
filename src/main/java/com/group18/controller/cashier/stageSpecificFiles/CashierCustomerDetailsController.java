@@ -21,13 +21,17 @@ import javafx.util.Duration;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class CashierCustomerDetailsController {
     @FXML private TextField firstNameField;
     @FXML private TextField lastNameField;
+    @FXML private Label ageDiscountedTicketsCount;
+    @FXML private Button minusDiscounted;
+    @FXML private Button plusDiscounted;
+    @FXML private Button applyDiscountsButton;
+    @FXML private ImageView infoIcon;
+
     @FXML private TextField ageField;
     @FXML private Button verifyAgeButton;
     @FXML private TabPane productsTabPane;
@@ -42,20 +46,20 @@ public class CashierCustomerDetailsController {
     private boolean isDiscountApplicable = false;
     private boolean customerDetailsValidated = false;
 
+    private int discountedTickets = 0;
+    private int totalSeats = 0;
+
     // Persistent customer details storage
     private static class CustomerDetails {
         String firstName;
         String lastName;
-        String age;
-        boolean discountApplicable;
+        int discountedTickets;
         boolean validated;
 
-        CustomerDetails(String firstName, String lastName, String age,
-                        boolean discountApplicable, boolean validated) {
+        CustomerDetails(String firstName, String lastName, int discountedTickets, boolean validated) {
             this.firstName = firstName;
             this.lastName = lastName;
-            this.age = age;
-            this.discountApplicable = discountApplicable;
+            this.discountedTickets = discountedTickets;
             this.validated = validated;
         }
     }
@@ -68,67 +72,132 @@ public class CashierCustomerDetailsController {
         productDAO = new ProductDAO();
         cart = ShoppingCart.getInstance();
 
-        // Set up age field validation for numbers only
-        ageField.textProperty().addListener((obs, oldValue, newValue) -> {
-            if (!newValue.matches("\\d*")) {
-                ageField.setText(newValue.replaceAll("[^\\d]", ""));
-            }
-        });
-
-        // Setup customer details validation
         setupCustomerDetailsValidation();
-
-        resetUI();
-
-        restorePersistentDetails();
-
+        setupDiscountControls();
+        setupTooltip();
         setupTabSlidingAnimation();
         setupTabSelectionStyling();
+
+        resetUI();
+        restorePersistentDetails();
+    }
+
+    private void setupTooltip() {
+        // Find the HBox container
+        HBox tooltipContainer = (HBox) infoIcon.getParent();
+
+        // Increase icon size
+        infoIcon.setFitWidth(24);  // Slightly larger
+        infoIcon.setFitHeight(24);
+
+        Tooltip tooltip = new Tooltip("Customers under 18 or over 60 years old qualify for age-based discounts");
+        tooltip.setShowDelay(Duration.millis(100));
+
+        // Customize tooltip style
+        tooltip.setStyle(
+                "-fx-background-color: #f8f9fa;" +     // Light gray background
+                        "-fx-text-fill: #4a4a4a;" +            // Softer dark gray text
+                        "-fx-background-radius: 8px;" +        // Rounded corners
+                        "-fx-padding: 8px;" +                  // More padding
+                        "-fx-font-size: 12px;" +               // Slightly larger font
+                        "-fx-max-width: 250px;" +              // Limit width
+                        "-fx-wrap-text: true;"                 // Enable text wrapping
+        );
+
+        // Install tooltip on the container
+        Tooltip.install(tooltipContainer, tooltip);
+    }
+
+    private void setupDiscountControls() {
+        minusDiscounted.setOnAction(e -> {
+            adjustDiscountedTickets(false);
+            e.consume();
+        });
+        plusDiscounted.setOnAction(e -> {
+            adjustDiscountedTickets(true);
+            e.consume();
+        });
+
+        minusDiscounted.setFocusTraversable(false);
+        plusDiscounted.setFocusTraversable(false);
+
+        updateButtonStates();
+    }
+
+    private void adjustDiscountedTickets(boolean increase) {
+        if (increase && discountedTickets < totalSeats) {
+            discountedTickets++;
+        } else if (!increase && discountedTickets > 0) {
+            discountedTickets--;
+        }
+
+        updateTicketCounts();
+        updateButtonStates();
+    }
+
+    private void updateTicketCounts() {
+        ageDiscountedTicketsCount.setText(String.valueOf(discountedTickets));
+    }
+
+    private void updateButtonStates() {
+        minusDiscounted.setDisable(discountedTickets == 0);
+        plusDiscounted.setDisable(discountedTickets >= totalSeats);
+
+        boolean detailsValid = !firstNameField.getText().trim().isEmpty() &&
+                !lastNameField.getText().trim().isEmpty();
+        applyDiscountsButton.setDisable(!detailsValid || totalSeats == 0);
+    }
+
+    @FXML
+    private void handleApplyDiscounts() {
+        if (firstNameField.getText().trim().isEmpty() || lastNameField.getText().trim().isEmpty()) {
+            showError("Invalid Input", "Please fill in customer name details.");
+            return;
+        }
+
+        // Update tickets in cart
+        updateTicketsInCart();
+        customerDetailsValidated = true;
+        savePersistentDetails();
+        updateActionBarState();
+
+        // Disable discount controls after applying
+//        minusDiscounted.setDisable(true);
+//        plusDiscounted.setDisable(true);
+//        applyDiscountsButton.setDisable(true);
+
+        // Show success message
+        Alert success = new Alert(Alert.AlertType.INFORMATION);
+        success.setTitle("Success");
+        success.setHeaderText(null);
+        success.setContentText("Age discounts have been applied successfully.");
+        success.showAndWait();
     }
 
     public boolean hasValidDetailsAndVerification() {
-        // Check if all fields are filled and details have been validated previously
         return !firstNameField.getText().trim().isEmpty() &&
                 !lastNameField.getText().trim().isEmpty() &&
-                !ageField.getText().trim().isEmpty() &&
-                (customerDetailsValidated ||
-                        (persistentCustomerDetails != null && persistentCustomerDetails.validated));
+                customerDetailsValidated;
     }
 
     private void restorePersistentDetails() {
         if (persistentCustomerDetails != null) {
             firstNameField.setText(persistentCustomerDetails.firstName);
             lastNameField.setText(persistentCustomerDetails.lastName);
-            ageField.setText(persistentCustomerDetails.age);
 
-            isDiscountApplicable = persistentCustomerDetails.discountApplicable;
+            // Explicitly set discounted tickets and update UI
+            this.discountedTickets = Math.min(persistentCustomerDetails.discountedTickets, totalSeats);
+
+            // Update UI elements
+            updateTicketCounts();
+            updateButtonStates();
+
             customerDetailsValidated = persistentCustomerDetails.validated;
 
-            // Automatically validate if persistent details exist and were previously validated
-            if (customerDetailsValidated) {
-                verifyAgeButton.setDisable(false);
-                validateCustomerDetails();
-
-                // Only update tickets if cashier controller is set
-                if (cashierController != null &&
-                        cashierController.getSelectedSession() != null &&
-                        selectedSeats != null && !selectedSeats.isEmpty()) {
-                    try {
-                        int age = Integer.parseInt(ageField.getText().trim());
-
-                        // Recompute discount applicability
-                        isDiscountApplicable = age < 18 || age > 60;
-
-                        // Update tickets in cart with the discount
-                        updateTicketsInCart();
-
-                        // Update action bar state
-                        updateActionBarState();
-                    } catch (NumberFormatException e) {
-                        // This shouldn't happen if details were previously validated
-                        showError("Error", "Invalid age in persistent details.");
-                    }
-                }
+            // Only update tickets if controller is set and we have seats
+            if (cashierController != null && selectedSeats != null && !selectedSeats.isEmpty()) {
+                updateTicketsInCart();
+                updateActionBarState();
             }
         }
     }
@@ -136,14 +205,12 @@ public class CashierCustomerDetailsController {
     private void savePersistentDetails() {
         String firstName = firstNameField.getText().trim();
         String lastName = lastNameField.getText().trim();
-        String age = ageField.getText().trim();
 
-        if (!firstName.isEmpty() && !lastName.isEmpty() && !age.isEmpty()) {
+        if (!firstName.isEmpty() && !lastName.isEmpty()) {
             persistentCustomerDetails = new CustomerDetails(
                     firstName,
                     lastName,
-                    age,
-                    isDiscountApplicable,
+                    discountedTickets,
                     customerDetailsValidated
             );
         }
@@ -152,23 +219,12 @@ public class CashierCustomerDetailsController {
     public void resetUI() {
         firstNameField.clear();
         lastNameField.clear();
-        ageField.clear();
-        verifyAgeButton.setDisable(true);
-        isDiscountApplicable = false;
+        discountedTickets = 0;
+        updateTicketCounts();
+        updateButtonStates();
         customerDetailsValidated = false;
     }
 
-    public void clearPersistentDetails() {
-        persistentCustomerDetails = null;
-        firstNameField.clear();
-        lastNameField.clear();
-        ageField.clear();
-        verifyAgeButton.setDisable(true);
-        isDiscountApplicable = false;
-        customerDetailsValidated = false;
-    }
-
-    // In CashierCustomerDetailsController.java
     public static void clearPersistentDetailsStatic() {
         persistentCustomerDetails = null;
     }
@@ -218,27 +274,21 @@ public class CashierCustomerDetailsController {
     }
 
     private void setupCustomerDetailsValidation() {
-        // Add listeners to all required fields
         firstNameField.textProperty().addListener((obs, old, newVal) -> validateCustomerDetails());
         lastNameField.textProperty().addListener((obs, old, newVal) -> validateCustomerDetails());
-        ageField.textProperty().addListener((obs, old, newVal) -> validateCustomerDetails());
     }
 
     private void validateCustomerDetails() {
         boolean detailsValid = !firstNameField.getText().trim().isEmpty() &&
-                !lastNameField.getText().trim().isEmpty() &&
-                !ageField.getText().trim().isEmpty();
+                !lastNameField.getText().trim().isEmpty();
+        applyDiscountsButton.setDisable(!detailsValid);
 
-        verifyAgeButton.setDisable(!detailsValid);
-
-        // If customer details have been previously validated, keep that state
         if (customerDetailsValidated) {
             updateActionBarState();
         }
     }
 
     private void updateActionBarState() {
-        // Update action bar if we have a valid controller
         if (cashierController != null && cashierController.getActionBarController() != null) {
             cashierController.getActionBarController().updateButtonStates(
                     cashierController.getCurrentStageIndex()
@@ -463,17 +513,47 @@ public class CashierCustomerDetailsController {
     }
 
     private void updateTicketsInCart() {
-        if (firstNameField.getText().isEmpty() || lastNameField.getText().isEmpty()) {
-            showError("Invalid Input", "Please fill in customer name details.");
+        // Check if necessary controllers and data are available
+        if (cashierController == null ||
+                cashierController.getSelectedSession() == null ||
+                selectedSeats == null ||
+                selectedSeats.isEmpty()) {
             return;
         }
 
-        double basePrice = priceDAO.getTicketPrice(cashierController.getSelectedSession().getHall());
-        double discountRate = isDiscountApplicable ? priceDAO.getAgeDiscount() / 100.0 : 0.0;
+        try {
+            double basePrice = priceDAO.getTicketPrice(cashierController.getSelectedSession().getHall());
+            double discountRate = priceDAO.getAgeDiscount() / 100.0;
+            double totalDiscount = 0.0;
 
-        // Keep track of total discount amount
-        double totalDiscount = 0.0;
+            clearExistingTickets();
 
+            List<String> sortedSeats = new ArrayList<>(selectedSeats);
+            Collections.sort(sortedSeats);
+
+            int seatIndex = 0;
+
+            // Add discounted tickets
+            for (int i = 0; i < discountedTickets; i++) {
+                addTicketToCart(sortedSeats.get(seatIndex++), true, basePrice, discountRate);
+                totalDiscount += basePrice * discountRate;
+            }
+
+            // Add remaining standard tickets
+            while (seatIndex < sortedSeats.size()) {
+                addTicketToCart(sortedSeats.get(seatIndex++), false, basePrice, 0);
+            }
+
+            if (cashierController != null && cashierController.getCartController() != null) {
+                cashierController.getCartController().updateDiscount(totalDiscount);
+            }
+        } catch (Exception e) {
+            System.err.println("Error updating tickets in cart: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void clearExistingTickets() {
         // Remove existing ticket items but keep product items
         List<OrderItem> productItems = cart.getItems().stream()
                 .filter(item -> "product".equals(item.getItemType()))
@@ -488,45 +568,34 @@ public class CashierCustomerDetailsController {
         if (cashierController != null && cashierController.getCartController() != null) {
             cashierController.getCartController().refreshCart();
         }
+    }
 
-        // Add updated ticket items
-        for (String seatId : selectedSeats) {
-            OrderItem ticketItem = new OrderItem();
-            ticketItem.setItemType("ticket");
-            ticketItem.setScheduleId(cashierController.getSelectedSession().getScheduleId());
-            ticketItem.setSeatNumber(convertSeatIdToNumber(seatId));
-            ticketItem.setQuantity(1);
+    private void addTicketToCart(String seatId, boolean discounted, double basePrice, double discountRate) {
+        OrderItem ticketItem = new OrderItem();
+        ticketItem.setItemType("ticket");
+        ticketItem.setScheduleId(cashierController.getSelectedSession().getScheduleId());
+        ticketItem.setSeatNumber(convertSeatIdToNumber(seatId));
+        ticketItem.setQuantity(1);
 
-            // Calculate discount and final price
-            double discountAmount = isDiscountApplicable ? (basePrice * discountRate) : 0.0;
-            double finalPrice = basePrice - discountAmount;
+        double finalPrice = discounted ? basePrice * (1 - discountRate) : basePrice;
 
-            totalDiscount += discountAmount;
+        ticketItem.setItemPrice(BigDecimal.valueOf(finalPrice));
+        ticketItem.setDiscountApplied(discounted);
+        ticketItem.setOccupantFirstName(firstNameField.getText().trim());
+        ticketItem.setOccupantLastName(lastNameField.getText().trim());
 
-            ticketItem.setItemPrice(BigDecimal.valueOf(finalPrice));
-            ticketItem.setDiscountApplied(isDiscountApplicable);
-            ticketItem.setOccupantFirstName(firstNameField.getText().trim());
-            ticketItem.setOccupantLastName(lastNameField.getText().trim());
+        cart.addItem(ticketItem);
 
-            cart.addItem(ticketItem);
-
-            // Add to cart UI
-            if (cashierController != null && cashierController.getCartController() != null) {
-                String itemName = String.format("Seat %s - %s", seatId, cashierController.getSelectedMovie().getTitle());
-                cashierController.getCartController().addCartItem(
-                        itemName,
-                        basePrice,  // Show original price
-                        1,
-                        "ticket",
-                        discountAmount  // Pass discount amount
-                );
-            }
-        }
-
-        // Update total discount in cart UI
-        if (cashierController != null && cashierController.getCartController() != null) {
-            cashierController.getCartController().updateDiscount(totalDiscount);
-        }
+        // Update cart UI
+        String itemName = String.format("Seat %s - %s", seatId,
+                cashierController.getSelectedMovie().getTitle());
+        cashierController.getCartController().addCartItem(
+                itemName,
+                basePrice,
+                1,
+                "ticket",
+                discounted ? basePrice * discountRate : 0
+        );
     }
 
     public boolean hasItems() {
@@ -546,21 +615,38 @@ public class CashierCustomerDetailsController {
 
     public void setCashierController(CashierController controller) {
         this.cashierController = controller;
-
-        // Initialize selectedSeats if not already set
         if (this.selectedSeats == null) {
             this.selectedSeats = controller.getSelectedSeats();
         }
 
-        // Load products for each category
+        // Update total seats when controller is set
+        if (selectedSeats != null) {
+            this.totalSeats = selectedSeats.size();
+        }
+
         loadProducts();
 
-        // Restore persistent details
-        restorePersistentDetails();
+        // Restore persistent details AFTER setting total seats
+        if (persistentCustomerDetails != null) {
+            // Explicitly restore all details
+            restorePersistentDetails();
+        }
     }
 
     public void setSelectedSeats(Set<String> seats) {
         this.selectedSeats = seats;
+        this.totalSeats = seats.size();
+
+        // Reset or adjust discounted tickets based on new seat count
+        discountedTickets = Math.min(discountedTickets, totalSeats);
+
+        updateTicketCounts();
+        updateButtonStates();
+
+        // If we have persistent details, try to restore
+        if (persistentCustomerDetails != null) {
+            restorePersistentDetails();
+        }
     }
 
     private void showError(String title, String content) {
