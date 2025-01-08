@@ -3,6 +3,7 @@ package com.group18.controller.cashier.stageSpecificFiles;
 import com.group18.controller.cashier.CashierController;
 import com.group18.controller.cashier.sharedComponents.CashierCartController;
 import com.group18.dao.ScheduleDAO;
+import javafx.animation.ScaleTransition;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
@@ -12,6 +13,7 @@ import javafx.geometry.Pos;
 import com.group18.model.Movie;
 import com.group18.model.Schedule;
 import com.group18.model.MovieSession;
+import javafx.util.Duration;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -25,6 +27,7 @@ public class CashierSessionSelectController {
     @FXML private FlowPane genresContainer;
     @FXML private DatePicker datePicker;
     @FXML private GridPane sessionsGrid;
+    @FXML private Button showSessionsButton;
 
     private Movie selectedMovie;
     private Schedule selectedSchedule;
@@ -39,6 +42,9 @@ public class CashierSessionSelectController {
     private void initialize() {
         scheduleDAO = new ScheduleDAO();
         setupDatePicker();
+
+        // Add hover effect to "Show Available Sessions" button
+        addHoverAnimationToButton(showSessionsButton);
     }
 
     private void setupDatePicker() {
@@ -208,6 +214,23 @@ public class CashierSessionSelectController {
         }
     }
 
+    private void addHoverAnimationToButton(Button button) {
+        // Add hover animation for scale effect
+        button.setOnMouseEntered(e -> {
+            ScaleTransition scaleUp = new ScaleTransition(Duration.millis(100), button);
+            scaleUp.setToX(1.03); // Slightly increase the button size
+            scaleUp.setToY(1.03);
+            scaleUp.play();
+        });
+
+        button.setOnMouseExited(e -> {
+            ScaleTransition scaleDown = new ScaleTransition(Duration.millis(100), button);
+            scaleDown.setToX(1.0); // Reset to the original size
+            scaleDown.setToY(1.0);
+            scaleDown.play();
+        });
+    }
+
     private void displaySessions() {
         clearSessionsGrid();
         populateSessionsGrid();
@@ -264,6 +287,22 @@ public class CashierSessionSelectController {
         Button button = new Button("Select");
         button.setStyle("-fx-background-color: #2a1b35; -fx-text-fill: white; -fx-padding: 5 15;");
         button.setDisable(session.getAvailableSeats() == 0);
+
+        // Add hover animation
+        button.setOnMouseEntered(e -> {
+            ScaleTransition scaleUp = new ScaleTransition(Duration.millis(100), button);
+            scaleUp.setToX(1.03); // Slightly increase the button size
+            scaleUp.setToY(1.03);
+            scaleUp.play();
+        });
+
+        button.setOnMouseExited(e -> {
+            ScaleTransition scaleDown = new ScaleTransition(Duration.millis(100), button);
+            scaleDown.setToX(1.0); // Reset to the original size
+            scaleDown.setToY(1.0);
+            scaleDown.play();
+        });
+
         button.setOnAction(e -> handleSessionSelection(session));
         return button;
     }

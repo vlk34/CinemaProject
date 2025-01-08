@@ -4,19 +4,33 @@ import com.group18.controller.cashier.CashierController;
 import com.group18.controller.cashier.modals.CashierMovieDetailsController;
 import com.group18.dao.MovieDAO;
 import com.group18.model.Movie;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.ScaleTransition;
+import javafx.animation.Timeline;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.Image;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.Node;
+import javafx.util.Duration;
 
+import java.awt.*;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class CashierMovieSearchController {
@@ -166,7 +180,42 @@ public class CashierMovieSearchController {
         VBox card = new VBox(10);
         card.getStyleClass().add("movie-card");
         card.setPrefWidth(200);
-        card.setStyle("-fx-background-color: white; -fx-padding: 10; -fx-background-radius: 5;");
+        card.setStyle("-fx-background-color: white; " +
+                "-fx-padding: 12; " +
+                "-fx-background-radius: 8; " +
+                "-fx-border-color: #f0f0f0; " +
+                "-fx-border-radius: 8;");
+
+        // Create a property for shadow animation
+        javafx.scene.effect.DropShadow shadow = new javafx.scene.effect.DropShadow();
+        shadow.setColor(javafx.scene.paint.Color.rgb(0, 0, 0, 0.05));
+        shadow.setRadius(16);
+        shadow.setOffsetY(4);
+        card.setEffect(shadow);
+
+        // Animation for mouse enter
+        card.setOnMouseEntered(e -> {
+            Timeline enterAnimation = new Timeline(
+                    new KeyFrame(Duration.millis(200),
+                            new KeyValue(shadow.radiusProperty(), 20),
+                            new KeyValue(shadow.colorProperty(), javafx.scene.paint.Color.rgb(0, 0, 0, 0.08)),
+                            new KeyValue(shadow.offsetYProperty(), 6)
+                    )
+            );
+            enterAnimation.play();
+        });
+
+        // Animation for mouse exit
+        card.setOnMouseExited(e -> {
+            Timeline exitAnimation = new Timeline(
+                    new KeyFrame(Duration.millis(200),
+                            new KeyValue(shadow.radiusProperty(), 16),
+                            new KeyValue(shadow.colorProperty(), javafx.scene.paint.Color.rgb(0, 0, 0, 0.05)),
+                            new KeyValue(shadow.offsetYProperty(), 4)
+                    )
+            );
+            exitAnimation.play();
+        });
 
         ImageView posterView = new ImageView();
 
@@ -191,6 +240,14 @@ public class CashierMovieSearchController {
         posterView.setFitWidth(180);
         posterView.setFitHeight(270);
 
+        // Create a clipping rectangle with rounded corners
+        Rectangle clip = new Rectangle(180, 270);
+        clip.setArcWidth(10);
+        clip.setArcHeight(10);
+        clip.setX(0);
+        clip.setY(0);
+        posterView.setClip(clip);
+
         Label titleLabel = new Label(movie.getTitle());
         titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14;");
         titleLabel.setWrapText(true);
@@ -205,6 +262,21 @@ public class CashierMovieSearchController {
         Button detailsButton = new Button("View Details");
         detailsButton.setStyle("-fx-background-color: #2a1b35; -fx-text-fill: white;");
         detailsButton.setOnAction(e -> showMovieDetails(movie));
+
+        // Add hover animation for the button
+        detailsButton.setOnMouseEntered(e -> {
+            ScaleTransition scaleUp = new ScaleTransition(Duration.millis(100), detailsButton);
+            scaleUp.setToX(1.03); // Slightly increase the button size
+            scaleUp.setToY(1.03);
+            scaleUp.play();
+        });
+
+        detailsButton.setOnMouseExited(e -> {
+            ScaleTransition scaleDown = new ScaleTransition(Duration.millis(100), detailsButton);
+            scaleDown.setToX(1.0); // Reset the size to original
+            scaleDown.setToY(1.0);
+            scaleDown.play();
+        });
 
         card.getChildren().addAll(posterView, titleLabel, genreLabel, durationLabel, detailsButton);
         return card;

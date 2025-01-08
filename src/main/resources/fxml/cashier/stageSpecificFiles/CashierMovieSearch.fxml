@@ -16,7 +16,7 @@
         </padding>
 
         <!-- Search Options -->
-        <VBox styleClass="card" spacing="15">
+        <VBox styleClass="card" spacing="15" style="-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 2);">
             <padding>
                 <Insets top="20" right="25" bottom="20" left="25"/>
             </padding>
@@ -30,11 +30,11 @@
                     <Label text="Search by Title"/>
                     <TextField fx:id="titleSearchField" promptText="Enter movie title..."
                                style="-fx-background-color: #f8f9fa;
-                                      -fx-background-radius: 5;
-                                      -fx-border-color: #dee2e6;
-                                      -fx-border-radius: 5;
-                                      -fx-padding: 8;
-                                      -fx-pref-height: 35px;"/>
+                                    -fx-background-radius: 5;
+                                    -fx-border-color: #dee2e6;
+                                    -fx-border-radius: 5;
+                                    -fx-padding: 8;
+                                    -fx-pref-height: 35px;"/>
                 </VBox>
 
                 <!-- Filter by Genre -->
@@ -42,12 +42,12 @@
                     <Label text="Filter by Genre"/>
                     <MenuButton fx:id="genreMenuButton"
                                 style="-fx-background-color: #f8f9fa;
-                                       -fx-background-radius: 5;
-                                       -fx-border-color: #dee2e6;
-                                       -fx-border-radius: 5;
-                                       -fx-padding: 0 8;
-                                       -fx-pref-width: 200px;
-                                       -fx-pref-height: 35px;">
+                                     -fx-background-radius: 5;
+                                     -fx-border-color: #dee2e6;
+                                     -fx-border-radius: 5;
+                                     -fx-padding: 0 8;
+                                     -fx-pref-width: 200px;
+                                     -fx-pref-height: 35px;">
                         <text>Select Genres</text>
                     </MenuButton>
                 </VBox>
@@ -68,7 +68,7 @@
         </VBox>
 
         <!-- Search Results -->
-        <VBox styleClass="card" VBox.vgrow="ALWAYS">
+        <VBox styleClass="card" VBox.vgrow="ALWAYS" style="-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 2);">
             <padding>
                 <Insets top="20" right="25" bottom="20" left="25"/>
             </padding>
@@ -84,7 +84,7 @@
                 <VBox.margin>
                     <Insets top="20"/>
                 </VBox.margin>
-                <!-- Movie cards will be added here programmatically -->
+                <!-- Style for movie cards will be applied in the controller -->
             </FlowPane>
         </VBox>
     </VBox>

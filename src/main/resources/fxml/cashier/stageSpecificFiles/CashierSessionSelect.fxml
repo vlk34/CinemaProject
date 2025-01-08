@@ -54,7 +54,7 @@
                     </tooltip>
                 </DatePicker>
 
-                <Button onAction="#handleShowSessions"
+                <Button fx:id="showSessionsButton" onAction="#handleShowSessions"
                         style="-fx-background-color: #2a1b35; -fx-text-fill: white;"
                         text="Show Available Sessions">
                     <tooltip>

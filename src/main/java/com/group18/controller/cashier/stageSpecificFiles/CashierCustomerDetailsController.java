@@ -6,6 +6,7 @@ import com.group18.dao.ProductDAO;
 import com.group18.model.OrderItem;
 import com.group18.model.Product;
 import com.group18.model.ShoppingCart;
+import javafx.animation.*;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -15,6 +16,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.text.TextAlignment;
+import javafx.util.Duration;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -28,11 +30,10 @@ public class CashierCustomerDetailsController {
     @FXML private TextField lastNameField;
     @FXML private TextField ageField;
     @FXML private Button verifyAgeButton;
-
+    @FXML private TabPane productsTabPane;
     @FXML private FlowPane beveragesContainer;
     @FXML private FlowPane biscuitsContainer;
     @FXML private FlowPane toysContainer;
-
     private CashierController cashierController;
     private Set<String> selectedSeats;
     private PriceDAO priceDAO;
@@ -80,6 +81,9 @@ public class CashierCustomerDetailsController {
         resetUI();
 
         restorePersistentDetails();
+
+        setupTabSlidingAnimation();
+        setupTabSelectionStyling();
     }
 
     public boolean hasValidDetailsAndVerification() {
@@ -394,11 +398,17 @@ public class CashierCustomerDetailsController {
         // Add hover effects
         card.setOnMouseEntered(e -> {
             if (product.getStock() > 0) {
-                card.getStyleClass().add("product-card-hover");
+                ScaleTransition scaleUp = new ScaleTransition(Duration.millis(200), card);
+                scaleUp.setToX(1.01);
+                scaleUp.setToY(1.01);
+                scaleUp.play();
             }
         });
         card.setOnMouseExited(e -> {
-            card.getStyleClass().remove("product-card-hover");
+            ScaleTransition scaleDown = new ScaleTransition(Duration.millis(450), card);
+            scaleDown.setToX(1.0);
+            scaleDown.setToY(1.0);
+            scaleDown.play();
         });
 
         return card;
@@ -559,5 +569,68 @@ public class CashierCustomerDetailsController {
         alert.setHeaderText(null);
         alert.setContentText(content);
         alert.showAndWait();
+    }
+
+    private void setupTabSelectionStyling() {
+        // Add a listener to update tab styles when selection changes
+        productsTabPane.getSelectionModel().selectedIndexProperty().addListener((obs, oldVal, newVal) -> {
+            updateTabStyles();
+        });
+
+        // Initial styling
+        updateTabStyles();
+    }
+
+    private void updateTabStyles() {
+        for (Tab tab : productsTabPane.getTabs()) {
+            // Create a Label with the tab text if no existing graphic
+            Node tabNode = tab.getGraphic();
+            if (tabNode == null) {
+                tabNode = new Label(tab.getText());
+            }
+
+            if (tab.isSelected()) {
+                // Add selected style
+                tabNode.getStyleClass().add("tab-selected");
+                tab.getStyleClass().add("tab-selected");
+            } else {
+                // Remove selected style
+                tabNode.getStyleClass().remove("tab-selected");
+                tab.getStyleClass().remove("tab-selected");
+            }
+        }
+    }
+
+    private void setupTabSlidingAnimation() {
+        // Add listener to track tab selection
+        productsTabPane.getSelectionModel().selectedIndexProperty().addListener((obs, oldVal, newVal) -> {
+            animateTabTransition(oldVal.intValue(), newVal.intValue());
+        });
+    }
+
+    private void animateTabTransition(int oldIndex, int newIndex) {
+        // Get the content of the old and new tabs
+        ScrollPane oldContent = (ScrollPane) productsTabPane.getTabs().get(oldIndex).getContent();
+        ScrollPane newContent = (ScrollPane) productsTabPane.getTabs().get(newIndex).getContent();
+
+        // Determine slide direction
+        boolean slideLeft = newIndex > oldIndex;
+
+        // Create a subtle animation
+        Timeline timeline = new Timeline();
+        timeline.getKeyFrames().addAll(
+                new KeyFrame(Duration.ZERO,
+                        new KeyValue(oldContent.opacityProperty(), 1, Interpolator.EASE_OUT),
+                        new KeyValue(newContent.opacityProperty(), 0.5, Interpolator.EASE_OUT),
+                        new KeyValue(newContent.translateXProperty(), slideLeft ? 10 : -10, Interpolator.EASE_OUT)
+                ),
+                new KeyFrame(Duration.millis(200),
+                        new KeyValue(oldContent.opacityProperty(), 0.5, Interpolator.EASE_OUT),
+                        new KeyValue(newContent.opacityProperty(), 1, Interpolator.EASE_OUT),
+                        new KeyValue(newContent.translateXProperty(), 0, Interpolator.EASE_OUT)
+                )
+        );
+
+        timeline.play();
     }
 }

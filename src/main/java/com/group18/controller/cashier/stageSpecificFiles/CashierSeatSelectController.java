@@ -6,6 +6,7 @@ import com.group18.dao.OrderDAO;
 import com.group18.dao.PriceDAO;
 import com.group18.model.OrderItem;
 import com.group18.model.ShoppingCart;
+import javafx.animation.ScaleTransition;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -15,6 +16,7 @@ import javafx.geometry.Insets;
 import com.group18.model.Movie;
 import com.group18.model.MovieSession;
 import javafx.scene.shape.Circle;
+import javafx.util.Duration;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -60,6 +62,22 @@ public class CashierSeatSelectController {
         cart = ShoppingCart.getInstance();
 
         currentInstance = this;
+
+        confirmButton.setOnMouseEntered(e -> {
+            // Scale-up animation
+            ScaleTransition scaleUp = new ScaleTransition(Duration.millis(150), confirmButton);
+            scaleUp.setToX(1.03);
+            scaleUp.setToY(1.03);
+            scaleUp.play();
+        });
+
+        confirmButton.setOnMouseExited(e -> {
+            // Scale-down animation
+            ScaleTransition scaleDown = new ScaleTransition(Duration.millis(150), confirmButton);
+            scaleDown.setToX(1.0);
+            scaleDown.setToY(1.0);
+            scaleDown.play();
+        });
     }
 
     public void resetSeats() {
@@ -201,12 +219,25 @@ public class CashierSeatSelectController {
         if (!occupiedSeats.contains(seatId)) {
             seatPane.setOnMouseClicked(e -> toggleSeatSelection(seatId, seatCircle));
 
-            // Add hover effects
+            // Add hover effects with scaling animation
             seatPane.setOnMouseEntered(e -> {
+                // Scale-up animation
+                ScaleTransition scaleUp = new ScaleTransition(Duration.millis(200), seatCircle);
+                scaleUp.setToX(1.1); // Scale by 20%
+                scaleUp.setToY(1.1); // Scale by 20%
+                scaleUp.play();
+
                 seatCircle.setOpacity(0.7);
                 seatPane.setCursor(javafx.scene.Cursor.HAND);
             });
+
             seatPane.setOnMouseExited(e -> {
+                // Scale-down animation
+                ScaleTransition scaleDown = new ScaleTransition(Duration.millis(250), seatCircle);
+                scaleDown.setToX(1.0); // Return to original size
+                scaleDown.setToY(1.0); // Return to original size
+                scaleDown.play();
+
                 if (!selectedSeats.contains(seatId)) {
                     seatCircle.setOpacity(1.0);
                 }

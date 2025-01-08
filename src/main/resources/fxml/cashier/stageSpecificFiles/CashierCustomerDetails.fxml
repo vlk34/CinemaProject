@@ -56,27 +56,33 @@
 
             <Label text="Additional Products" styleClass="section-title"/>
 
-            <!-- Products TabPane -->
-            <TabPane style="-fx-tab-min-width: 120;">
+            <!-- Products TabPane with custom styles -->
+            <TabPane fx:id="productsTabPane"
+                     style="-fx-tab-min-width: 120;
+                            -fx-background-color: transparent;
+                            -fx-focus-color: transparent;
+                            -fx-faint-focus-color: transparent;"
+                     styleClass="sliding-tab-pane">
                 <styleClass>
                     <String fx:value="floating-tabs"/>
+                    <String fx:value="sliding-tab-pane"/>
                 </styleClass>
                 <!-- Beverages Tab -->
-                <Tab text="Beverages" closable="false">
+                <Tab text="Beverages" closable="false" styleClass="sliding-tab">
                     <ScrollPane fitToWidth="true" styleClass="transparent-scroll-pane">
                         <FlowPane fx:id="beveragesContainer" styleClass="products-container"/>
                     </ScrollPane>
                 </Tab>
 
                 <!-- Biscuits Tab -->
-                <Tab text="Biscuits" closable="false">
+                <Tab text="Biscuits" closable="false" styleClass="sliding-tab">
                     <ScrollPane fitToWidth="true" styleClass="transparent-scroll-pane">
                         <FlowPane fx:id="biscuitsContainer" styleClass="products-container"/>
                     </ScrollPane>
                 </Tab>
 
                 <!-- Toys Tab -->
-                <Tab text="Toys" closable="false">
+                <Tab text="Toys" closable="false" styleClass="sliding-tab">
                     <ScrollPane fitToWidth="true" styleClass="transparent-scroll-pane">
                         <FlowPane fx:id="toysContainer" styleClass="products-container"/>
                     </ScrollPane>
