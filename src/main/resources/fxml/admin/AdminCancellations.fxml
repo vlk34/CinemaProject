@@ -85,7 +85,8 @@
                     <TableColumn fx:id="amountColumn" text="Amount" prefWidth="100"/>
                     <TableColumn fx:id="statusColumn" text="Status" prefWidth="100"/>
                     <TableColumn fx:id="actionsColumn" text="Actions" prefWidth="150"/>
-                    <TableColumn fx:id="receiptColumn" text="Actions" prefWidth="150"/>
+                    <TableColumn fx:id="receiptColumn" text="Receipt" prefWidth="150"/>
+                    <TableColumn fx:id="ticketsColumn" text="Ticket" prefWidth="150"/>
                 </columns>
             </TableView>
         </VBox>

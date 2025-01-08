@@ -9,6 +9,7 @@ import com.group18.dao.ProductDAO;
 import com.group18.dao.UserDAO;
 import com.group18.model.*;
 import com.itextpdf.text.pdf.draw.LineSeparator;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -19,6 +20,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import java.util.List; // This should be used
+import java.util.stream.Collectors;
 
 import javax.swing.text.Document;
 import java.io.IOException;
@@ -178,35 +181,57 @@ public class CashierPaymentController {
         Map<String, HBox> activeCartItems = cartController.getCartItems();
         VBox cartItemsContainer = cartController.getCartItemsContainer();
 
+        // Create a Turkish currency formatter
+        NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("tr", "TR"));
+
         // Only process items that are currently in the cart UI
         for (Node node : cartItemsContainer.getChildren()) {
             if (node instanceof HBox) {
-                HBox itemContainer = (HBox) node;
-                VBox details = (VBox) itemContainer.getChildren().get(0);
-                Label nameLabel = (Label) details.getChildren().get(0);
-                Label priceLabel = (Label) details.getChildren().get(1);
-                Label quantityLabel = (Label) itemContainer.getChildren().get(1);
+                try {
+                    HBox itemContainer = (HBox) node;
+                    VBox details = (VBox) itemContainer.getChildren().get(0);
+                    Label nameLabel = (Label) details.getChildren().get(0);
+                    Label priceLabel = (Label) details.getChildren().get(1);
+                    Label quantityLabel = (Label) itemContainer.getChildren().get(1);
 
-                // Extract item details
-                String itemName = nameLabel.getText();
+                    // Extract item details
+                    String itemName = nameLabel.getText();
 
-                // Extract price (remove currency symbol and parse)
-                String priceText = priceLabel.getText().replaceAll("[^\\d.,]", "").replace(",", ".");
-                double price = Double.parseDouble(priceText);
+                    // Check if the item is a ticket and has a discount label
+                    double price;
+                    if (itemName.startsWith("Seat") && details.getChildren().size() > 2) {
+                        // Extract discounted price
+                        Label discountLabel = (Label) details.getChildren().get(2);
+                        String discountedPriceText = discountLabel.getText().replaceAll("[^\\d.,]", "").replace(",", ".");
+                        price = Double.parseDouble(discountedPriceText);
+                    } else {
+                        // Extract regular price using currency formatter
+                        Number parsedPrice = formatter.parse(priceLabel.getText());
+                        price = parsedPrice.doubleValue();
+                    }
 
-                // Extract quantity (remove 'x' prefix)
-                int quantity = Integer.parseInt(quantityLabel.getText().substring(1));
+                    // Extract quantity (remove 'x' prefix)
+                    int quantity = Integer.parseInt(quantityLabel.getText().substring(1));
 
-                // Calculate total
-                double total = price * quantity;
+                    // Calculate total
+                    double total = price * quantity;
 
-                tableItems.add(new OrderItemTable(itemName, quantity, price, total));
+                    tableItems.add(new OrderItemTable(itemName, quantity, price, total));
+                } catch (Exception e) {
+                    System.err.println("Error processing cart item: " + e.getMessage());
+                    e.printStackTrace();
+                }
             }
         }
 
         // Add tax row
-        double taxAmount = cashierController.getCartController().getTax();
-        tableItems.add(new OrderItemTable("Tax", 1, taxAmount, taxAmount));
+        try {
+            double taxAmount = cashierController.getCartController().getTax();
+            tableItems.add(new OrderItemTable("Tax", 1, taxAmount, taxAmount));
+        } catch (Exception e) {
+            System.err.println("Error adding tax row: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private void setCustomerDetailsFromCart() {
@@ -428,11 +453,12 @@ public class CashierPaymentController {
             addTotalRow(totalsTable, "Subtotal:", currencyFormatter.format(subtotal), turkishFont);
 
             // Tax
-            double tax = order.getTotalPrice().doubleValue() - subtotal;
+            double tax = cashierController.getCartController().getTax();
             addTotalRow(totalsTable, "Tax:", currencyFormatter.format(tax), turkishFont);
 
             // Total
-            addTotalRow(totalsTable, "Total:", currencyFormatter.format(order.getTotalPrice().doubleValue()), turkishFont);
+            double total = subtotal + tax;
+            addTotalRow(totalsTable, "Total:", currencyFormatter.format(total), turkishFont);
 
             document.add(totalsTable);
 
@@ -506,16 +532,183 @@ public class CashierPaymentController {
     }
 
     private void generateTicketsAndReceipt(Order order) {
-        // Generate PDF
         byte[] receiptPdf = generateReceiptPDF(order);
+        byte[] ticketsPdf = generateTicketsPDF(order);
 
-        if (receiptPdf != null) {
-            // Store PDF in database
-            if (orderDAO.storeReceipt(order.getOrderId(), receiptPdf)) {
-                System.out.println("Receipt PDF stored successfully");
-            } else {
-                System.err.println("Failed to store receipt PDF");
+        if (orderDAO.storeDocuments(order.getOrderId(), receiptPdf, ticketsPdf)) {
+            System.out.println("Receipt and tickets stored successfully");
+        } else {
+            System.err.println("Failed to store receipt and tickets");
+        }
+    }
+
+    private byte[] generateTicketsPDF(Order order) {
+        try {
+            // Use a font that supports Turkish characters
+            BaseFont turkishFont = BaseFont.createFont(
+                    "src/main/resources/fonts/arial-unicode.ttf",
+                    BaseFont.IDENTITY_H,
+                    BaseFont.EMBEDDED
+            );
+            Font titleFont = new Font(turkishFont, 24, Font.BOLD);
+            Font headerFont = new Font(turkishFont, 16, Font.BOLD);
+            Font normalFont = new Font(turkishFont, 12, Font.NORMAL);
+
+            com.itextpdf.text.Document document = new com.itextpdf.text.Document(PageSize.A4, 50, 50, 50, 50);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            PdfWriter.getInstance(document, baos);
+            document.open();
+
+            // Get ticket items only
+            List<OrderItem> ticketItems = order.getOrderItems().stream()
+                    .filter(item -> "ticket".equals(item.getItemType()))
+                    .toList();
+
+            // Get product items
+            List<OrderItem> productItems = order.getOrderItems().stream()
+                    .filter(item -> "product".equals(item.getItemType()))
+                    .toList();
+
+            // Get movie details
+            Movie movie = movieDAO.findMovieByScheduleId(ticketItems.get(0).getScheduleId());
+            if (movie == null) return null;
+
+            // Cinema Header
+            Paragraph cinemaHeader = new Paragraph("Group 18 Cinema Center", titleFont);
+            cinemaHeader.setAlignment(Element.ALIGN_CENTER);
+            document.add(cinemaHeader);
+
+            // Movie Title
+            Paragraph movieTitle = new Paragraph(movie.getTitle(), headerFont);
+            movieTitle.setAlignment(Element.ALIGN_CENTER);
+            movieTitle.setSpacingBefore(20);
+            document.add(movieTitle);
+
+            // Horizontal Line
+            LineSeparator line = new LineSeparator();
+            line.setLineWidth(1f);
+            document.add(new Chunk(line));
+            document.add(Chunk.NEWLINE);
+
+            // Create table for ticket details
+            PdfPTable detailsTable = new PdfPTable(2);
+            detailsTable.setWidthPercentage(100);
+            detailsTable.setSpacingBefore(20f);
+
+            // Add customer details
+            OrderItem firstTicketItem = ticketItems.get(0);
+            addTableRow(detailsTable, "Customer:",
+                    firstTicketItem.getOccupantFirstName() + " " + firstTicketItem.getOccupantLastName(),
+                    turkishFont);
+
+            // Add session details
+            MovieSession session = cashierController.getSelectedSession();
+            addTableRow(detailsTable, "Date:",
+                    cashierController.getSelectedDate().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
+                    turkishFont);
+            addTableRow(detailsTable, "Time:",
+                    session.getTime().format(DateTimeFormatter.ofPattern("HH:mm")),
+                    turkishFont);
+            addTableRow(detailsTable, "Hall:", session.getHall(), turkishFont);
+
+            // Collect and format seat numbers
+            String seats = ticketItems.stream()
+                    .map(item -> convertNumberToSeatId(item.getSeatNumber()))
+                    .sorted()
+                    .collect(Collectors.joining(", "));
+            addTableRow(detailsTable, "Seats:", seats, turkishFont);
+
+            // Calculate prices
+            NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("tr", "TR"));
+
+            // Ticket Price
+            double totalTicketPrice = ticketItems.stream()
+                    .mapToDouble(item -> item.getItemPrice().doubleValue())
+                    .sum();
+            addTableRow(detailsTable, "Ticket Price:",
+                    currencyFormatter.format(totalTicketPrice),
+                    turkishFont);
+
+            // Product Price
+            double totalProductPrice = productItems.stream()
+                    .mapToDouble(item -> item.getItemPrice().doubleValue() * item.getQuantity())
+                    .sum();
+            addTableRow(detailsTable, "Products Price:",
+                    currencyFormatter.format(totalProductPrice),
+                    turkishFont);
+
+            // Tax Calculation
+            double totalTax = cashierController.getCartController().getTax();
+            addTableRow(detailsTable, "Tax:",
+                    currencyFormatter.format(totalTax),
+                    turkishFont);
+
+            // Total Price (including tax)
+            double totalPrice = totalTicketPrice + totalProductPrice + totalTax;
+            addTableRow(detailsTable, "Total Price:",
+                    currencyFormatter.format(totalPrice),
+                    turkishFont);
+
+            // Check if any ticket has a discount
+            boolean hasDiscount = ticketItems.stream()
+                    .anyMatch(OrderItem::getDiscountApplied);
+            if (hasDiscount) {
+                addTableRow(detailsTable, "Discount:", "Age-based discount applied", turkishFont);
             }
+
+            document.add(detailsTable);
+
+            // Add footer with terms and conditions
+            Paragraph footer = new Paragraph(
+                    "\n\nThis ticket is valid only for the specified date and time." +
+                            "\nNo refunds or exchanges except as required by law." +
+                            "\nPlease arrive at least 15 minutes before showtime.",
+                    new Font(turkishFont, 8, Font.ITALIC)
+            );
+            footer.setAlignment(Element.ALIGN_CENTER);
+            document.add(footer);
+
+            document.close();
+            return baos.toByteArray();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private void showTicketsDialog(int orderId) {
+        byte[] ticketsPdf = orderDAO.retrieveTickets(orderId);
+
+        if (ticketsPdf != null) {
+            try {
+                // Create a temporary file
+                File tempFile = File.createTempFile("tickets_" + orderId, ".pdf");
+                tempFile.deleteOnExit(); // Ensure file is deleted when JVM exits
+
+                // Write PDF content to temp file
+                try (FileOutputStream fos = new FileOutputStream(tempFile)) {
+                    fos.write(ticketsPdf);
+                }
+
+                // Open the PDF in default browser
+                Desktop.getDesktop().browse(tempFile.toURI());
+
+            } catch (IOException e) {
+                // Show error if opening fails
+                Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                errorAlert.setTitle("Tickets View Error");
+                errorAlert.setHeaderText(null);
+                errorAlert.setContentText("Could not open tickets: " + e.getMessage());
+                errorAlert.showAndWait();
+            }
+        } else {
+            // Show error if no tickets found
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Tickets Not Found");
+            errorAlert.setHeaderText(null);
+            errorAlert.setContentText("No tickets found for this order.");
+            errorAlert.showAndWait();
         }
     }
 
@@ -564,16 +757,35 @@ public class CashierPaymentController {
 
         // Create custom buttons
         ButtonType showReceiptButton = new ButtonType("Show Receipt", ButtonBar.ButtonData.LEFT);
+        ButtonType showTicketsButton = new ButtonType("Show Tickets", ButtonBar.ButtonData.LEFT);
         ButtonType okButton = ButtonType.OK;
 
         // Set the buttons with a specific order
         success.getButtonTypes().clear();
-        success.getButtonTypes().addAll(showReceiptButton, okButton);
+        success.getButtonTypes().addAll(showReceiptButton, showTicketsButton, okButton);
 
+        // Customize buttons to prevent closing
+        success.getDialogPane().getButtonTypes().forEach(buttonType -> {
+            Button button = (Button) success.getDialogPane().lookupButton(buttonType);
+            button.addEventFilter(ActionEvent.ACTION, event -> {
+                if (buttonType == showReceiptButton) {
+                    showReceiptDialog(orderId);
+                    event.consume(); // Prevent dialog from closing
+                } else if (buttonType == showTicketsButton) {
+                    showTicketsDialog(orderId);
+                    event.consume(); // Prevent dialog from closing
+                }
+            });
+        });
+
+        // Show the dialog and handle the final result
         Optional<ButtonType> result = success.showAndWait();
 
-        if (result.isPresent() && result.get() == showReceiptButton) {
-            showReceiptDialog(orderId);
+        if (result.isPresent() && result.get() == okButton) {
+            // Reset transaction and return to movie selection
+            if (cashierController != null) {
+                cashierController.resetTransaction();
+            }
         }
     }
 

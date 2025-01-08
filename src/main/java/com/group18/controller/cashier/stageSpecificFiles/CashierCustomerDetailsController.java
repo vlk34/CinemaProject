@@ -32,7 +32,6 @@ public class CashierCustomerDetailsController {
     @FXML private Button applyDiscountsButton;
     @FXML private ImageView infoIcon;
 
-    @FXML private TextField ageField;
     @FXML private Button verifyAgeButton;
     @FXML private TabPane productsTabPane;
     @FXML private FlowPane beveragesContainer;
@@ -241,46 +240,6 @@ public class CashierCustomerDetailsController {
 
     public static void clearPersistentDetailsStatic() {
         persistentCustomerDetails = null;
-    }
-
-    @FXML
-    private void handleVerifyAge() {
-        String ageText = ageField.getText().trim();
-        if (ageText.isEmpty()) {
-            showError("Invalid Input", "Please enter customer's age.");
-            return;
-        }
-
-        try {
-            int age = Integer.parseInt(ageText);
-            if (age < 1 || age > 90) {
-                throw new NumberFormatException();
-            }
-
-            isDiscountApplicable = age < 18 || age > 60;
-
-            // Show result alert
-            Alert alert = new Alert(
-                    isDiscountApplicable ? Alert.AlertType.INFORMATION : Alert.AlertType.WARNING,
-                    isDiscountApplicable ? "Age discount will be applied!" : "No age discount applicable."
-            );
-            alert.setHeaderText(null);
-            alert.showAndWait();
-
-            // Update all ticket items in cart with customer details and discount
-            updateTicketsInCart();
-
-            // Mark customer details as validated
-            customerDetailsValidated = true;
-
-            // Save details for persistence
-            savePersistentDetails();
-
-            // Update the action bar buttons
-            updateActionBarState();
-        } catch (NumberFormatException e) {
-            showError("Invalid Input", "Age must be a valid number between 1 and 90.");
-        }
     }
 
     public boolean isCustomerDetailsValidated() {

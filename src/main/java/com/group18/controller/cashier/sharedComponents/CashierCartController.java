@@ -266,21 +266,31 @@ public class CashierCartController {
         discounts = 0.0;
         tax = 0.0;
 
+        // Create a Turkish currency formatter
+        NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("tr", "TR"));
+
         // Re-add product items
         productItems.forEach((name, item) -> {
             cartItemsContainer.getChildren().add(item);
             cartItems.put(name, item);
 
-            // Recalculate totals for products
-            VBox details = (VBox) item.getChildren().get(0);
-            Label priceLabel = (Label) details.getChildren().get(1);
-            String priceText = priceLabel.getText().replaceAll("[^\\d.,]", "").replace(",", ".");
-            double price = Double.parseDouble(priceText);
+            try {
+                // Recalculate totals for products
+                VBox details = (VBox) item.getChildren().get(0);
+                Label priceLabel = (Label) details.getChildren().get(1);
 
-            Label quantityLabel = (Label) item.getChildren().get(1);
-            int quantity = Integer.parseInt(quantityLabel.getText().substring(1));
+                // Parse price using currency formatter
+                Number parsedPrice = formatter.parse(priceLabel.getText());
+                double price = parsedPrice.doubleValue();
 
-            subtotal += price * quantity;
+                Label quantityLabel = (Label) item.getChildren().get(1);
+                int quantity = Integer.parseInt(quantityLabel.getText().substring(1));
+
+                subtotal += price * quantity;
+            } catch (Exception e) {
+                System.err.println("Error parsing price in refreshCart: " + e.getMessage());
+                e.printStackTrace();
+            }
         });
 
         updateSummary();
@@ -289,29 +299,43 @@ public class CashierCartController {
     private double calculateTax(double baseAmount) {
         return cartItems.entrySet().stream()
                 .mapToDouble(entry -> {
-                    String name = entry.getKey();
-                    HBox itemContainer = entry.getValue();
-                    VBox details = (VBox) itemContainer.getChildren().get(0);
-                    Label priceLabel = (Label) details.getChildren().get(1);
-                    String priceText = priceLabel.getText().replaceAll("[^\\d.,]", "").replace(",", ".");
-                    double price = Double.parseDouble(priceText);
+                    try {
+                        String name = entry.getKey();
+                        HBox itemContainer = entry.getValue();
+                        VBox details = (VBox) itemContainer.getChildren().get(0);
+                        Label priceLabel = (Label) details.getChildren().get(1);
 
-                    Label quantityLabel = (Label) itemContainer.getChildren().get(1);
-                    int quantity = Integer.parseInt(quantityLabel.getText().substring(1));
+                        // More robust price parsing
+                        String priceText = priceLabel.getText()
+                                .replaceAll("[^\\d.,]", "") // Remove all non-numeric characters
+                                .replace(",", "."); // Ensure decimal point is a dot
 
-                    if (name.contains("Seat")) {
-                        // 20% tax for tickets
-                        double itemSubtotal = price * quantity;
-                        // If there's a discount label, subtract it
-                        if (details.getChildren().size() > 2) {
-                            Label discountLabel = (Label) details.getChildren().get(2);
-                            String discountText = discountLabel.getText().replaceAll("[^\\d.,]", "").replace(",", ".");
-                            double discountAmount = Double.parseDouble(discountText);
-                            itemSubtotal -= (discountAmount * quantity);
+                        // Use NumberFormat to parse currency
+                        NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("tr", "TR"));
+                        Number parsedNumber = formatter.parse(priceLabel.getText());
+                        double price = parsedNumber.doubleValue();
+
+                        Label quantityLabel = (Label) itemContainer.getChildren().get(1);
+                        int quantity = Integer.parseInt(quantityLabel.getText().substring(1));
+
+                        if (name.contains("Seat")) {
+                            // 20% tax for tickets
+                            double itemSubtotal = price * quantity;
+                            // If there's a discount label, subtract it
+                            if (details.getChildren().size() > 2) {
+                                Label discountLabel = (Label) details.getChildren().get(2);
+                                Number parsedDiscount = formatter.parse(discountLabel.getText());
+                                double discountAmount = parsedDiscount.doubleValue();
+                                itemSubtotal -= (discountAmount * quantity);
+                            }
+                            return itemSubtotal * 0.20; // 20% tax for tickets
+                        } else {
+                            return price * quantity * 0.10; // 10% tax for products
                         }
-                        return itemSubtotal * 0.20; // 20% tax for tickets
-                    } else {
-                        return price * quantity * 0.10; // 10% tax for products
+                    } catch (Exception e) {
+                        System.err.println("Error calculating tax: " + e.getMessage());
+                        e.printStackTrace();
+                        return 0.0;
                     }
                 })
                 .sum();

@@ -47,6 +47,8 @@ public class AdminCancellationsController {
     private TableColumn<Order, Void> actionsColumn;
     @FXML
     private TableColumn<Order, Void> receiptColumn;
+    @FXML
+    private TableColumn<Order, Void> ticketsColumn;
 
     @FXML
     private Button refreshButton;
@@ -253,6 +255,80 @@ public class AdminCancellationsController {
             }
         });
         receiptColumn.setStyle("-fx-alignment: CENTER;");
+
+        // Setup tickets column
+        ticketsColumn.setCellFactory(col -> new TableCell<Order, Void>() {
+            private final Button viewTicketsButton = new Button("View Ticket");
+            {
+                // Styling for the button
+                viewTicketsButton.setStyle("-fx-background-color: #F6F2F8; -fx-text-fill: #333333; -fx-font-size: 12px; -fx-padding: 2 6 2 6;");
+
+                // Hover effect
+                viewTicketsButton.setOnMouseEntered(event ->
+                        viewTicketsButton.setStyle("-fx-background-color: #E2DFF1; -fx-text-fill: #333333; -fx-font-size: 12px; -fx-padding: 2 6 2 6;")
+                );
+                viewTicketsButton.setOnMouseExited(event ->
+                        viewTicketsButton.setStyle("-fx-background-color: #F6F2F8; -fx-text-fill: #333333; -fx-font-size: 12px; -fx-padding: 2 6 2 6;")
+                );
+
+                viewTicketsButton.setOnAction(e -> {
+                    Order order = getTableView().getItems().get(getIndex());
+                    viewTickets(order.getOrderId());
+                });
+            }
+
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    // Check if tickets exist before showing button
+                    byte[] tickets = orderDAO.retrieveTickets(getTableView().getItems().get(getIndex()).getOrderId());
+                    if (tickets != null && tickets.length > 0) {
+                        setGraphic(viewTicketsButton);
+                    } else {
+                        setGraphic(null);
+                    }
+                }
+            }
+        });
+        ticketsColumn.setStyle("-fx-alignment: CENTER;");
+    }
+
+    private void viewTickets(int orderId) {
+        byte[] ticketsPdf = orderDAO.retrieveTickets(orderId);
+
+        if (ticketsPdf != null) {
+            try {
+                // Create a temporary file
+                File tempFile = File.createTempFile("tickets_" + orderId, ".pdf");
+                tempFile.deleteOnExit(); // Ensure file is deleted when JVM exits
+
+                // Write PDF content to temp file
+                try (FileOutputStream fos = new FileOutputStream(tempFile)) {
+                    fos.write(ticketsPdf);
+                }
+
+                // Open the PDF in default browser
+                Desktop.getDesktop().browse(tempFile.toURI());
+
+            } catch (IOException e) {
+                // Show error if opening fails
+                Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                errorAlert.setTitle("Tickets View Error");
+                errorAlert.setHeaderText(null);
+                errorAlert.setContentText("Could not open tickets: " + e.getMessage());
+                errorAlert.showAndWait();
+            }
+        } else {
+            // Show error if no tickets found
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Tickets Not Found");
+            errorAlert.setHeaderText(null);
+            errorAlert.setContentText("No tickets found for this order.");
+            errorAlert.showAndWait();
+        }
     }
 
     private void viewReceipt(int orderId) {

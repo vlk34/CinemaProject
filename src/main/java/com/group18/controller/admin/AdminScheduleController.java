@@ -299,8 +299,8 @@ public class AdminScheduleController {
                             time
                     );
 
-                    if (scheduleDAO.isScheduleExists(selectedMovie.getMovieId(), hallId, date, time)) {
-                        showAlert("Error", "A schedule for this movie, hall, date, and time already exists.");
+                    if (scheduleDAO.isScheduleExists(hallId, date, time)) {
+                        showAlert("Error", "A schedule for this hall, date, and time already exists.");
                         return null;
                     }
 

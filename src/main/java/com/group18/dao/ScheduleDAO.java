@@ -221,18 +221,16 @@ public class ScheduleDAO {
         }
     }
 
-    public boolean isScheduleExists(int movieId, int hallId, LocalDate sessionDate, LocalTime sessionTime) {
+    public boolean isScheduleExists(int hallId, LocalDate sessionDate, LocalTime sessionTime) {
         String query = "SELECT COUNT(*) FROM schedules " +
-                "WHERE movie_id = ? " +
-                "AND hall_id = ? " +
+                "WHERE hall_id = ? " +
                 "AND session_date = ? " +
                 "AND session_time = ?";
 
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setInt(1, movieId);
-            stmt.setInt(2, hallId);
-            stmt.setDate(3, Date.valueOf(sessionDate));
-            stmt.setTime(4, Time.valueOf(sessionTime));
+            stmt.setInt(1, hallId);
+            stmt.setDate(2, Date.valueOf(sessionDate));
+            stmt.setTime(3, Time.valueOf(sessionTime));
 
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {

@@ -274,24 +274,6 @@ public class OrderDAO {
         }
     }
 
-    public List<Order> getPendingCancellations() {
-        String query = "SELECT * FROM orders WHERE status = 'PENDING' ORDER BY order_date DESC";
-        List<Order> orders = new ArrayList<>();
-
-        try (Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
-
-            while (rs.next()) {
-                Order order = extractOrderFromResultSet(rs);
-                order.setOrderItems(getOrderItemsForOrder(order.getOrderId()));
-                orders.add(order);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return orders;
-    }
-
     public CancellationStats getCancellationStats() {
         String query = """
             SELECT 
@@ -335,12 +317,25 @@ public class OrderDAO {
         return items;
     }
 
-    public boolean storeReceipt(int orderId, byte[] receiptPdf) {
-        String query = "UPDATE orders SET receipt_pdf = ? WHERE order_id = ?";
+    public boolean storeDocuments(int orderId, byte[] receiptPdf, byte[] ticketsPdf) {
+        String query = "UPDATE orders SET receipt_pdf = ?, tickets_pdf = ? WHERE order_id = ?";
 
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setBytes(1, receiptPdf);
-            stmt.setInt(2, orderId);
+
+            // Handle null PDFs gracefully
+            if (receiptPdf != null) {
+                stmt.setBytes(1, receiptPdf);
+            } else {
+                stmt.setNull(1, Types.BLOB);
+            }
+
+            if (ticketsPdf != null) {
+                stmt.setBytes(2, ticketsPdf);
+            } else {
+                stmt.setNull(2, Types.BLOB);
+            }
+
+            stmt.setInt(3, orderId);
 
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -351,13 +346,26 @@ public class OrderDAO {
 
     public byte[] retrieveReceipt(int orderId) {
         String query = "SELECT receipt_pdf FROM orders WHERE order_id = ?";
-
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setInt(1, orderId);
-
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return rs.getBytes("receipt_pdf");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public byte[] retrieveTickets(int orderId) {
+        String query = "SELECT tickets_pdf FROM orders WHERE order_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, orderId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getBytes("tickets_pdf");
                 }
             }
         } catch (SQLException e) {
