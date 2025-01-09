@@ -72,6 +72,7 @@ public class ShoppingCart {
         BigDecimal totalTax = items.stream()
                 .map(item -> {
                     BigDecimal itemPrice = item.getItemPrice();
+                    System.out.println(itemPrice + "item price");
                     int quantity = item.getQuantity();
                     BigDecimal taxRate = "ticket".equals(item.getItemType())
                             ? ticketTaxRate

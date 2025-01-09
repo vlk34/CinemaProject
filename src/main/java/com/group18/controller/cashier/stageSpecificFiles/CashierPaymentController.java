@@ -20,7 +20,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import java.util.List; // This should be used
+import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.swing.text.Document;
@@ -50,8 +50,6 @@ public class CashierPaymentController {
     @FXML private Label customerNameLabel;
     @FXML private Label ageDiscountLabel;
     @FXML private Label amountDueLabel;
-    @FXML private TextField amountReceivedField;
-    @FXML private Label changeLabel;
     @FXML private Button processPaymentButton;
 
     @FXML private TableView<OrderItemTable> orderItemsTable;
@@ -76,8 +74,6 @@ public class CashierPaymentController {
         userDAO = new UserDAO();
         productDAO = new ProductDAO();
         movieDAO = new MovieDAO();
-        setupAmountReceivedValidation();
-        processPaymentButton.setDisable(true);
         setupTable();
 
         currentCashier = null;
@@ -126,17 +122,6 @@ public class CashierPaymentController {
         orderItemsTable.setItems(tableItems);
     }
 
-    private void setupAmountReceivedValidation() {
-        amountReceivedField.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue.matches("\\d*\\.?\\d*")) {
-                amountReceivedField.setText(oldValue);
-            } else {
-                calculateChange();
-                validatePaymentAmount();
-            }
-        });
-    }
-
     public void setCashierController(CashierController controller) {
         this.cashierController = controller;
 
@@ -162,8 +147,13 @@ public class CashierPaymentController {
                 .sorted()
                 .collect(Collectors.joining(", ")));
 
-        // Get totals directly from cart controller
-        totalAmount = BigDecimal.valueOf(cashierController.getCartController().getTotal());
+        // Get totals from cart controller
+        CashierCartController cartController = cashierController.getCartController();
+        double subtotal = cartController.getSubtotal(); // Already includes discounts
+        double tax = cartController.getTax();
+
+        // Calculate total amount (subtotal + tax)
+        totalAmount = BigDecimal.valueOf(subtotal + tax);
         amountDueLabel.setText(formatCurrency(totalAmount));
 
         // Set labels based on cart items
@@ -247,49 +237,11 @@ public class CashierPaymentController {
                 });
     }
 
-    private void calculateChange() {
-        try {
-            BigDecimal amountReceived = new BigDecimal(amountReceivedField.getText());
-            BigDecimal change = amountReceived.subtract(totalAmount);
-            changeLabel.setText(formatCurrency(change.max(BigDecimal.ZERO)));
-        } catch (NumberFormatException e) {
-            changeLabel.setText(formatCurrency(BigDecimal.ZERO));
-        }
-    }
-
-    private void validatePaymentAmount() {
-        try {
-            BigDecimal amountReceived = new BigDecimal(amountReceivedField.getText());
-            processPaymentButton.setDisable(amountReceived.compareTo(totalAmount) < 0);
-        } catch (NumberFormatException e) {
-            processPaymentButton.setDisable(true);
-        }
-    }
-
     @FXML
     private void handleProcessPayment() {
-        if (!validatePayment()) {
-            return;
-        }
-
         Optional<ButtonType> result = showConfirmationDialog();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             processPayment();
-        }
-    }
-
-    private boolean validatePayment() {
-        try {
-            BigDecimal amountReceived = new BigDecimal(amountReceivedField.getText());
-            if (amountReceived.compareTo(totalAmount) < 0) {
-                showError("Insufficient Payment",
-                        "The amount received is less than the total amount due.");
-                return false;
-            }
-            return true;
-        } catch (NumberFormatException e) {
-            showError("Invalid Amount", "Please enter a valid amount.");
-            return false;
         }
     }
 
@@ -661,7 +613,7 @@ public class CashierPaymentController {
             // Add footer with terms and conditions
             Paragraph footer = new Paragraph(
                     "\n\nThis ticket is valid only for the specified date and time." +
-                            "\nNo refunds or exchanges except as required by law." +
+                            "\nFor cancellations please contact us from our website." +
                             "\nPlease arrive at least 15 minutes before showtime.",
                     new Font(turkishFont, 8, Font.ITALIC)
             );

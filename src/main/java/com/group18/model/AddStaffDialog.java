@@ -55,8 +55,21 @@ public class AddStaffDialog extends Dialog<User> {
         addButton.setDisable(true);
 
         // Add listeners to validate input
-        firstNameField.textProperty().addListener((observable, oldValue, newValue) -> validateInput());
-        lastNameField.textProperty().addListener((observable, oldValue, newValue) -> validateInput());
+        firstNameField.textProperty().addListener((observable, oldValue, newValue) -> {
+            // Allow only Unicode letters
+            if (!newValue.matches("\\p{L}*")) {
+                firstNameField.setText(oldValue);
+            }
+            validateInput();
+        });
+
+        lastNameField.textProperty().addListener((observable, oldValue, newValue) -> {
+            // Allow only Unicode letters
+            if (!newValue.matches("\\p{L}*")) {
+                lastNameField.setText(oldValue);
+            }
+            validateInput();
+        });
         usernameField.textProperty().addListener((observable, oldValue, newValue) -> validateInput());
         passwordField.textProperty().addListener((observable, oldValue, newValue) -> validateInput());
 
@@ -85,7 +98,14 @@ public class AddStaffDialog extends Dialog<User> {
     }
 
     private void validateInput() {
-        boolean isValid = !firstNameField.getText().trim().isEmpty() &&
+        // Validate that first and last names only contain Unicode letters
+        boolean isFirstNameValid = firstNameField.getText().trim().matches("\\p{L}*");
+        boolean isLastNameValid = lastNameField.getText().trim().matches("\\p{L}*");
+
+        // Ensure input is not empty and contains only letters
+        boolean isValid = isFirstNameValid &&
+                isLastNameValid &&
+                !firstNameField.getText().trim().isEmpty() &&
                 !lastNameField.getText().trim().isEmpty() &&
                 !usernameField.getText().trim().isEmpty() &&
                 !passwordField.getText().trim().isEmpty();

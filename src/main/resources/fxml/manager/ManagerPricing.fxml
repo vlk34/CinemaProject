@@ -1,80 +1,73 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.*?>
 
-<ScrollPane fitToWidth="true" style="-fx-background: #F5F7FA; -fx-background-color: #F5F7FA;"
-            xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.group18.controller.manager.ManagerPricingController">
+<ScrollPane fitToWidth="true" style="-fx-background: #F5F7FA; -fx-background-color: #F5F7FA;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.group18.controller.manager.ManagerPricingController">
     <VBox spacing="20" style="-fx-background-color: #F5F7FA;">
         <padding>
-            <Insets top="30" right="40" bottom="30" left="40"/>
+            <Insets bottom="30" left="40" right="40" top="30" />
         </padding>
 
         <!-- Header -->
         <Label text="Pricing Management">
             <font>
-                <Font size="24.0" name="System Bold"/>
+                <Font name="System Bold" size="24.0" />
             </font>
         </Label>
 
         <!-- Pricing Cards -->
         <FlowPane hgap="20.0" vgap="20.0">
             <!-- Ticket Pricing Card -->
-            <VBox styleClass="stat-card" style="-fx-background-color: white; -fx-background-radius: 10;"
-                  minWidth="400" prefWidth="450" maxWidth="500" minHeight="200">
+            <VBox maxWidth="500" minHeight="200" minWidth="400" prefWidth="450" style="-fx-background-color: white; -fx-background-radius: 10;" styleClass="stat-card">
                 <padding>
-                    <Insets top="20" right="25" bottom="20" left="25"/>
+                    <Insets bottom="20" left="25" right="25" top="20" />
                 </padding>
-                <Label text="Ticket Pricing">
+                <Label text="Ticket Pricing (₺)">
                     <font>
-                        <Font size="18.0" name="System Bold"/>
+                        <Font name="System Bold" size="18.0" />
                     </font>
                 </Label>
                 <VBox spacing="15" style="-fx-margin-top: 15px;">
                     <VBox.margin>
-                        <Insets top="15"/>
+                        <Insets top="15" />
                     </VBox.margin>
 
                     <HBox alignment="CENTER_LEFT" spacing="15">
-                        <Label text="Hall A Price:" minWidth="100" prefWidth="100"/>
-                        <TextField fx:id="hallAPriceField" HBox.hgrow="ALWAYS"/>
-                        <Button text="Update" onAction="#handleUpdateHallAPrice" minWidth="80"
-                                style="-fx-background-color: #2a1b35; -fx-text-fill: white;"/>
+                        <Label minWidth="100" prefWidth="100" text="Hall A Price:" />
+                        <TextField fx:id="hallAPriceField" HBox.hgrow="ALWAYS" />
+                        <Button minWidth="80" onAction="#handleUpdateHallAPrice" style="-fx-background-color: #2a1b35; -fx-text-fill: white;" text="Update" />
                     </HBox>
 
                     <HBox alignment="CENTER_LEFT" spacing="15">
-                        <Label text="Hall B Price:" minWidth="100" prefWidth="100"/>
-                        <TextField fx:id="hallBPriceField" HBox.hgrow="ALWAYS"/>
-                        <Button text="Update" onAction="#handleUpdateHallBPrice" minWidth="80"
-                                style="-fx-background-color: #2a1b35; -fx-text-fill: white;"/>
+                        <Label minWidth="100" prefWidth="100" text="Hall B Price:" />
+                        <TextField fx:id="hallBPriceField" HBox.hgrow="ALWAYS" />
+                        <Button minWidth="80" onAction="#handleUpdateHallBPrice" style="-fx-background-color: #2a1b35; -fx-text-fill: white;" text="Update" />
                     </HBox>
                 </VBox>
             </VBox>
 
             <!-- Age Discount Card -->
-            <VBox styleClass="stat-card" style="-fx-background-color: white; -fx-background-radius: 10;"
-                  minWidth="400" prefWidth="450" maxWidth="500" minHeight="200">
+            <VBox maxWidth="500" minHeight="200" minWidth="400" prefWidth="450" style="-fx-background-color: white; -fx-background-radius: 10;" styleClass="stat-card">
                 <padding>
-                    <Insets top="20" right="25" bottom="20" left="25"/>
+                    <Insets bottom="20" left="25" right="25" top="20" />
                 </padding>
                 <Label text="Age-based Discount">
                     <font>
-                        <Font size="18.0" name="System Bold"/>
+                        <Font name="System Bold" size="18.0" />
                     </font>
                 </Label>
                 <VBox spacing="15" style="-fx-margin-top: 15px;">
                     <VBox.margin>
-                        <Insets top="15"/>
+                        <Insets top="15" />
                     </VBox.margin>
 
                     <HBox alignment="CENTER_LEFT" spacing="15">
-                        <Label text="Discount Rate:" minWidth="100" prefWidth="100"/>
-                        <TextField fx:id="ageDiscountField" HBox.hgrow="ALWAYS"/>
-                        <Button text="Update" onAction="#handleUpdateAgeDiscount" minWidth="80"
-                                style="-fx-background-color: #2a1b35; -fx-text-fill: white;"/>
+                        <Label minWidth="100" prefWidth="100" text="Discount Rate:" />
+                        <TextField fx:id="ageDiscountField" HBox.hgrow="ALWAYS" />
+                        <Button minWidth="80" onAction="#handleUpdateAgeDiscount" style="-fx-background-color: #2a1b35; -fx-text-fill: white;" text="Update" />
                     </HBox>
                 </VBox>
             </VBox>
@@ -83,26 +76,26 @@
         <!-- Price History Table -->
         <VBox style="-fx-background-color: white; -fx-background-radius: 10;" VBox.vgrow="ALWAYS">
             <padding>
-                <Insets top="20" right="20" bottom="20" left="20"/>
+                <Insets bottom="20" left="20" right="20" top="20" />
             </padding>
             <Label text="Price Update History">
                 <font>
-                    <Font size="18.0" name="System Bold"/>
+                    <Font name="System Bold" size="18.0" />
                 </font>
             </Label>
             <TableView fx:id="priceHistoryTable" VBox.vgrow="ALWAYS">
                 <VBox.margin>
-                    <Insets top="20"/>
+                    <Insets top="20" />
                 </VBox.margin>
                 <columns>
-                    <TableColumn fx:id="dateColumn" text="Date" prefWidth="150"/>
-                    <TableColumn fx:id="itemColumn" text="Item" prefWidth="200"/>
-                    <TableColumn fx:id="oldPriceColumn" text="Old Price" prefWidth="150"/>
-                    <TableColumn fx:id="newPriceColumn" text="New Price" prefWidth="150"/>
-                    <TableColumn fx:id="updatedByColumn" text="Updated By" prefWidth="150"/>
+                    <TableColumn fx:id="dateColumn" prefWidth="150" text="Date" />
+                    <TableColumn fx:id="itemColumn" prefWidth="200" text="Item" />
+                    <TableColumn fx:id="oldPriceColumn" prefWidth="150" text="Old Price (₺)" />
+                    <TableColumn fx:id="newPriceColumn" prefWidth="150" text="New Price (₺)" />
+                    <TableColumn fx:id="updatedByColumn" prefWidth="150" text="Updated By" />
                 </columns>
                 <columnResizePolicy>
-                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                 </columnResizePolicy>
             </TableView>
         </VBox>

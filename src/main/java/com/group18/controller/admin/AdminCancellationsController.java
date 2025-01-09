@@ -106,7 +106,7 @@ public class AdminCancellationsController {
         }
 
         if (refundedAmountLabel != null) {
-            refundedAmountLabel.setText(String.format("USD %.2f", stats.getRefundedToday()));
+            refundedAmountLabel.setText(String.format("₺%.2f", stats.getRefundedToday()));
         }
     }
 

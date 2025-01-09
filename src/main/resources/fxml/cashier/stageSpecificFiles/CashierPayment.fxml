@@ -76,31 +76,13 @@
 
             <Label text="Payment" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
 
-            <GridPane hgap="15" vgap="10">
-                <columnConstraints>
-                    <ColumnConstraints minWidth="150"/>
-                    <ColumnConstraints minWidth="200"/>
-                </columnConstraints>
-
-                <!-- Amount Due -->
-                <Label text="Amount Due:" style="-fx-font-weight: bold;"
-                       GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                <Label fx:id="amountDueLabel" style="-fx-font-size: 18px;"
-                       GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-
-                <!-- Amount Received -->
-                <Label text="Amount Received:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                <TextField fx:id="amountReceivedField" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-
-                <!-- Change -->
-                <Label text="Change:" style="-fx-font-weight: bold;"
-                       GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-                <Label fx:id="changeLabel" style="-fx-font-size: 18px;"
-                       GridPane.columnIndex="1" GridPane.rowIndex="2"/>
-            </GridPane>
+            <HBox spacing="15" alignment="BASELINE_LEFT">
+                <Label text="Total Amount:" style="-fx-font-weight: bold; "/>
+                <Label fx:id="amountDueLabel" style="-fx-font-size: 18px;"/>
+            </HBox>
 
             <!-- Process Payment Button -->
-            <Button fx:id="processPaymentButton" text="Process Payment"
+            <Button fx:id="processPaymentButton" text="Confirm Payment"
                     onAction="#handleProcessPayment"
                     style="-fx-background-color: #2a1b35; -fx-text-fill: white;">
                 <VBox.margin>

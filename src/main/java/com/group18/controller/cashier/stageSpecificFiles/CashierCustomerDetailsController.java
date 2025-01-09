@@ -247,8 +247,23 @@ public class CashierCustomerDetailsController {
     }
 
     private void setupCustomerDetailsValidation() {
-        firstNameField.textProperty().addListener((obs, old, newVal) -> validateCustomerDetails());
-        lastNameField.textProperty().addListener((obs, old, newVal) -> validateCustomerDetails());
+        // First Name input validation using Unicode letter support
+        firstNameField.textProperty().addListener((observable, oldValue, newValue) -> {
+            // Allow only Unicode letters from any language
+            if (!newValue.matches("\\p{L}*")) {
+                firstNameField.setText(oldValue);
+            }
+            validateCustomerDetails();
+        });
+
+        // Last Name input validation using Unicode letter support
+        lastNameField.textProperty().addListener((observable, oldValue, newValue) -> {
+            // Allow only Unicode letters from any language
+            if (!newValue.matches("\\p{L}*")) {
+                lastNameField.setText(oldValue);
+            }
+            validateCustomerDetails();
+        });
     }
 
     private void validateCustomerDetails() {

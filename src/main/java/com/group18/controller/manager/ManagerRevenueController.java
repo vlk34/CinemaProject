@@ -117,10 +117,10 @@ public class ManagerRevenueController {
 
     private void updateStatistics(RevenueStatistics current, RevenueStatistics previous) {
         // Update labels with current month data
-        totalRevenueLabel.setText(String.format("USD %.2f", current.totalRevenue));
+        totalRevenueLabel.setText(String.format("₺%.2f", current.totalRevenue));
         totalTicketsLabel.setText(String.valueOf(current.ticketCount));
         totalProductsLabel.setText(String.valueOf(current.productCount));
-        taxAmountLabel.setText(String.format("USD %.2f", current.totalVAT));
+        taxAmountLabel.setText(String.format("₺%.2f", current.totalVAT));
 
         // Calculate and display percentage changes
         double revenueChange = calculatePercentageChange(previous.totalRevenue, current.totalRevenue);
