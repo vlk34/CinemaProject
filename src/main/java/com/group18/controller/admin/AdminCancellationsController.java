@@ -6,6 +6,7 @@ import com.group18.dao.ProductDAO;
 import com.group18.dao.ScheduleDAO;
 import com.group18.model.Order;
 import com.group18.model.OrderItem;
+import javafx.animation.ScaleTransition;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -17,6 +18,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
+import javafx.util.Duration;
 
 import java.awt.*;
 import java.io.File;
@@ -83,7 +85,7 @@ public class AdminCancellationsController {
 
         // Setup combo boxes
         setupComboBoxes();
-
+        setupButtonHoverAnimation(refreshButton);
         // Setup table columns
         setupTableColumns();
 
@@ -513,5 +515,31 @@ public class AdminCancellationsController {
         alert.setHeaderText(null);
         alert.setContentText(content);
         alert.showAndWait();
+    }
+
+    public void setupButtonHoverAnimation(Button button) {
+        // Create scale transition
+        ScaleTransition pressTransition = new ScaleTransition(Duration.millis(100), button);
+        ScaleTransition releaseTransition = new ScaleTransition(Duration.millis(100), button);
+
+        // Add pressed state animation
+        button.setOnMousePressed(e -> {
+            pressTransition.setToX(0.95);
+            pressTransition.setToY(0.95);
+            pressTransition.play();
+        });
+
+        button.setOnMouseReleased(e -> {
+            releaseTransition.setToX(1.0);
+            releaseTransition.setToY(1.0);
+            releaseTransition.play();
+        });
+
+        // Reset button state when mouse exits during press
+        button.setOnMouseExited(e -> {
+            releaseTransition.setToX(1.0);
+            releaseTransition.setToY(1.0);
+            releaseTransition.play();
+        });
     }
 }

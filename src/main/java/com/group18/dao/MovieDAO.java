@@ -27,57 +27,6 @@ public class MovieDAO {
         return null;
     }
 
-    public List<Movie> searchByGenre(String genre) {
-        String query = "SELECT * FROM movies WHERE genre LIKE ?";
-        List<Movie> movies = new ArrayList<>();
-
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setString(1, "%" + genre + "%");
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                movies.add(extractMovieFromResultSet(rs));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return movies;
-    }
-
-    public List<Movie> searchByPartialTitle(String partialTitle) {
-        String query = "SELECT * FROM movies WHERE title LIKE ?";
-        List<Movie> movies = new ArrayList<>();
-
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setString(1, "%" + partialTitle + "%");
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                movies.add(extractMovieFromResultSet(rs));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return movies;
-    }
-
-    public List<Movie> searchByFullTitle(String fullTitle) {
-        String query = "SELECT * FROM movies WHERE title = ?";
-        List<Movie> movies = new ArrayList<>();
-
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setString(1, fullTitle);
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                movies.add(extractMovieFromResultSet(rs));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return movies;
-    }
-
     public boolean addMovie(Movie movie) {
         String query = "INSERT INTO movies (title, genre, summary, poster_data, duration) VALUES (?, ?, ?, ?, ?)";
 

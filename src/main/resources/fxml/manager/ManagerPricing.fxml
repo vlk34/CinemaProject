@@ -38,13 +38,13 @@
                     <HBox alignment="CENTER_LEFT" spacing="15">
                         <Label minWidth="100" prefWidth="100" text="Hall A Price:" />
                         <TextField fx:id="hallAPriceField" HBox.hgrow="ALWAYS" />
-                        <Button minWidth="80" onAction="#handleUpdateHallAPrice" style="-fx-background-color: #2a1b35; -fx-text-fill: white;" text="Update" />
+                        <Button fx:id="updateButton1" minWidth="80" onAction="#handleUpdateHallAPrice" style="-fx-background-color: #2a1b35; -fx-text-fill: white;" text="Update" />
                     </HBox>
 
                     <HBox alignment="CENTER_LEFT" spacing="15">
                         <Label minWidth="100" prefWidth="100" text="Hall B Price:" />
                         <TextField fx:id="hallBPriceField" HBox.hgrow="ALWAYS" />
-                        <Button minWidth="80" onAction="#handleUpdateHallBPrice" style="-fx-background-color: #2a1b35; -fx-text-fill: white;" text="Update" />
+                        <Button fx:id="updateButton2" minWidth="80" onAction="#handleUpdateHallBPrice" style="-fx-background-color: #2a1b35; -fx-text-fill: white;" text="Update" />
                     </HBox>
                 </VBox>
             </VBox>
@@ -67,7 +67,7 @@
                     <HBox alignment="CENTER_LEFT" spacing="15">
                         <Label minWidth="100" prefWidth="100" text="Discount Rate:" />
                         <TextField fx:id="ageDiscountField" HBox.hgrow="ALWAYS" />
-                        <Button minWidth="80" onAction="#handleUpdateAgeDiscount" style="-fx-background-color: #2a1b35; -fx-text-fill: white;" text="Update" />
+                        <Button fx:id="updateButton3" minWidth="80" onAction="#handleUpdateAgeDiscount" style="-fx-background-color: #2a1b35; -fx-text-fill: white;" text="Update" />
                     </HBox>
                 </VBox>
             </VBox>

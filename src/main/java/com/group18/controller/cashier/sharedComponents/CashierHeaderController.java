@@ -147,5 +147,4 @@ public class CashierHeaderController {
     public User getCurrentCashier() {
         return currentCashier;
     }
-
 }

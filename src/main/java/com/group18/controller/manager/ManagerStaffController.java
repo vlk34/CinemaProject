@@ -4,6 +4,9 @@ import com.group18.dao.UserDAO;
 import com.group18.model.AddStaffDialog;
 import com.group18.model.EditStaffDialog;
 import com.group18.model.User;
+import javafx.animation.ParallelTransition;
+import javafx.animation.ScaleTransition;
+import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -12,8 +15,10 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.HBox;
-
+import javafx.scene.paint.Color;
+import javafx.util.Duration;
 import java.net.URL;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -67,6 +72,7 @@ public class ManagerStaffController implements Initializable {
         setupSearch();
         setupAddButton();
 
+        setupButtonHoverAnimation(addStaffButton);
         // Load initial data
         loadStaffData();
     }
@@ -272,5 +278,31 @@ public class ManagerStaffController implements Initializable {
         alert.setHeaderText(null);
         alert.setContentText(content);
         alert.showAndWait();
+    }
+
+    public void setupButtonHoverAnimation(Button button) {
+        // Create scale transition
+        ScaleTransition pressTransition = new ScaleTransition(Duration.millis(100), button);
+        ScaleTransition releaseTransition = new ScaleTransition(Duration.millis(100), button);
+
+        // Add pressed state animation
+        button.setOnMousePressed(e -> {
+            pressTransition.setToX(0.95);
+            pressTransition.setToY(0.95);
+            pressTransition.play();
+        });
+
+        button.setOnMouseReleased(e -> {
+            releaseTransition.setToX(1.0);
+            releaseTransition.setToY(1.0);
+            releaseTransition.play();
+        });
+
+        // Reset button state when mouse exits during press
+        button.setOnMouseExited(e -> {
+            releaseTransition.setToX(1.0);
+            releaseTransition.setToY(1.0);
+            releaseTransition.play();
+        });
     }
 }

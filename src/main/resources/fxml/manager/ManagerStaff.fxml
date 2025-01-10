@@ -63,12 +63,6 @@
                 <ComboBox fx:id="roleFilterComboBox" prefWidth="150" promptText="Role" />
 
                 <Region HBox.hgrow="ALWAYS" />
-
-                <Button style="-fx-background-color: transparent; -fx-text-fill: #2a1b35; -fx-border-color: #2a1b35; -fx-border-radius: 5;" text="Export List">
-                    <padding>
-                        <Insets bottom="8" left="15" right="15" top="8" />
-                    </padding>
-                </Button>
             </HBox>
 
             <!-- Staff Table -->

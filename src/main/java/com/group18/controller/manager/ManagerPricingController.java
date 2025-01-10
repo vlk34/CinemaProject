@@ -3,13 +3,12 @@ package com.group18.controller.manager;
 import com.group18.dao.PriceDAO;
 import com.group18.model.PriceHistory;
 import com.group18.model.User;
+import javafx.animation.ScaleTransition;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.util.Duration;
 
 import java.time.LocalDate;
 
@@ -22,6 +21,12 @@ public class ManagerPricingController {
     private TextField hallBPriceField;
     @FXML
     private TextField ageDiscountField;
+    @FXML
+    private Button updateButton1;
+    @FXML
+    private Button updateButton2;
+    @FXML
+    private Button updateButton3;
     @FXML
     private TableView<PriceHistory> priceHistoryTable;
     @FXML
@@ -49,6 +54,10 @@ public class ManagerPricingController {
         loadCurrentPrices();
         setupPriceHistoryTable();
         loadPriceHistory();
+        setupButtonHoverAnimation(updateButton1);
+        setupButtonHoverAnimation(updateButton2);
+        setupButtonHoverAnimation(updateButton3);
+
     }
 
     private void loadCurrentPrices() {
@@ -200,5 +209,31 @@ public class ManagerPricingController {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    public void setupButtonHoverAnimation(Button button) {
+        // Create scale transition
+        ScaleTransition pressTransition = new ScaleTransition(Duration.millis(100), button);
+        ScaleTransition releaseTransition = new ScaleTransition(Duration.millis(100), button);
+
+        // Add pressed state animation
+        button.setOnMousePressed(e -> {
+            pressTransition.setToX(0.95);
+            pressTransition.setToY(0.95);
+            pressTransition.play();
+        });
+
+        button.setOnMouseReleased(e -> {
+            releaseTransition.setToX(1.0);
+            releaseTransition.setToY(1.0);
+            releaseTransition.play();
+        });
+
+        // Reset button state when mouse exits during press
+        button.setOnMouseExited(e -> {
+            releaseTransition.setToX(1.0);
+            releaseTransition.setToY(1.0);
+            releaseTransition.play();
+        });
     }
 }

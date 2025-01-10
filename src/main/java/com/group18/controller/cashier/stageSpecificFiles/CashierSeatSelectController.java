@@ -325,18 +325,6 @@ public class CashierSeatSelectController {
         }
     }
 
-    private int convertSeatIdToNumber(String seatId) {
-        // Convert A1, B1 etc. to 1, 5 etc. (using 4 columns for Hall_A, 8 for Hall_B)
-        char row = seatId.charAt(0);
-        int col = Integer.parseInt(seatId.substring(1));
-        int cols = session.getHall().equals("Hall_A") ? 4 : 8;
-
-        // Example for Hall_A (4 columns):
-        // A1 -> 1, A2 -> 2, A3 -> 3, A4 -> 4
-        // B1 -> 5, B2 -> 6, B3 -> 7, B4 -> 8
-        return ((row - 'A') * cols) + col;
-    }
-
     private String convertNumberToSeatId(int number) {
         // Convert 1, 5 etc. back to A1, B1 etc.
         int cols = session.getHall().equals("Hall_A") ? 4 : 8;
@@ -351,14 +339,5 @@ public class CashierSeatSelectController {
         alert.setHeaderText(null);
         alert.setContentText(content);
         alert.showAndWait();
-    }
-
-    // Getters for selected seats
-    public Set<String> getSelectedSeats() {
-        return new TreeSet<>(selectedSeats);
-    }
-
-    public double getTotalPrice() {
-        return selectedSeats.size() * ticketPrice;
     }
 }

@@ -62,34 +62,6 @@ public class ProductDAO {
         return products;
     }
 
-    public boolean updateStock(int productId, int newStock) {
-        String query = "UPDATE products SET stock = ? WHERE product_id = ?";
-
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setInt(1, newStock);
-            stmt.setInt(2, productId);
-
-            return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    public boolean updatePrice(int productId, BigDecimal newPrice) {
-        String query = "UPDATE products SET price = ? WHERE product_id = ?";
-
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setBigDecimal(1, newPrice);
-            stmt.setInt(2, productId);
-
-            return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
     public boolean decreaseStock(int productId, int quantity) {
         String query = "UPDATE products SET stock = stock - ? WHERE product_id = ? AND stock >= ?";
 
@@ -117,23 +89,6 @@ public class ProductDAO {
             e.printStackTrace();
             return false;
         }
-    }
-
-    public boolean checkStock(int productId, int requestedQuantity) {
-        String query = "SELECT stock FROM products WHERE product_id = ?";
-
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setInt(1, productId);
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                int currentStock = rs.getInt("stock");
-                return currentStock >= requestedQuantity;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
     }
 
     public Product addProduct(Product product) {

@@ -5,6 +5,7 @@ import com.group18.model.Product;
 import com.group18.model.AddProductDialog;
 import com.group18.model.EditProductDialog;
 
+import javafx.animation.ScaleTransition;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -19,6 +20,8 @@ import java.math.BigDecimal;
 import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
+
+import javafx.util.Duration;
 
 public class ManagerInventoryController implements Initializable {
     // FXML Injected Components
@@ -76,7 +79,7 @@ public class ManagerInventoryController implements Initializable {
         setupStockStatusComboBox();
         setupSearchFunctionality();
         setupAddProductButton();
-
+        setupButtonHoverAnimation(addProductButton);
         // Load initial data
         loadProductData();
     }
@@ -400,6 +403,32 @@ public class ManagerInventoryController implements Initializable {
                     errorAlert.showAndWait();
                 }
             }
+        });
+    }
+
+    public void setupButtonHoverAnimation(Button button) {
+        // Create scale transition
+        ScaleTransition pressTransition = new ScaleTransition(Duration.millis(100), button);
+        ScaleTransition releaseTransition = new ScaleTransition(Duration.millis(100), button);
+
+        // Add pressed state animation
+        button.setOnMousePressed(e -> {
+            pressTransition.setToX(0.95);
+            pressTransition.setToY(0.95);
+            pressTransition.play();
+        });
+
+        button.setOnMouseReleased(e -> {
+            releaseTransition.setToX(1.0);
+            releaseTransition.setToY(1.0);
+            releaseTransition.play();
+        });
+
+        // Reset button state when mouse exits during press
+        button.setOnMouseExited(e -> {
+            releaseTransition.setToX(1.0);
+            releaseTransition.setToY(1.0);
+            releaseTransition.play();
         });
     }
 }

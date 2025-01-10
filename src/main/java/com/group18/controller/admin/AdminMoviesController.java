@@ -2,6 +2,7 @@ package com.group18.controller.admin;
 
 import com.group18.dao.MovieDAO;
 import com.group18.model.Movie;
+import javafx.animation.ScaleTransition;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -20,6 +21,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
@@ -65,7 +67,8 @@ public class AdminMoviesController {
 
         setupGenreCheckboxes();
         setupFilterGenreMenuButton();
-
+        setupButtonHoverAnimation(addMovieButton);
+        setupButtonHoverAnimation(updateMovieButton);
         // Make duration field non-editable
         durationField.setEditable(false);
 
@@ -379,6 +382,32 @@ public class AdminMoviesController {
             if (node instanceof CheckBox) {
                 ((CheckBox) node).setSelected(false);
             }
+        });
+    }
+
+    public void setupButtonHoverAnimation(Button button) {
+        // Create scale transition
+        ScaleTransition pressTransition = new ScaleTransition(Duration.millis(100), button);
+        ScaleTransition releaseTransition = new ScaleTransition(Duration.millis(100), button);
+
+        // Add pressed state animation
+        button.setOnMousePressed(e -> {
+            pressTransition.setToX(0.95);
+            pressTransition.setToY(0.95);
+            pressTransition.play();
+        });
+
+        button.setOnMouseReleased(e -> {
+            releaseTransition.setToX(1.0);
+            releaseTransition.setToY(1.0);
+            releaseTransition.play();
+        });
+
+        // Reset button state when mouse exits during press
+        button.setOnMouseExited(e -> {
+            releaseTransition.setToX(1.0);
+            releaseTransition.setToY(1.0);
+            releaseTransition.play();
         });
     }
 }

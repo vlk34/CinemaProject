@@ -61,23 +61,6 @@ public class UserDAO {
         return users;
     }
 
-    public List<User> getUsersByRole(String role) {
-        String query = "SELECT * FROM users WHERE role = ?";
-        List<User> users = new ArrayList<>();
-
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setString(1, role);
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                users.add(extractUserFromResultSet(rs));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return users;
-    }
-
     public boolean addUser(User user) {
         String query = "INSERT INTO users (username, password, role, first_name, last_name) VALUES (?, ?, ?, ?, ?)";
 

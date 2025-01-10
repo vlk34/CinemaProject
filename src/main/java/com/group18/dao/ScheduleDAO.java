@@ -15,74 +15,6 @@ public class ScheduleDAO {
         this.connection = DBConnection.getConnection();
     }
 
-    public Schedule findById(int scheduleId) {
-        String query = "SELECT * FROM schedules WHERE schedule_id = ?";
-
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setInt(1, scheduleId);
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                return extractScheduleFromResultSet(rs);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public List<Schedule> getSchedulesByMovie(int movieId) {
-        String query = "SELECT * FROM schedules WHERE movie_id = ?";
-        List<Schedule> schedules = new ArrayList<>();
-
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setInt(1, movieId);
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                schedules.add(extractScheduleFromResultSet(rs));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return schedules;
-    }
-
-    public List<Schedule> getSchedulesByDate(LocalDate date) {
-        String query = "SELECT * FROM schedules WHERE session_date = ?";
-        List<Schedule> schedules = new ArrayList<>();
-
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setDate(1, Date.valueOf(date));
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                schedules.add(extractScheduleFromResultSet(rs));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return schedules;
-    }
-
-    public List<Schedule> getAvailableSchedules(int movieId, LocalDate date) {
-        String query = "SELECT * FROM schedules WHERE movie_id = ? AND session_date = ?";
-        List<Schedule> schedules = new ArrayList<>();
-
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setInt(1, movieId);
-            stmt.setDate(2, Date.valueOf(date));
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                schedules.add(extractScheduleFromResultSet(rs));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return schedules;
-    }
-
     public List<Schedule> getAllSchedules() {
         String query = "SELECT * FROM schedules";
         List<Schedule> schedules = new ArrayList<>();
@@ -138,34 +70,6 @@ public class ScheduleDAO {
             e.printStackTrace();
         }
         return false;
-    }
-
-    public boolean updateSchedule(Schedule schedule) {
-        // Only allow updates if no tickets have been sold
-        String query = """
-            UPDATE schedules 
-            SET movie_id = ?, hall_id = ?, session_date = ?, session_time = ?
-            WHERE schedule_id = ? 
-            AND NOT EXISTS (
-                SELECT 1 FROM order_items 
-                WHERE schedule_id = ? 
-                AND item_type = 'ticket'
-            )
-        """;
-
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setInt(1, schedule.getMovieId());
-            stmt.setInt(2, schedule.getHallId());
-            stmt.setDate(3, Date.valueOf(schedule.getSessionDate()));
-            stmt.setTime(4, Time.valueOf(schedule.getSessionTime()));
-            stmt.setInt(5, schedule.getScheduleId());
-            stmt.setInt(6, schedule.getScheduleId());
-
-            return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
     }
 
     public int getAvailableSeatsCount(int scheduleId) {
