@@ -87,9 +87,13 @@ public class ManagerRevenueController {
         RevenueStatistics stats = new RevenueStatistics();
 
         for (Order order : orders) {
-            // Skip cancelled orders
-            if ("REJECTED".equals(order.getStatus()) || "PENDING".equals(order.getStatus())) {
+            if (!"PROCESSED_FULL".equals(order.getStatus())) {
                 for (OrderItem item : order.getOrderItems()) {
+                    if (("PROCESSED_TICKETS".equals(order.getStatus()) && "ticket".equals(item.getItemType())) ||
+                            ("PROCESSED_PRODUCTS".equals(order.getStatus()) && "product".equals(item.getItemType()))) {
+                        continue; // Skip cancelled ticket or product items
+                    }
+
                     BigDecimal itemTotalPrice = item.getItemPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
 
                     if ("ticket".equals(item.getItemType())) {
@@ -116,13 +120,11 @@ public class ManagerRevenueController {
     }
 
     private void updateStatistics(RevenueStatistics current, RevenueStatistics previous) {
-        // Update labels with current month data
         totalRevenueLabel.setText(String.format("₺%.2f", current.totalRevenue));
         totalTicketsLabel.setText(String.valueOf(current.ticketCount));
         totalProductsLabel.setText(String.valueOf(current.productCount));
         taxAmountLabel.setText(String.format("₺%.2f", current.totalVAT));
 
-        // Calculate and display percentage changes
         double revenueChange = calculatePercentageChange(previous.totalRevenue, current.totalRevenue);
         double ticketsChange = calculatePercentageChange(
                 BigDecimal.valueOf(previous.ticketCount),
@@ -152,12 +154,12 @@ public class ManagerRevenueController {
         ObservableList<RevenueEntry> entries = FXCollections.observableArrayList();
 
         for (Order order : orders) {
-            // Skip cancelled orders
-            if ("REJECTED".equals(order.getStatus()) || "PENDING".equals(order.getStatus())) {
+            if (!"PROCESSED_FULL".equals(order.getStatus())) {
                 String date = order.getOrderDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-                // Group items by type and calculate total amount considering quantity
                 Map<String, BigDecimal> typeRevenue = order.getOrderItems().stream()
+                        .filter(item -> !(order.getStatus().equals("PROCESSED_TICKETS") && item.getItemType().equals("ticket")) &&
+                                !(order.getStatus().equals("PROCESSED_PRODUCTS") && item.getItemType().equals("product")))
                         .collect(Collectors.groupingBy(
                                 OrderItem::getItemType,
                                 Collectors.reducing(
@@ -167,9 +169,7 @@ public class ManagerRevenueController {
                                 )
                         ));
 
-                // Add entries for each type
                 typeRevenue.forEach((type, amount) -> {
-                    // Calculate total quantity for this type
                     int totalQuantity = order.getOrderItems().stream()
                             .filter(item -> item.getItemType().equals(type))
                             .mapToInt(OrderItem::getQuantity)

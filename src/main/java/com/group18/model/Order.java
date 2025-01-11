@@ -12,6 +12,15 @@ public class Order {
     private BigDecimal totalPrice;
     private List<OrderItem> orderItems;
     private String status = "PENDING";
+    private BigDecimal refundedAmount = BigDecimal.ZERO;
+
+    public BigDecimal getRefundedAmount() {
+        return refundedAmount;
+    }
+
+    public void setRefundedAmount(BigDecimal refundedAmount) {
+        this.refundedAmount = refundedAmount;
+    }
 
     public Order() {
         this.orderItems = new ArrayList<>();

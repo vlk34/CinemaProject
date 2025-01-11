@@ -77,7 +77,7 @@
                     <TableColumn fx:id="typeColumn" prefWidth="100" text="Type" />
                     <TableColumn fx:id="itemsColumn" prefWidth="200" text="Items" />
                     <TableColumn fx:id="amountColumn" prefWidth="100" text="Amount (₺)" />
-                    <TableColumn fx:id="statusColumn" prefWidth="100" text="Status" />
+                    <TableColumn fx:id="statusColumn" prefWidth="200" text="Status" />
                     <TableColumn fx:id="actionsColumn" prefWidth="150" text="Actions" />
                     <TableColumn fx:id="receiptColumn" prefWidth="150" text="Receipt" />
                     <TableColumn fx:id="ticketsColumn" prefWidth="150" text="Ticket" />

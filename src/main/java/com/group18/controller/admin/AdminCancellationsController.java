@@ -11,20 +11,26 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
-
+import javafx.geometry.Insets;
 import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class AdminCancellationsController {
@@ -116,10 +122,9 @@ public class AdminCancellationsController {
         requestTypeCombo.getItems().addAll("All", "Ticket", "Product", "Mixed");
         requestTypeCombo.setValue("All");
 
-        statusCombo.getItems().addAll("All", "Pending", "Processed", "Rejected");
+        statusCombo.getItems().addAll("All", "Pending", "Rejected", "Processed (Full)", "Processed (Products)", "Processed (Tickets)");
         statusCombo.setValue("All");
 
-        // Add listeners for filtering
         requestTypeCombo.setOnAction(e -> filterOrders());
         statusCombo.setOnAction(e -> filterOrders());
     }
@@ -424,16 +429,29 @@ public class AdminCancellationsController {
         String typeFilter = requestTypeCombo.getValue();
         String statusFilter = statusCombo.getValue();
 
+        // Map of display values to backend values
+        Map<String, String> statusMapping = Map.of(
+                "All", "All",
+                "Pending", "PENDING",
+                "Rejected", "REJECTED",
+                "Processed (Full)", "PROCESSED_FULL",
+                "Processed (Products)", "PROCESSED_PRODUCTS",
+                "Processed (Tickets)", "PROCESSED_TICKETS"
+        );
+
+        // Get the backend status value
+        String backendStatusFilter = statusMapping.getOrDefault(statusFilter, "All");
+
         List<Order> filteredOrders = orderDAO.getAllOrders().stream()
                 .filter(order -> {
                     boolean matchesSearch = String.valueOf(order.getOrderId()).contains(searchText) ||
-                            (order.getOrderItems().stream()
+                            order.getOrderItems().stream()
                                     .anyMatch(item -> (item.getOccupantFirstName() + " " + item.getOccupantLastName())
-                                            .toLowerCase().contains(searchText)));
+                                            .toLowerCase().contains(searchText));
 
                     boolean matchesType = "All".equals(typeFilter) || matchesOrderType(order, typeFilter);
-                    boolean matchesStatus = "All".equals(statusFilter) ||
-                            (order.getStatus() != null && order.getStatus().equalsIgnoreCase(statusFilter));
+                    boolean matchesStatus = "All".equals(backendStatusFilter) ||
+                            (order.getStatus() != null && order.getStatus().equalsIgnoreCase(backendStatusFilter));
 
                     return matchesSearch && matchesType && matchesStatus;
                 })
@@ -441,6 +459,7 @@ public class AdminCancellationsController {
 
         requestsTable.setItems(FXCollections.observableArrayList(filteredOrders));
     }
+
 
     private boolean matchesOrderType(Order order, String typeFilter) {
         List<OrderItem> items = order.getOrderItems();
@@ -457,29 +476,101 @@ public class AdminCancellationsController {
 
     private void handleProcessCancellation(Order order) {
         if (!"PENDING".equals(order.getStatus())) {
-            showAlert(Alert.AlertType.WARNING, "Warning",
-                    "Only pending cancellations can be processed.");
+            showAlert(Alert.AlertType.WARNING, "Warning", "Only pending cancellations can be processed.");
             return;
         }
 
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle("Confirm Cancellation");
-        confirm.setHeaderText("Process Cancellation Request");
-        confirm.setContentText("Are you sure you want to process this cancellation request?");
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Process Cancellation");
+        dialog.setHeaderText("Select Items to Cancel");
 
-        confirm.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.OK) {
-                boolean success = orderDAO.processCancellation(order.getOrderId());
-                if (success) {
-                    showAlert(Alert.AlertType.INFORMATION, "Success",
-                            "Cancellation processed successfully");
-                    loadOrders();
-                } else {
-                    showAlert(Alert.AlertType.ERROR, "Error",
-                            "Failed to process cancellation");
-                }
+        ButtonType processButtonType = new ButtonType("Process", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(processButtonType, ButtonType.CANCEL);
+
+        VBox content = new VBox(15);
+        content.setPadding(new Insets(25));
+        content.setStyle("-fx-background-color: #F5F7FA;");
+
+        List<OrderItem> items = order.getOrderItems();
+        long ticketCount = items.stream().filter(item -> "ticket".equals(item.getItemType())).count();
+        long productCount = items.stream().filter(item -> "product".equals(item.getItemType())).count();
+
+        Label headerLabel = new Label("Select which items to cancel:");
+        headerLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+
+        int totalProductQuantity = items.stream()
+                .filter(item -> "product".equals(item.getItemType()))
+                .mapToInt(OrderItem::getQuantity)
+                .sum();
+
+        VBox ticketSection = new VBox(5);
+        CheckBox ticketsCheckbox = new CheckBox("Cancel Tickets (" + ticketCount + " " + (ticketCount == 1 ? "ticket" : "tickets") + ")");
+        ticketsCheckbox.setStyle("-fx-font-size: 13px;");
+
+        BigDecimal ticketPrice = items.stream()
+                .filter(item -> "ticket".equals(item.getItemType()))
+                .map(item -> item.getItemPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        Label ticketPriceLabel = new Label(String.format("Ticket Refund: ₺%.2f", ticketPrice));
+        ticketPriceLabel.setStyle("-fx-text-fill: #2ECC71; -fx-font-weight: bold;");
+
+        ticketSection.getChildren().addAll(ticketsCheckbox, ticketPriceLabel);
+
+        VBox productSection = new VBox(5);
+        CheckBox productsCheckbox = new CheckBox("Cancel Products (" + totalProductQuantity + " " + (totalProductQuantity == 1 ? "item" : "items") + ")");
+        productsCheckbox.setStyle("-fx-font-size: 13px;");
+
+        BigDecimal productPrice = items.stream()
+                .filter(item -> "product".equals(item.getItemType()))
+                .map(item -> item.getItemPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        Label productPriceLabel = new Label(String.format("Product Refund: ₺%.2f", productPrice));
+        productPriceLabel.setStyle("-fx-text-fill: #2ECC71; -fx-font-weight: bold;");
+
+        productSection.getChildren().addAll(productsCheckbox, productPriceLabel);
+
+        if (ticketCount == 0) {
+            ticketsCheckbox.setDisable(true);
+            ticketSection.setOpacity(0.5);
+        }
+        if (productCount == 0) {
+            productsCheckbox.setDisable(true);
+            productSection.setOpacity(0.5);
+        }
+
+        content.getChildren().addAll(headerLabel, ticketSection, productSection);
+
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().setPrefWidth(400);
+        dialog.getDialogPane().setStyle("-fx-background-color: #F5F7FA;");
+
+        Node processButton = dialog.getDialogPane().lookupButton(processButtonType);
+        processButton.setStyle("-fx-background-color: #2a1b35; -fx-text-fill: white;");
+        processButton.setDisable(true);
+
+        ticketsCheckbox.selectedProperty().addListener((obs, oldVal, newVal) ->
+                processButton.setDisable(!newVal && !productsCheckbox.isSelected()));
+        productsCheckbox.selectedProperty().addListener((obs, oldVal, newVal) ->
+                processButton.setDisable(!newVal && !ticketsCheckbox.isSelected()));
+
+        Optional<ButtonType> result = dialog.showAndWait();
+
+        if (result.isPresent() && result.get() == processButtonType) {
+            boolean success = orderDAO.processCancellation(
+                    order.getOrderId(),
+                    productsCheckbox.isSelected(),
+                    ticketsCheckbox.isSelected()
+            );
+
+            if (success) {
+                showAlert(Alert.AlertType.INFORMATION, "Success", "Cancellation processed successfully");
+                loadOrders();
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Error", "Failed to process cancellation");
             }
-        });
+        }
     }
 
     private void handleRejectCancellation(Order order) {

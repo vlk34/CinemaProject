@@ -215,26 +215,80 @@ public class OrderDAO {
     }
 
     // Modified processCancellation to handle both product stock and seats
-    public boolean processCancellation(int orderId) {
+    public boolean processCancellation(int orderId, boolean cancelProducts, boolean cancelTickets) {
         try {
             connection.setAutoCommit(false);
+            boolean productRestored = true;
+            boolean seatsRestored = true;
 
-            // Restore product stock
-            if (!restoreProductStock(orderId)) {
+            // Conditional product stock restoration
+            if (cancelProducts) {
+                productRestored = restoreProductStock(orderId);
+                if (!productRestored) {
+                    connection.rollback();
+                    return false;
+                }
+            }
+
+            // Conditional seat availability restoration
+            if (cancelTickets) {
+                seatsRestored = restoreSeats(orderId);
+                if (!seatsRestored) {
+                    connection.rollback();
+                    return false;
+                }
+            }
+
+            // Determine final order status
+            String newStatus;
+            if (cancelProducts && cancelTickets) {
+                newStatus = "PROCESSED_FULL";
+            } else if (cancelProducts) {
+                newStatus = "PROCESSED_PRODUCTS";
+            } else if (cancelTickets) {
+                newStatus = "PROCESSED_TICKETS";
+            } else {
                 connection.rollback();
                 return false;
             }
 
-            // Restore seat availability
-            if (!restoreSeats(orderId)) {
-                connection.rollback();
-                return false;
+            // Calculate refund amounts for products and tickets
+            BigDecimal refundAmount = BigDecimal.ZERO;
+
+            if (cancelProducts) {
+                String productRefundQuery = "SELECT COALESCE(SUM(item_price * quantity), 0) FROM order_items WHERE order_id = ? AND item_type = 'product'";
+                try (PreparedStatement stmt = connection.prepareStatement(productRefundQuery)) {
+                    stmt.setInt(1, orderId);
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (rs.next()) {
+                            refundAmount = refundAmount.add(rs.getBigDecimal(1));
+                        }
+                    }
+                }
             }
 
-            // Update order status
-            String updateQuery = "UPDATE orders SET status = 'PROCESSED' WHERE order_id = ? AND status = 'PENDING'";
+            if (cancelTickets) {
+                String ticketRefundQuery = "SELECT COALESCE(SUM(item_price * quantity), 0) FROM order_items WHERE order_id = ? AND item_type = 'ticket'";
+                try (PreparedStatement stmt = connection.prepareStatement(ticketRefundQuery)) {
+                    stmt.setInt(1, orderId);
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (rs.next()) {
+                            refundAmount = refundAmount.add(rs.getBigDecimal(1));
+                        }
+                    }
+                }
+            }
+
+            // Update order status and refunded amount
+            String updateQuery = "UPDATE orders SET status = ?, refunded_amount = refunded_amount + ? WHERE order_id = ?";
+
             try (PreparedStatement stmt = connection.prepareStatement(updateQuery)) {
-                stmt.setInt(1, orderId);
+                stmt.setString(1, newStatus);
+
+                // Add the calculated refund amount to refunded_amount
+                stmt.setBigDecimal(2, refundAmount);
+                stmt.setInt(3, orderId);
+
                 int result = stmt.executeUpdate();
 
                 if (result > 0) {
@@ -276,13 +330,13 @@ public class OrderDAO {
 
     public CancellationStats getCancellationStats() {
         String query = """
-            SELECT 
-                COUNT(CASE WHEN status = 'PENDING' THEN 1 END) as pending_count,
-                COUNT(CASE WHEN status = 'PROCESSED' AND DATE(order_date) = CURRENT_DATE THEN 1 END) as processed_today,
-                SUM(CASE WHEN status = 'PROCESSED' AND DATE(order_date) = CURRENT_DATE THEN total_price END) as refunded_today
-            FROM orders
-            WHERE status IN ('PENDING', 'PROCESSED')
-        """;
+        SELECT 
+            COUNT(CASE WHEN status = 'PENDING' THEN 1 END) as pending_count,
+            COUNT(CASE WHEN status IN ('PROCESSED_FULL', 'PROCESSED_TICKETS', 'PROCESSED_PRODUCTS') AND DATE(order_date) = CURRENT_DATE THEN 1 END) as processed_today,
+            SUM(CASE WHEN status IN ('PROCESSED_FULL', 'PROCESSED_TICKETS', 'PROCESSED_PRODUCTS') AND DATE(order_date) = CURRENT_DATE THEN refunded_amount END) as refunded_today
+        FROM orders
+        WHERE status IN ('PENDING', 'PROCESSED_FULL', 'PROCESSED_TICKETS', 'PROCESSED_PRODUCTS')
+    """;
 
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {

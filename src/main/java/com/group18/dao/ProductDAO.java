@@ -142,7 +142,7 @@ public class ProductDAO {
             stmt.setString(2, product.getProductType());
             stmt.setBigDecimal(3, product.getPrice());
             stmt.setInt(4, product.getStock());
-            stmt.setBytes(5, product.getImageData());  // Changed to setBytes for BLOB
+            stmt.setBytes(5, product.getImageData());
             stmt.setInt(6, product.getProductId());
 
             int affectedRows = stmt.executeUpdate();

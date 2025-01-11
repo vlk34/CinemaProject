@@ -44,6 +44,8 @@ public class MainApp extends Application {
         primaryStage.setMinWidth(1280);
         primaryStage.setMinHeight(720);
 
+        primaryStage.setMaximized(true);
+
         // Center the window
         primaryStage.centerOnScreen();
 

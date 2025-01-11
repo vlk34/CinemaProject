@@ -1,30 +1,28 @@
 package com.group18.model;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class PriceHistory {
-    private LocalDate changeDate;
+    private LocalDateTime changeTimestamp;
     private String item;
     private Double oldPrice;
     private Double newPrice;
     private String updatedBy;
 
-    // Constructor
-    public PriceHistory(LocalDate changeDate, String item, Double oldPrice, Double newPrice, String updatedBy) {
-        this.changeDate = changeDate;
+    public PriceHistory(LocalDateTime changeTimestamp, String item, Double oldPrice, Double newPrice, String updatedBy) {
+        this.changeTimestamp = changeTimestamp;
         this.item = item;
         this.oldPrice = oldPrice;
         this.newPrice = newPrice;
         this.updatedBy = updatedBy;
     }
 
-    // Getters and setters
-    public LocalDate getChangeDate() {
-        return changeDate;
+    public LocalDateTime getChangeTimestamp() {
+        return changeTimestamp;
     }
 
-    public void setChangeDate(LocalDate changeDate) {
-        this.changeDate = changeDate;
+    public void setChangeTimestamp(LocalDateTime changeTimestamp) {
+        this.changeTimestamp = changeTimestamp;
     }
 
     public String getItem() {

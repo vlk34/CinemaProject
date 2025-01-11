@@ -78,9 +78,9 @@ public class PriceDAO {
     public void logPriceChange(PriceHistory log) {
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(
-                     "INSERT INTO price_history (change_date, item, old_price, new_price, updated_by) VALUES (?, ?, ?, ?, ?)")) {
+                     "INSERT INTO price_history (change_timestamp, item, old_price, new_price, updated_by) VALUES (?, ?, ?, ?, ?)")) {
 
-            pstmt.setDate(1, Date.valueOf(log.getChangeDate()));
+            pstmt.setTimestamp(1, Timestamp.valueOf(log.getChangeTimestamp()));
             pstmt.setString(2, log.getItem());
             pstmt.setDouble(3, log.getOldPrice());
             pstmt.setDouble(4, log.getNewPrice());
@@ -91,15 +91,18 @@ public class PriceDAO {
         }
     }
 
+    // In PriceDAO.java
     public List<PriceHistory> getPriceUpdateHistory() {
+        String query = "SELECT * FROM price_history ORDER BY change_timestamp DESC";
         List<PriceHistory> history = new ArrayList<>();
+
         try (Connection connection = DBConnection.getConnection();
              Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT * FROM price_history ORDER BY change_date DESC")) {
+             ResultSet rs = stmt.executeQuery(query)) {
 
             while (rs.next()) {
                 PriceHistory log = new PriceHistory(
-                        rs.getDate("change_date").toLocalDate(),
+                        rs.getTimestamp("change_timestamp").toLocalDateTime(),
                         rs.getString("item"),
                         rs.getDouble("old_price"),
                         rs.getDouble("new_price"),

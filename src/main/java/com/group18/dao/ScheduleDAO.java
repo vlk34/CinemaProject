@@ -82,7 +82,7 @@ public class ScheduleDAO {
             AND oi.order_id IN (
                 SELECT order_id 
                 FROM orders 
-                WHERE status NOT IN ('PROCESSED')
+                WHERE status NOT IN ('PROCESSED_FULL', 'PROCESSED_TICKETS')
             )
         WHERE s.schedule_id = ?
         GROUP BY s.schedule_id, h.capacity

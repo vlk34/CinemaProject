@@ -12,6 +12,7 @@ import javafx.util.Duration;
 
 import java.time.LocalDate;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class ManagerPricingController {
@@ -30,7 +31,7 @@ public class ManagerPricingController {
     @FXML
     private TableView<PriceHistory> priceHistoryTable;
     @FXML
-    private TableColumn<PriceHistory, LocalDate> dateColumn;
+    private TableColumn<PriceHistory, LocalDateTime> dateColumn;
     @FXML
     private TableColumn<PriceHistory, String> itemColumn;
     @FXML
@@ -136,8 +137,19 @@ public class ManagerPricingController {
     }
 
     private void setupPriceHistoryTable() {
-        dateColumn.setCellValueFactory(new PropertyValueFactory<>("changeDate"));
+        dateColumn.setCellValueFactory(new PropertyValueFactory<>("changeTimestamp"));
         dateColumn.setStyle("-fx-alignment: CENTER;");
+        dateColumn.setCellFactory(column -> new TableCell<PriceHistory, LocalDateTime>() {
+            @Override
+            protected void updateItem(LocalDateTime date, boolean empty) {
+                super.updateItem(date, empty);
+                if (empty || date == null) {
+                    setText(null);
+                } else {
+                    setText(date.toLocalDate().toString() + " " + date.toLocalTime().toString());
+                }
+            }
+        });
 
         itemColumn.setCellValueFactory(new PropertyValueFactory<>("item"));
         itemColumn.setStyle("-fx-alignment: CENTER;");
@@ -186,7 +198,7 @@ public class ManagerPricingController {
                 : "Unknown Manager";
 
         PriceHistory log = new PriceHistory(
-                LocalDate.now(),
+                LocalDateTime.now(),
                 item,
                 oldPrice,
                 newPrice,
