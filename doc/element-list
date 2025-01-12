@@ -1,0 +1,11 @@
+com.group18.app
+com.group18.controller
+com.group18.controller.admin
+com.group18.controller.cashier
+com.group18.controller.cashier.modals
+com.group18.controller.cashier.sharedComponents
+com.group18.controller.cashier.stageSpecificFiles
+com.group18.controller.manager
+com.group18.dao
+com.group18.model
+com.group18.util

@@ -194,13 +194,6 @@ public class AddMovieDialogController {
      * Validates the input fields in the Add Movie dialog. This method ensures that
      * all required fields for adding a movie are properly filled before enabling the
      * "Add Movie" button. Validation checks include:
-     * <ul>
-     * - The title field is not empty.
-     * - At least one genre is selected.
-     * - The summary field is not empty.
-     * - The duration is fixed at 120 and is always valid.
-     * - A valid poster image has been selected (not null and contains data).
-     * </ul>
      * Based on the validation status of these fields, the "Add Movie" button
      * is enabled or disabled.
      */
