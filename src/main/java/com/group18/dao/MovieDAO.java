@@ -5,13 +5,27 @@ import java.util.ArrayList;
 import java.util.List;
 import com.group18.model.Movie;
 
+/**
+ * This class provides CRUD operations (Create, Read, Update, Delete) for managing movies in the database.
+ * It interacts with the 'movies' table in the database to perform operations like adding, updating, removing,
+ * and fetching movie details.
+ */
 public class MovieDAO {
     private Connection connection;
 
+    /**
+     * Constructor that initializes the connection to the database by calling the DBConnection's getConnection method.
+     */
     public MovieDAO() {
         this.connection = DBConnection.getConnection();
     }
 
+    /**
+     * Finds a movie by its unique identifier (movieId).
+     *
+     * @param movieId The unique identifier of the movie.
+     * @return The Movie object corresponding to the provided movieId, or null if no such movie exists.
+     */
     public Movie findById(int movieId) {
         String query = "SELECT * FROM movies WHERE movie_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
@@ -27,6 +41,12 @@ public class MovieDAO {
         return null;
     }
 
+    /**
+     * Adds a new movie to the database.
+     *
+     * @param movie The Movie object containing the details of the movie to be added.
+     * @return True if the movie was successfully added; false otherwise.
+     */
     public boolean addMovie(Movie movie) {
         String query = "INSERT INTO movies (title, genre, summary, poster_data, duration) VALUES (?, ?, ?, ?, ?)";
 
@@ -63,6 +83,12 @@ public class MovieDAO {
         return false;
     }
 
+    /**
+     * Updates an existing movie in the database.
+     *
+     * @param movie The Movie object containing the updated details of the movie.
+     * @return True if the movie was successfully updated; false otherwise.
+     */
     public boolean updateMovie(Movie movie) {
         String query = "UPDATE movies SET title = ?, genre = ?, summary = ?, poster_data = ?, duration = ? WHERE movie_id = ?";
 
@@ -88,6 +114,11 @@ public class MovieDAO {
         return false;
     }
 
+    /**
+     * Retrieves all movies from the database.
+     *
+     * @return A list of all movies in the database.
+     */
     public List<Movie> getAllMovies() {
         String query = "SELECT * FROM movies";
         List<Movie> movies = new ArrayList<>();
@@ -104,6 +135,13 @@ public class MovieDAO {
         return movies;
     }
 
+    /**
+     * Extracts a Movie object from the result set.
+     *
+     * @param rs The ResultSet object containing the movie data.
+     * @return A Movie object populated with data from the result set.
+     * @throws SQLException If an error occurs while extracting data from the result set.
+     */
     private Movie extractMovieFromResultSet(ResultSet rs) throws SQLException {
         Movie movie = new Movie();
         movie.setMovieId(rs.getInt("movie_id"));
@@ -115,6 +153,13 @@ public class MovieDAO {
         return movie;
     }
 
+    /**
+     * Removes a movie from the database by its unique identifier (movieId),
+     * only if the movie is not associated with any schedules.
+     *
+     * @param movieId The unique identifier of the movie to be removed.
+     * @return True if the movie was successfully removed; false otherwise.
+     */
     public boolean removeMovie(int movieId) {
         String query = "DELETE FROM movies WHERE movie_id = ? AND NOT EXISTS " +
                 "(SELECT 1 FROM schedules WHERE movie_id = ?)";
@@ -129,6 +174,12 @@ public class MovieDAO {
         }
     }
 
+    /**
+     * Finds a movie based on its associated schedule ID.
+     *
+     * @param scheduleId The unique identifier of the schedule.
+     * @return The Movie object associated with the given schedule ID, or null if no such movie exists.
+     */
     public Movie findMovieByScheduleId(int scheduleId) {
         String query = "SELECT m.* FROM movies m " +
                 "JOIN schedules s ON m.movie_id = s.movie_id " +

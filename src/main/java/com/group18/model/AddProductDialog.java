@@ -6,7 +6,6 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
@@ -16,24 +15,95 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 
+/**
+ * AddProductDialog is a dialog window used for adding new products. It provides
+ * a user interface for entering product details such as name, price, stock,
+ * category, and an optional product image.
+ *
+ * This class extends the Dialog class and returns a Product object upon
+ * successful completion. It manages input validations and displays validation
+ * errors to ensure proper input from the user.
+ */
 public class AddProductDialog extends Dialog<Product> {
+    /**
+     * Represents an instance of ProductDAO used for managing product-related operations.
+     * This variable is utilized to perform CRUD operations on products, manage stock levels,
+     * and interact with the database for retrieving and modifying product data.
+     */
     private ProductDAO productDAO;
+    /**
+     * Represents a text input field for entering the name of a product
+     * in the dialog for adding or editing product details.
+     * This field is used to capture and display the name of the product.
+     */
     private TextField nameField;
+    /**
+     * Represents the input field for entering the price of a product.
+     * This field is used within the dialog to capture or modify the price information.
+     * It is associated with the Product's price attribute, which is managed as a BigDecimal.
+     */
     private TextField priceField;
+    /**
+     * This TextField is used for inputting the stock quantity of a product.
+     * It allows the user to specify or adjust the current inventory level
+     * of the product within the AddProductDialog interface.
+     *
+     * The stockField is an integral part of the product addition form and
+     * requires appropriate data validation to ensure only valid stock
+     * quantities are entered by the user.
+     */
     private TextField stockField;
+    /**
+     * A graphical element used to preview the image associated with the product.
+     * This field is tied to the product's image data and displays the current image in the dialog.
+     * It is used within the AddProductDialog class to provide visual feedback to the user when selecting or editing an image.
+     */
     private ImageView imagePreview;
+    /**
+     * A ComboBox component used for selecting a product category in the AddProductDialog.
+     * This ComboBox is populated with predefined product categories (e.g., 'beverage', 'biscuit', 'toy')
+     * and serves as a mechanism to categorize products being entered or edited in the application.
+     */
     private ComboBox<String> categoryComboBox;
+    /**
+     * Stores the binary image data for the product being added or edited within the dialog.
+     * This data is typically used for displaying a preview of the image or associating it with a product instance.
+     * If no image is selected or set, this byte array might remain null or empty.
+     */
     private byte[] currentImageData;
 
+    /**
+     * Constructs a new AddProductDialog instance.
+     * This dialog allows users to input details for adding a new product
+     * and integrates with the provided ProductDAO for performing operations.
+     *
+     * @param productDAO the ProductDAO object used to manage product-related operations
+     */
     public AddProductDialog(ProductDAO productDAO) {
         this.productDAO = productDAO;
         setupDialog();
     }
 
+    /**
+     * Configures and initializes the dialog for adding a new product.
+     * This method sets the dialog's title and header, creates necessary
+     * input fields for product details (such as name, price, stock, category,
+     * and image), and arranges them in a layout.
+     *
+     * The dialog includes:
+     * - Text fields for entering product name, price, and stock.
+     * - A combo box for selecting the product category.
+     * - An image preview section with a button to select an image.
+     * - Validation to ensure all required inputs are valid before enabling
+     *   the confirmation button.
+     * - A mechanism to set a default image if no image is selected.
+     *
+     * The layout is managed using a GridPane, and the dialog content is constructed
+     * by assembling all the fields and components together. This method also specifies
+     * the behavior for the result converter to create a product when the OK button
+     * is pressed, and adds the default image when initializing the dialog.
+     */
     private void setupDialog() {
         setTitle("Add New Product");
         setHeaderText("Enter product details");
@@ -86,6 +156,17 @@ public class AddProductDialog extends Dialog<Product> {
         setDefaultImage();
     }
 
+    /**
+     * Opens a file chooser dialog for the user to select an image file, updates the image preview,
+     * and reads the image data into a byte array for further use. If the user does not select a file
+     * or an error occurs during file reading, appropriate actions such as default image restoration
+     * or error display are performed.
+     *
+     * This method supports common image file formats including PNG, JPG, JPEG, and GIF.
+     * If a valid file is selected, it updates the `imagePreview` control with the selected image
+     * and stores the image data in the `currentImageData` field. In the event of an error during
+     * the file-reading process, the method sets a default image and displays an error message.
+     */
     private void handleSelectImage() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select Product Image");
@@ -110,6 +191,18 @@ public class AddProductDialog extends Dialog<Product> {
         }
     }
 
+    /**
+     * Sets the default image for the image preview in the dialog.
+     *
+     * This method loads a default "no-image" placeholder from the resources folder
+     * and assigns it to the image preview. The placeholder is loaded from the path
+     * "/images/no-image.png". If the image is successfully loaded, it is displayed
+     * in the image preview component. If the loading fails due to an I/O exception
+     * or the resource is not found, the image preview will not display anything.
+     *
+     * Any encountered I/O errors during the loading process are logged to the
+     * standard error output.
+     */
     private void setDefaultImage() {
         try {
             InputStream defaultImageStream = getClass().getResourceAsStream("/images/no-image.png");
@@ -124,6 +217,16 @@ public class AddProductDialog extends Dialog<Product> {
         }
     }
 
+    /**
+     * Configures validation rules for the dialog's input fields and updates
+     * the state of the OK button based on the validity of the inputs.
+     *
+     * The method applies the following validations:
+     * - Ensures the price field allows only decimal values.
+     * - Ensures the stock field contains only positive integers.
+     * - Monitors all input fields and enables the OK button only when all
+     *   fields have valid values and necessary inputs are provided.
+     */
     private void setupValidation() {
         // Price validation - allow decimal numbers only
         priceField.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -151,6 +254,16 @@ public class AddProductDialog extends Dialog<Product> {
         categoryComboBox.valueProperty().addListener((obs, old, newVal) -> validateOkButton(okButton));
     }
 
+    /**
+     * Validates the state of the "OK" button based on input fields' validity.
+     * The button is enabled only if all required fields are valid:
+     * - The name field is not empty.
+     * - The price field is not empty.
+     * - The stock field is not empty.
+     * - A category is selected in the category combo box.
+     *
+     * @param okButton the "OK" button to enable or disable based on the field validations
+     */
     private void validateOkButton(Button okButton) {
         boolean isValid = !nameField.getText().trim().isEmpty() &&
                 !priceField.getText().isEmpty() &&
@@ -160,6 +273,13 @@ public class AddProductDialog extends Dialog<Product> {
         okButton.setDisable(!isValid);
     }
 
+    /**
+     * Creates a new product based on user input, attempts to save it to the database,
+     * and returns the created product if successful.
+     * Handles input validation and error reporting.
+     *
+     * @return the created Product object if successful, or null if an error occurs during creation or saving.
+     */
     private Product createProduct() {
         try {
             Product newProduct = new Product(
@@ -177,6 +297,12 @@ public class AddProductDialog extends Dialog<Product> {
         }
     }
 
+    /**
+     * Displays an error message in a dialog box.
+     *
+     * @param title   the title of the error dialog
+     * @param content the error message content to be displayed
+     */
     private void showError(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);

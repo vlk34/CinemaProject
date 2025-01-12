@@ -8,6 +8,11 @@ import javafx.scene.control.ButtonType;
 import com.group18.controller.cashier.CashierController;
 import java.util.Optional;
 
+/**
+ * Controller class for the action bar in the cashier section of the application.
+ * This class handles the navigation between stages of the cashier process, such as movie selection,
+ * session selection, seat selection, and customer details.
+ */
 public class CashierActionBarController {
     @FXML private Button cancelButton;
     @FXML private Button backButton;
@@ -15,6 +20,12 @@ public class CashierActionBarController {
 
     private CashierController mainController;
 
+    /**
+     * Validates if the current stage has valid data to proceed.
+     * The validation logic varies depending on the stage of the cashier process.
+     *
+     * @return true if the current stage is valid, false otherwise.
+     */
     private boolean validateCurrentStage() {
         if (mainController == null) return false;
 
@@ -48,6 +59,13 @@ public class CashierActionBarController {
         }
     }
 
+    /**
+     * Updates the states of the action buttons (Back and Next) based on the current stage.
+     * The back button is disabled on the first stage, and the next button is disabled
+     * if the current stage is not valid.
+     *
+     * @param currentStage The index of the current stage in the cashier process.
+     */
     public void updateButtonStates(int currentStage) {
         // Disable back button on first stage
         backButton.setDisable(currentStage == 0);
@@ -60,21 +78,30 @@ public class CashierActionBarController {
             nextButton.setText("Next");
             nextButton.setDisable(!validateCurrentStage());
         }
-
-        // Disable next button if current stage isn't valid
-
     }
 
+    /**
+     * Sets the main controller for the action bar.
+     *
+     * @param controller The main controller of the cashier process.
+     */
     public void setMainController(CashierController controller) {
         this.mainController = controller;
     }
 
+    /**
+     * Initializes the action bar by setting the button states.
+     */
     @FXML
     private void initialize() {
         // Disable back button on first stage
         updateButtonStates(0);
     }
 
+    /**
+     * Handles the cancel action by displaying a confirmation dialog.
+     * If confirmed, the transaction is reset and all progress is lost.
+     */
     @FXML
     private void handleCancel() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -89,6 +116,10 @@ public class CashierActionBarController {
         }
     }
 
+    /**
+     * Handles the back action by navigating to the previous stage.
+     * The button state is updated after the stage change.
+     */
     @FXML
     private void handleBack() {
         if (mainController != null) {
@@ -97,6 +128,10 @@ public class CashierActionBarController {
         }
     }
 
+    /**
+     * Handles the next action by navigating to the next stage.
+     * The current stage is validated before proceeding to the next stage.
+     */
     @FXML
     private void handleNext() {
         if (mainController != null) {

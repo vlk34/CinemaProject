@@ -22,6 +22,10 @@ import java.time.format.DateTimeFormatter;
 
 import static com.group18.controller.cashier.stageSpecificFiles.CashierCustomerDetailsController.clearPersistentDetailsStatic;
 
+/**
+ * Controller class responsible for handling the cashier header section in the cashier interface.
+ * This includes displaying the current time, cashier's name, role, and handling the logout functionality.
+ */
 public class CashierHeaderController {
     @FXML private Label timeLabel;
     @FXML private Label cashierNameLabel;
@@ -33,29 +37,43 @@ public class CashierHeaderController {
     private User currentCashier;
     private CashierController mainController;
 
+    /**
+     * Initializes the controller by setting up the clock and the user DAO.
+     */
     @FXML
     private void initialize() {
         userDAO = new UserDAO();
-        // Initialize clock, but no need to call initializeUserInfo here
         initializeClock();
     }
 
+    /**
+     * Sets the main controller for the header, allowing access to the cashier's information.
+     *
+     * @param controller The main controller of the cashier interface.
+     */
     public void setMainController(CashierController controller) {
         this.mainController = controller;
         if (mainController != null) {
             System.out.println("main controller in header controller is not null ");
-            // Now that mainController is set, initialize the user info
             initializeUserInfoAfterControllerSet();
         }
     }
 
+    /**
+     * Validates and sets the current cashier from a given user.
+     *
+     * @param user The user to validate and set as the current cashier.
+     */
     public void getValidUser(User user) {
         this.currentCashier = user;
     }
 
+    /**
+     * Initializes user information after the main controller is set.
+     * This ensures that the current cashier's information is populated correctly.
+     */
     private void initializeUserInfoAfterControllerSet() {
         if (mainController != null) {
-            // returns null
             currentCashier = mainController.getCurrentUser();
             initializeUserInfo();
         } else {
@@ -63,6 +81,10 @@ public class CashierHeaderController {
         }
     }
 
+    /**
+     * Initializes and populates the cashier's information in the UI,
+     * such as the cashier's full name and role.
+     */
     private void initializeUserInfo() {
         try {
 
@@ -96,6 +118,10 @@ public class CashierHeaderController {
         }
     }
 
+    /**
+     * Initializes the clock to display the current time in the format HH:mm:ss.
+     * The clock updates every second.
+     */
     private void initializeClock() {
         clock = new Timeline(new KeyFrame(Duration.ZERO, e -> {
             LocalDateTime now = LocalDateTime.now();
@@ -107,6 +133,10 @@ public class CashierHeaderController {
         clock.play();
     }
 
+    /**
+     * Handles the logout action. This method stops the clock, clears persistent customer details,
+     * and redirects to the login screen.
+     */
     @FXML
     private void handleLogout() {
         try {
@@ -135,16 +165,17 @@ public class CashierHeaderController {
         }
     }
 
+    /**
+     * Displays an error alert with a given title and content.
+     *
+     * @param title   The title of the error alert.
+     * @param content The content/message of the error alert.
+     */
     private void showError(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(content);
         alert.showAndWait();
-    }
-
-    // Getter for current cashier (might be needed by other components)
-    public User getCurrentCashier() {
-        return currentCashier;
     }
 }

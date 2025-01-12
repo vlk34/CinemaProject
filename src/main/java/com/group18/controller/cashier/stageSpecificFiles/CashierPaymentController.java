@@ -1,4 +1,3 @@
-// CashierPaymentController.java
 package com.group18.controller.cashier.stageSpecificFiles;
 
 import com.group18.controller.cashier.CashierController;
@@ -16,14 +15,13 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.control.TextField;
+
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.swing.text.Document;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
@@ -31,42 +29,241 @@ import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import java.awt.Desktop;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.ByteArrayOutputStream;
 
-import javafx.stage.FileChooser;
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.*;
 
+/**
+ * Controller class responsible for managing the cashier payment process in a JavaFX application.
+ * Handles the interaction between the cashier and the application's backend services, enabling
+ * the display, management, and processing of user transactions including order items, customer
+ * details, and payments.
+ *
+ * Key Responsibilities:
+ * - Initialize and configure UI components for the cashier payment workflow.
+ * - Load and display cart details, including customer information and order items.
+ * - Handle the payment process, including user confirmation, order persistence, and receipt generation.
+ * - Integrate with external data access objects (DAO) to manage orders, products, users, and movies.
+ *
+ * Dependencies:
+ * - Relies on various DAOs for data retrieval and persistence.
+ * - Uses the shopping cart controller for accessing cart-related information.
+ * - Interacts with the `CashierController` to retrieve cashier and session-specific details.
+ *
+ * Fields:
+ * - Contains multiple fields related to UI components, data models, and DAOs used in the cashier workflow.
+ *
+ * Methods:
+ * - Provides various functionalities including setting up the table, loading order details,
+ *   processing payments, and generating receipts.
+ */
 public class CashierPaymentController {
+    /**
+     * A Label field used to display the title of a selected movie.
+     * This label is part of the user interface and is updated to show the
+     * movie name relevant to the current transaction or order.
+     *
+     * This field is annotated with @FXML, indicating that it is linked
+     * to a corresponding element in the application's FXML layout file.
+     */
     @FXML private Label movieTitleLabel;
+    /**
+     * Represents a label in the user interface for displaying the cinema hall associated
+     * with the user's booking or selection during the payment process.
+     *
+     * This label is part of the `CashierPaymentController` and is used to provide
+     * visual feedback about the specific hall where a movie or event will take place.
+     */
     @FXML private Label hallLabel;
+    /**
+     * Represents a JavaFX Label used to display the session information
+     * in the payment interface of the CashierPaymentController.
+     *
+     * This label holds and represents the session details such as timing
+     * or venue associated with a specific movie booking, allowing clear
+     * identification and presentation to the cashier or user.
+     */
     @FXML private Label sessionLabel;
+    /**
+     * Represents a label element in the user interface displaying seat information.
+     *
+     * This label is used to show details about the selected seats for a specific order
+     * or booking within the cashier payment system.
+     *
+     * It is typically updated dynamically during the transaction process to indicate
+     * the selected seat IDs or availability.
+     */
     @FXML private Label seatsLabel;
+    /**
+     * Represents a label for displaying the name of the customer in the CashierPaymentController.
+     *
+     * This label is used within the user interface to show the customer's name
+     * during the transaction process in the payment section. It is dynamically updated
+     * based on the customer's details associated with the current order.
+     */
     @FXML private Label customerNameLabel;
+    /**
+     * Represents the label in the user interface that displays age-based discount information for the current transaction.
+     *
+     * This label is typically updated dynamically to reflect the discount applicable based on the customer's age group,
+     * such as child, adult, or senior discounts, during the payment process in the cashier system.
+     */
     @FXML private Label ageDiscountLabel;
+    /**
+     * Label for displaying the total amount due in the cashier payment interface.
+     * This label is dynamically updated to reflect the amount to be paid by the customer
+     * for the current transaction. The value displayed is typically formatted as currency.
+     *
+     * It is part of the user interface elements controlled by the CashierPaymentController class.
+     */
     @FXML private Label amountDueLabel;
+    /**
+     * A JavaFX Button that triggers the payment processing workflow in the cashier system.
+     *
+     * This button is part of the user interface for the payment process. It is expected
+     * to be associated with an event handler that executes the logic for processing a payment
+     * when the button is clicked. The functionality typically involves validating payment details,
+     * confirming transactions, and updating the system with the payment information.
+     */
     @FXML private Button processPaymentButton;
 
+    /**
+     * A JavaFX TableView designed to display the details of order items in the context
+     * of a cashier payment interface.
+     *
+     * Each row in the table represents an order item, including information such as
+     * the item name, quantity, unit price, and total price. The table is dynamically
+     * populated with data from instances of {@link OrderItemTable}.
+     */
     @FXML private TableView<OrderItemTable> orderItemsTable;
+    /**
+     * The TableColumn representing the "Item Name" field for an order item in the table view.
+     * This column is used to display the name of each item in an order within the
+     * associated {@link TableView} in the user interface.
+     *
+     * It is bound to the `itemName` property in the {@link OrderItemTable} model, enabling
+     * the display of item names in the table and supporting dynamic updates when data changes.
+     */
     @FXML private TableColumn<OrderItemTable, String> itemNameColumn;
+    /**
+     * Represents a column in a TableView for displaying the quantity of items in an order.
+     *
+     * This TableColumn is associated with the `quantity` property of the `OrderItemTable` class.
+     * It is used to display and manipulate the quantity of a given order item within the user interface.
+     */
     @FXML private TableColumn<OrderItemTable, Integer> quantityColumn;
+    /**
+     * Represents a table column in the order items table that displays the price of each item.
+     * This column is bound to the {@code price} property from the {@link OrderItemTable} model class.
+     * It is used to show the unit price of an order item in a JavaFX TableView.
+     */
     @FXML private TableColumn<OrderItemTable, Double> priceColumn;
+    /**
+     * Represents the "Total" column in the table view within the cashier payment interface.
+     * This column is used to display the total price of each order item, which is calculated
+     * as the product of the quantity and unit price.
+     *
+     * The column is associated with the {@code total} property of the {@link OrderItemTable} class
+     * and allows for dynamic updates in the table view when the underlying data changes.
+     */
     @FXML private TableColumn<OrderItemTable, Double> totalColumn;
 
+    /**
+     * Represents a reference to the CashierController instance used for managing
+     * cashier-related operations within the CashierPaymentController.
+     * This variable is used to delegate cashier-specific tasks such as handling
+     * payments, orders, and managing cashier data, ensuring the separation of
+     * concerns between the payment controller and cashier logic.
+     */
     private CashierController cashierController;
+    /**
+     * Represents the shopping cart that holds the items and details related
+     * to the current transaction or order being processed.
+     *
+     * It is used to manage the state and information of the current order
+     * within the CashierPaymentController workflow, such as selected items,
+     * quantities, prices, and other order-related data.
+     */
     private ShoppingCart cart;
+    /**
+     * Represents the Data Access Object (DAO) for handling operations related to orders.
+     * Provides an interface to communicate with the underlying database or data source for
+     * performing order-related CRUD operations, such as retrieval, creation, updating, and deletion.
+     * Used primarily within the {@code CashierPaymentController} for managing order data.
+     */
     private OrderDAO orderDAO;
+    /**
+     * Handles interactions with user data in the database.
+     * Provides high-level access to the UserDAO for performing CRUD operations
+     * and user-related queries within the context of the CashierPaymentController.
+     */
     private UserDAO userDAO;
+    /**
+     * Represents the data access object (DAO) responsible for handling operations
+     * related to Product entities in the system. This variable provides an interface
+     * for interacting with the data layer, enabling CRUD (Create, Read, Update, Delete)
+     * operations associated with products. It is used to facilitate the retrieval and
+     * manipulation of product-related data from a persistent storage.
+     */
     private ProductDAO productDAO;
+    /**
+     * Represents a MovieDAO instance used to interact with the movies database table.
+     * Provides CRUD operations (Create, Read, Update, Delete) for managing movie data.
+     * Used within the CashierPaymentController to retrieve or manipulate movie-related information.
+     */
     private MovieDAO movieDAO;
+    /**
+     * Represents the currently logged-in cashier in the payment process.
+     *
+     * This variable is used to store the User object of the cashier who is managing
+     * the current transaction. It contains information about the cashier, such as
+     * their username, role, and personal details (e.g., first name and last name).
+     *
+     * By maintaining the context of the current cashier, this variable ensures that
+     * the system can track and log which user performed the transaction for auditing
+     * and operational purposes.
+     */
     private User currentCashier;
+    /**
+     * Represents the total monetary amount currently associated with the transaction.
+     *
+     * This variable is used to store the cumulative total of all item prices and
+     * any associated costs for the transaction in the application. It is updated
+     * as items are added or modified in the user's cart and reflects the final
+     * amount due for payment.
+     *
+     * The value is initialized to BigDecimal.ZERO to ensure a default starting
+     * state and to prevent null-related issues during calculations.
+     */
     private BigDecimal totalAmount = BigDecimal.ZERO;
+    /**
+     * Represents the observable list of order items to be displayed in the table view.
+     * This list serves as the data source for the table that visualizes the order details
+     * in the CashierPaymentController.
+     *
+     * Each element in the list is an instance of the OrderItemTable class, which encapsulates
+     * the properties of an individual order item, such as name, quantity, price, and total.
+     *
+     * The ObservableList is managed to automatically notify the UI components of any
+     * updates, such as additions, removals, or modifications of table items.
+     */
     private ObservableList<OrderItemTable> tableItems = FXCollections.observableArrayList();
+
+    /**
+     * Initializes the CashierPaymentController by setting up necessary components and dependencies.
+     * This method is automatically invoked during the loading of the JavaFX controller.
+     *
+     * Responsibilities:
+     * - Initializes the shopping cart instance shared across the application.
+     * - Instantiates Data Access Object (DAO) classes to interact with persistent storage for orders, users, products, and movies.
+     * - Calls setupTable() to prepare and configure the table view for displaying order-related items during the cashier's transaction.
+     * - Sets the current cashier reference to null as part of the initialization process.
+     */
     @FXML
     private void initialize() {
         cart = ShoppingCart.getInstance();
@@ -79,6 +276,21 @@ public class CashierPaymentController {
         currentCashier = null;
     }
 
+    /**
+     * Configures the table view to display order item details, including item name, quantity,
+     * unit price, and total price. The method sets cell value factories for columns to bind
+     * data properties and applies styling and formatting rules.
+     *
+     * The item name, quantity, and total columns are aligned to the center, while the price
+     * and total columns are formatted to display currency in the Turkish locale.
+     *
+     * Table data is populated using the `tableItems` observable list.
+     *
+     * Responsibilities include:
+     * - Binding data properties from the `OrderItemTable` model to their respective table columns.
+     * - Applying styles to align the text content for all columns.
+     * - Formatting numeric values in the price and total columns as currency.
+     */
     private void setupTable() {
         itemNameColumn.setCellValueFactory(new PropertyValueFactory<>("itemName"));
         itemNameColumn.setStyle("-fx-alignment: CENTER;");
@@ -122,6 +334,14 @@ public class CashierPaymentController {
         orderItemsTable.setItems(tableItems);
     }
 
+    /**
+     * Sets the CashierController instance and initializes related components.
+     * This method is responsible for updating the current cashier, handling any errors
+     * related to authentication, and loading the order details into the view.
+     *
+     * @param controller the CashierController instance to be set, managing cashier-specific
+     * operations and user authentication details.
+     */
     public void setCashierController(CashierController controller) {
         this.cashierController = controller;
 
@@ -135,6 +355,19 @@ public class CashierPaymentController {
         loadOrderDetails();
     }
 
+    /**
+     * Loads order details and updates the relevant UI components for the cashier payment process.
+     * This method retrieves the selected movie and session information from the
+     * CashierController, calculates the total amount due including tax, and displays it
+     * along with other relevant details such as seat information and customer details.
+     * The order items are also loaded into the table for display.
+     *
+     * The method performs the following key tasks:
+     * 1. Sets basic details such as movie title, session time, hall, and selected seats.
+     * 2. Retrieves subtotal and tax amounts from the cart controller and calculates the total amount.
+     * 3. Updates customer-related information.
+     * 4. Populates the table with order items.
+     */
     private void loadOrderDetails() {
         Movie movie = cashierController.getSelectedMovie();
         MovieSession session = cashierController.getSelectedSession();
@@ -163,6 +396,30 @@ public class CashierPaymentController {
         loadTableItems();
     }
 
+    /**
+     * Refreshes and populates the `tableItems` list by processing the current items in the cart.
+     * This method retrieves and calculates details for each item including name, price, quantity,
+     * and total cost, and adds them to the `tableItems` collection. Additionally, a tax row is
+     * appended to the collection.
+     *
+     * Functionality:
+     * - Clears the existing `tableItems` list.
+     * - Retrieves the active items and their details from the cart controller.
+     * - Processes only visible cart items in the user interface (UI).
+     * - Extracts item details including name, price, and quantity.
+     * - Identifies if the item has a discount and uses the discounted price if available.
+     * - Calculates the price and total cost for each item.
+     * - Adds a tax row to `tableItems` using the tax value retrieved from the cart controller.
+     *
+     * Error handling:
+     * - Catches and logs exceptions that occur during item processing or tax row addition.
+     *
+     * Precondition:
+     * - The `cartController` must be properly initialized and contain the latest cart state.
+     *
+     * Postcondition:
+     * - The `tableItems` list contains all updated cart items along with a tax row, ready for display or processing.
+     */
     private void loadTableItems() {
         tableItems.clear();
 
@@ -224,6 +481,19 @@ public class CashierPaymentController {
         }
     }
 
+    /**
+     * Populates customer-related details from the cart and updates the respective labels
+     * on the UI to reflect the occupant's name and discount status.
+     *
+     * This method iterates through the items in the shopping cart, searching for an item
+     * of type "ticket". If such an item is found, the occupant's first and last names
+     * are combined and displayed on the customer name label. Additionally, the method
+     * checks whether an age-related discount has been applied to the ticket and updates
+     * the discount status label accordingly.
+     *
+     * The customer name and discount labels are only updated if a "ticket" item exists
+     * in the cart.
+     */
     private void setCustomerDetailsFromCart() {
         cart.getItems().stream()
                 .filter(item -> "ticket".equals(item.getItemType()))
@@ -237,6 +507,25 @@ public class CashierPaymentController {
                 });
     }
 
+    /**
+     * Handles the process of confirming and executing a payment transaction.
+     *
+     * This method is triggered when the user initiates a payment action. It displays a
+     * confirmation dialog to the user, prompting them to confirm the payment. If the user
+     * confirms the action, the payment is processed using the {@code processPayment} method.
+     *
+     * The method ensures the payment workflow is performed only after user confirmation,
+     * enhancing the transaction security and preventing unintended actions.
+     *
+     * Steps included in this method:
+     * 1. Display a confirmation dialog using {@code showConfirmationDialog}.
+     * 2. If the user confirms (by clicking OK), invoke the {@code processPayment} method
+     *    to handle the payment logic.
+     *
+     * This function relies on helper methods {@code showConfirmationDialog} and
+     * {@code processPayment} to perform its tasks. These methods are responsible for
+     * user interaction and backend processing, respectively.
+     */
     @FXML
     private void handleProcessPayment() {
         Optional<ButtonType> result = showConfirmationDialog();
@@ -245,6 +534,15 @@ public class CashierPaymentController {
         }
     }
 
+    /**
+     * Displays a confirmation dialog to the user for processing a payment.
+     * The dialog contains a title, a header, and a content message asking
+     * the user to confirm their action. The dialog supports waiting for the
+     * user's response.
+     *
+     * @return an Optional containing the user's response as a ButtonType,
+     *         which might be empty if no response is provided
+     */
     private Optional<ButtonType> showConfirmationDialog() {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Confirm Payment");
@@ -253,6 +551,23 @@ public class CashierPaymentController {
         return confirm.showAndWait();
     }
 
+    /**
+     * Processes the payment for the current transaction.
+     *
+     * This method validates that an authenticated cashier is available.
+     * It creates an order from the shopping cart and assigns the current cashier's
+     * user ID to the order. The order is then submitted to the data access object
+     * (DAO) for persistence. If the order is successfully created, the method
+     * generates tickets and a receipt, displays a success dialog, and resets
+     * the transaction state. If the order creation fails, an error dialog is displayed
+     * to notify the cashier of the failure.
+     *
+     * Error scenarios:
+     * - If there is no authenticated cashier (`currentCashier` is null), the method
+     *   will display a "System Error" alert and stop further processing.
+     * - If the order could not be persisted (DAO failure), a "Payment Failed" alert
+     *   will be displayed.
+     */
     private void processPayment() {
         if (currentCashier == null) {
             showError("System Error", "No authenticated cashier found.");
@@ -272,6 +587,15 @@ public class CashierPaymentController {
         }
     }
 
+    /**
+     * Generates a PDF receipt for the given order.
+     * The receipt includes details such as cashier information, transaction date, order items,
+     * and totals (subtotal, tax, and total). It is formatted using a font that supports Turkish characters.
+     *
+     * @param order the {@code Order} object containing details of the transaction such as items purchased,
+     *              customer information, cashier, and order date.
+     * @return a byte array representing the generated PDF receipt. Returns {@code null} if an error occurs during PDF generation.
+     */
     private byte[] generateReceiptPDF(Order order) {
         try {
             // Use a font that supports Turkish characters
@@ -428,7 +752,14 @@ public class CashierPaymentController {
         }
     }
 
-    // Helper method to add a row to a details table
+    /**
+     * Adds a row with a label and a corresponding value to the provided PDF table.
+     *
+     * @param table the PdfPTable to which the row will be added
+     * @param label the text to display in the label cell
+     * @param value the text to display in the value cell
+     * @param font  the font to be used for styling the text in the cells
+     */
     private void addTableRow(PdfPTable table, String label, String value, BaseFont font) {
         Font labelFont = new Font(font, 10, Font.BOLD);
         Font valueFont = new Font(font, 10, Font.NORMAL);
@@ -444,7 +775,16 @@ public class CashierPaymentController {
         table.addCell(valueCell);
     }
 
-    // Helper method to add a row to the totals table
+    /**
+     * Adds a row to a PDF table displaying a total amount with a label and value.
+     * This method uses custom fonts for label and value styling and aligns
+     * the content to the right.
+     *
+     * @param table the PdfPTable to which the row will be added
+     * @param label the label describing the total (e.g., "Subtotal", "Tax", "Total")
+     * @param value the total value corresponding to the label
+     * @param font the BaseFont used to style the label and value text
+     */
     private void addTotalRow(PdfPTable table, String label, String value, BaseFont font) {
         Font labelFont = new Font(font, 10, Font.BOLD);
         Font valueFont = new Font(font, 10, Font.NORMAL);
@@ -460,6 +800,12 @@ public class CashierPaymentController {
         table.addCell(valueCell);
     }
 
+    /**
+     * Retrieves the name or description of an item based on its type and related details.
+     *
+     * @param item the object representing the order item, containing details such as item type, schedule ID, seat number, or product ID
+     * @return the name or description of the item, such as the movie ticket description or the product name; returns "Unknown Item" if the type is unrecognized
+     */
     private String getItemName(OrderItem item) {
         if ("ticket".equals(item.getItemType())) {
             // Use MovieDAO to fetch movie details
@@ -474,7 +820,17 @@ public class CashierPaymentController {
         return "Unknown Item";
     }
 
-    // Convert seat number back to seat ID (A1, B2, etc.)
+    /**
+     * Converts a numeric seat number into a seat ID string representation based
+     * on the layout of the cinema hall. The format of the seat ID is a combination
+     * of a row letter (e.g., 'A', 'B') and a column number (e.g., '1', '2').
+     * The specific hall layout determines the number of columns in the hall.
+     *
+     * @param seatNumber the numeric seat number to be converted, where the first seat
+     *                   starts from 1 and is incremented sequentially.
+     * @return the string representation of the seat ID, combining the row letter
+     *         and column number (e.g., "A1", "B3").
+     */
     private String convertNumberToSeatId(int seatNumber) {
         MovieSession session = cashierController.getSelectedSession();
         int cols = session.getHall().equals("Hall_A") ? 4 : 8;
@@ -483,6 +839,11 @@ public class CashierPaymentController {
         return String.format("%c%d", (char)('A' + row), col);
     }
 
+    /**
+     * Generates the receipt and tickets for the given order and stores them in the database.
+     *
+     * @param order the order for which receipt and tickets are to be generated and stored
+     */
     private void generateTicketsAndReceipt(Order order) {
         byte[] receiptPdf = generateReceiptPDF(order);
         byte[] ticketsPdf = generateTicketsPDF(order);
@@ -494,6 +855,17 @@ public class CashierPaymentController {
         }
     }
 
+    /**
+     * Generates a PDF document for the tickets associated with the given order.
+     * The PDF includes details such as movie information, session details,
+     * seat numbers, pricing, and other relevant information in a format suitable
+     * for printing or digital distribution.
+     *
+     * @param order the {@code Order} object containing the details of
+     *              the tickets and products to be included in the PDF
+     * @return a byte array representing the generated PDF document,
+     *         or {@code null} if an error occurs during generation
+     */
     private byte[] generateTicketsPDF(Order order) {
         try {
             // Use a font that supports Turkish characters
@@ -629,6 +1001,14 @@ public class CashierPaymentController {
         }
     }
 
+    /**
+     * Displays a dialog to view the tickets associated with a specific order ID.
+     * This method retrieves the ticket PDF for the given order, temporarily saves it to a file,
+     * and opens it using the system's default PDF viewer. If no tickets are found or an error occurs,
+     * appropriate error dialogs are displayed.
+     *
+     * @param orderId the ID of the order whose tickets need to be displayed
+     */
     private void showTicketsDialog(int orderId) {
         byte[] ticketsPdf = orderDAO.retrieveTickets(orderId);
 
@@ -664,7 +1044,13 @@ public class CashierPaymentController {
         }
     }
 
-    // Add a new method to show the receipt after payment
+    /**
+     * Displays a receipt dialog for a specific order by loading the associated receipt PDF.
+     * If the receipt is found, it is displayed in the system's default PDF viewer.
+     * If an error occurs or the receipt is not found, an alert is shown to the user.
+     *
+     * @param orderId The unique identifier of the order for which the receipt will be displayed.
+     */
     private void showReceiptDialog(int orderId) {
         byte[] receiptPdf = orderDAO.retrieveReceipt(orderId);
 
@@ -700,6 +1086,17 @@ public class CashierPaymentController {
         }
     }
 
+    /**
+     * Displays a success dialog after the payment is processed successfully.
+     * The dialog includes options to view the receipt, view the tickets,
+     * or acknowledge the success via an OK button. Buttons for viewing the
+     * receipt and tickets prevent the dialog from closing, allowing users
+     * to interact with them without dismissing the dialog.
+     *
+     * @param orderId the unique identifier of the order associated with
+     *                the payment. This ID is used to retrieve the receipt
+     *                and tickets for the order.
+     */
     private void showSuccessDialog(int orderId) {
         Alert success = new Alert(Alert.AlertType.INFORMATION);
         success.setTitle("Payment Successful");
@@ -741,6 +1138,20 @@ public class CashierPaymentController {
         }
     }
 
+    /**
+     * Resets the current transaction by clearing the shopping cart and resetting the
+     * associated cashier controller's transaction state.
+     *
+     * This method performs the following operations:
+     * 1. Logs the current cart size before clearing its contents.
+     * 2. Clears all items from the cart.
+     * 3. Logs the updated cart size after it has been cleared.
+     * 4. Invokes the resetTransaction method of the cashier controller to reset the
+     *    transaction state and interface.
+     *
+     * Use this method to ensure all transaction data is properly cleared and ready
+     * for a new transaction to be started.
+     */
     private void resetTransaction() {
         System.out.println("Resetting transaction. Cart size before clear: " + cart.getItems().size());
         cart.clear();
@@ -748,11 +1159,25 @@ public class CashierPaymentController {
         cashierController.resetTransaction();
     }
 
+    /**
+     * Formats a given monetary amount into a currency string representation
+     * based on the locale specifications for Turkey (tr-TR).
+     *
+     * @param amount the monetary amount to be formatted, represented as a BigDecimal
+     * @return the formatted currency string, including currency symbol and appropriate formatting
+     */
     private String formatCurrency(BigDecimal amount) {
         NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("tr", "TR"));
         return formatter.format(amount);
     }
 
+    /**
+     * Displays an error alert dialog to the user with the provided title and content.
+     * This method is used to show error messages in a uniform and user-friendly manner.
+     *
+     * @param title the title of the error dialog, which provides a summary of the issue
+     * @param content the content of the error dialog, which describes the error in detail
+     */
     private void showError(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);

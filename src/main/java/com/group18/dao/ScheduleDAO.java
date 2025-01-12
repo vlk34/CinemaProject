@@ -8,13 +8,25 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Data Access Object (DAO) for interacting with the "schedules" table in the database.
+ * Provides methods for CRUD operations related to movie schedules.
+ */
 public class ScheduleDAO {
     private Connection connection;
 
+    /**
+     * Constructs a new ScheduleDAO object with a database connection.
+     */
     public ScheduleDAO() {
         this.connection = DBConnection.getConnection();
     }
 
+    /**
+     * Retrieves all schedules from the "schedules" table.
+     *
+     * @return A list of all schedules in the database.
+     */
     public List<Schedule> getAllSchedules() {
         String query = "SELECT * FROM schedules";
         List<Schedule> schedules = new ArrayList<>();
@@ -31,6 +43,12 @@ public class ScheduleDAO {
         return schedules;
     }
 
+    /**
+     * Retrieves schedules for a given month and year.
+     *
+     * @param monthDate The month and year to filter schedules by.
+     * @return A list of schedules that occur in the specified month.
+     */
     public List<Schedule> getSchedulesByMonth(LocalDate monthDate) {
         String query = "SELECT * FROM schedules WHERE MONTH(session_date) = ? AND YEAR(session_date) = ?";
         List<Schedule> schedules = new ArrayList<>();
@@ -49,6 +67,12 @@ public class ScheduleDAO {
         return schedules;
     }
 
+    /**
+     * Creates a new schedule in the database.
+     *
+     * @param schedule The schedule object to be inserted.
+     * @return True if the schedule was created successfully, false otherwise.
+     */
     public boolean createSchedule(Schedule schedule) {
         String query = "INSERT INTO schedules (movie_id, hall_id, session_date, session_time) VALUES (?, ?, ?, ?)";
 
@@ -72,6 +96,12 @@ public class ScheduleDAO {
         return false;
     }
 
+    /**
+     * Retrieves the count of available seats for a specific schedule.
+     *
+     * @param scheduleId The ID of the schedule.
+     * @return The number of available seats for the given schedule.
+     */
     public int getAvailableSeatsCount(int scheduleId) {
         String query = """
         SELECT h.capacity - COUNT(DISTINCT oi.seat_number) as available_seats
@@ -101,6 +131,13 @@ public class ScheduleDAO {
         return 0;
     }
 
+    /**
+     * Deletes a schedule from the database.
+     * A schedule can only be deleted if no tickets have been sold for it.
+     *
+     * @param scheduleId The ID of the schedule to be deleted.
+     * @return True if the schedule was successfully deleted, false otherwise.
+     */
     public boolean deleteSchedule(int scheduleId) {
         // Only allow deletion if no tickets have been sold for this schedule
         String query = """
@@ -125,6 +162,14 @@ public class ScheduleDAO {
         }
     }
 
+    /**
+     * Checks if a schedule already exists for a given hall, session date, and time.
+     *
+     * @param hallId      The ID of the hall.
+     * @param sessionDate The session date.
+     * @param sessionTime The session time.
+     * @return True if the schedule exists, false otherwise.
+     */
     public boolean isScheduleExists(int hallId, LocalDate sessionDate, LocalTime sessionTime) {
         String query = "SELECT COUNT(*) FROM schedules " +
                 "WHERE hall_id = ? " +
@@ -146,6 +191,14 @@ public class ScheduleDAO {
         return false;
     }
 
+    /**
+     * Retrieves schedules for a specific movie between two dates.
+     *
+     * @param movieId   The ID of the movie.
+     * @param startDate The start date of the range.
+     * @param endDate   The end date of the range.
+     * @return A list of schedules for the specified movie within the given date range.
+     */
     public List<Schedule> getSchedulesBetweenDates(int movieId, LocalDate startDate, LocalDate endDate) {
         String query = "SELECT * FROM schedules WHERE movie_id = ? AND session_date BETWEEN ? AND ? ORDER BY session_date";
         List<Schedule> schedules = new ArrayList<>();
@@ -165,6 +218,13 @@ public class ScheduleDAO {
         return schedules;
     }
 
+    /**
+     * Extracts a schedule object from the current row of a ResultSet.
+     *
+     * @param rs The ResultSet object containing the schedule data.
+     * @return A Schedule object populated with the data from the ResultSet.
+     * @throws SQLException If an error occurs while accessing the ResultSet.
+     */
     private Schedule extractScheduleFromResultSet(ResultSet rs) throws SQLException {
         Schedule schedule = new Schedule();
         schedule.setScheduleId(rs.getInt("schedule_id"));

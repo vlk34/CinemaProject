@@ -10,13 +10,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.math.BigDecimal;
 
+/**
+ * Data Access Object (DAO) for interacting with the 'orders' and 'order_items' tables in the database.
+ * Provides methods for creating, retrieving, updating, and deleting orders and order items.
+ */
 public class OrderDAO {
     private Connection connection;
 
+    /**
+     * Constructs an OrderDAO object and establishes a connection to the database.
+     */
     public OrderDAO() {
         this.connection = DBConnection.getConnection();
     }
 
+    /**
+     * Creates a new order and associated order items in the database.
+     *
+     * @param order The Order object containing the order details.
+     * @return true if the order is successfully created; false otherwise.
+     */
     public boolean createOrder(Order order) {
         String orderQuery = "INSERT INTO orders (cashier_id, order_date, total_price, status) VALUES (?, ?, ?, 'PENDING')";
         String itemQuery = "INSERT INTO order_items (order_id, item_type, schedule_id, seat_number, " +
@@ -115,7 +128,13 @@ public class OrderDAO {
         }
     }
 
-    // Method to restore product stock when a cancellation is processed
+
+    /**
+     * Restores the stock of products when an order is canceled.
+     *
+     * @param orderId The ID of the order to be canceled.
+     * @return true if the product stock is successfully restored; false otherwise.
+     */
     public boolean restoreProductStock(int orderId) {
         String query = """
             SELECT product_id, quantity 
@@ -146,7 +165,12 @@ public class OrderDAO {
         }
     }
 
-    // Method to restore seats when a cancellation is processed
+    /**
+     * Restores the available seats for tickets when an order is canceled.
+     *
+     * @param orderId The ID of the order to be canceled.
+     * @return true if the seats are successfully restored; false otherwise.
+     */
     public boolean restoreSeats(int orderId) {
         String query = """
             UPDATE schedules s
@@ -176,6 +200,13 @@ public class OrderDAO {
         }
     }
 
+    /**
+     * Retrieves orders from the database that fall within the specified date range.
+     *
+     * @param startDate The start of the date range.
+     * @param endDate The end of the date range.
+     * @return A list of orders within the specified date range.
+     */
     public List<Order> getOrdersByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
         String query = "SELECT * FROM orders WHERE order_date BETWEEN ? AND ?";
         List<Order> orders = new ArrayList<>();
@@ -196,6 +227,11 @@ public class OrderDAO {
         return orders;
     }
 
+    /**
+     * Retrieves all orders from the database.
+     *
+     * @return A list of all orders in the database.
+     */
     public List<Order> getAllOrders() {
         String query = "SELECT * FROM orders ORDER BY order_date DESC";
         List<Order> orders = new ArrayList<>();
@@ -214,7 +250,15 @@ public class OrderDAO {
         return orders;
     }
 
-    // Modified processCancellation to handle both product stock and seats
+    /**
+     * Processes the cancellation of an order by updating stock and seat availability.
+     * Also calculates any applicable refunds.
+     *
+     * @param orderId The ID of the order to be canceled.
+     * @param cancelProducts Whether to cancel the products in the order.
+     * @param cancelTickets Whether to cancel the tickets in the order.
+     * @return true if the cancellation is successfully processed; false otherwise.
+     */
     public boolean processCancellation(int orderId, boolean cancelProducts, boolean cancelTickets) {
         try {
             connection.setAutoCommit(false);
@@ -316,6 +360,12 @@ public class OrderDAO {
         }
     }
 
+    /**
+     * Rejects the cancellation of an order.
+     *
+     * @param orderId The ID of the order to be rejected.
+     * @return true if the cancellation is successfully rejected; false otherwise.
+     */
     public boolean rejectCancellation(int orderId) {
         String query = "UPDATE orders SET status = 'REJECTED' WHERE order_id = ? AND status = 'PENDING'";
 
@@ -328,6 +378,11 @@ public class OrderDAO {
         }
     }
 
+    /**
+     * Retrieves statistics about cancellations, including pending cancellations and processed cancellations for today.
+     *
+     * @return A CancellationStats object containing cancellation statistics.
+     */
     public CancellationStats getCancellationStats() {
         String query = """
         SELECT 
@@ -354,6 +409,12 @@ public class OrderDAO {
         return new CancellationStats(0, 0, BigDecimal.ZERO);
     }
 
+    /**
+     * Retrieves all order items associated with a specific order.
+     *
+     * @param orderId The ID of the order.
+     * @return A list of order items for the specified order.
+     */
     private List<OrderItem> getOrderItemsForOrder(int orderId) {
         String query = "SELECT * FROM order_items WHERE order_id = ?";
         List<OrderItem> items = new ArrayList<>();
@@ -371,6 +432,14 @@ public class OrderDAO {
         return items;
     }
 
+    /**
+     * Stores receipt and ticket PDFs for an order.
+     *
+     * @param orderId The ID of the order.
+     * @param receiptPdf The receipt PDF as a byte array.
+     * @param ticketsPdf The tickets PDF as a byte array.
+     * @return true if the PDFs are successfully stored; false otherwise.
+     */
     public boolean storeDocuments(int orderId, byte[] receiptPdf, byte[] ticketsPdf) {
         String query = "UPDATE orders SET receipt_pdf = ?, tickets_pdf = ? WHERE order_id = ?";
 
@@ -398,6 +467,12 @@ public class OrderDAO {
         }
     }
 
+    /**
+     * Retrieves the receipt PDF for a specific order.
+     *
+     * @param orderId The ID of the order.
+     * @return The receipt PDF as a byte array, or null if not found.
+     */
     public byte[] retrieveReceipt(int orderId) {
         String query = "SELECT receipt_pdf FROM orders WHERE order_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
@@ -413,6 +488,12 @@ public class OrderDAO {
         return null;
     }
 
+    /**
+     * Retrieves the tickets PDF for a specific order.
+     *
+     * @param orderId The ID of the order.
+     * @return The tickets PDF as a byte array, or null if not found.
+     */
     public byte[] retrieveTickets(int orderId) {
         String query = "SELECT tickets_pdf FROM orders WHERE order_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
@@ -428,6 +509,13 @@ public class OrderDAO {
         return null;
     }
 
+    /**
+     * Extracts order details from a ResultSet.
+     *
+     * @param rs The ResultSet containing the order data.
+     * @return An Order object populated with the data from the ResultSet.
+     * @throws SQLException If an SQL error occurs while extracting the data.
+     */
     private Order extractOrderFromResultSet(ResultSet rs) throws SQLException {
         Order order = new Order();
         order.setOrderId(rs.getInt("order_id"));
@@ -438,6 +526,13 @@ public class OrderDAO {
         return order;
     }
 
+    /**
+     * Extracts order item details from a ResultSet.
+     *
+     * @param rs The ResultSet containing the order item data.
+     * @return An OrderItem object populated with the data from the ResultSet.
+     * @throws SQLException If an SQL error occurs while extracting the data.
+     */
     private OrderItem extractOrderItemFromResultSet(ResultSet rs) throws SQLException {
         OrderItem item = new OrderItem();
         item.setOrderItemId(rs.getInt("order_item_id"));
@@ -454,11 +549,21 @@ public class OrderDAO {
         return item;
     }
 
+    /**
+     * Represents statistics related to order cancellations.
+     */
     public static class CancellationStats {
         private final int pendingCount;
         private final int processedToday;
         private final BigDecimal refundedToday;
 
+        /**
+         * Constructs a CancellationStats object.
+         *
+         * @param pendingCount The number of pending cancellations.
+         * @param processedToday The number of cancellations processed today.
+         * @param refundedToday The total amount refunded for cancellations today.
+         */
         public CancellationStats(int pendingCount, int processedToday, BigDecimal refundedToday) {
             this.pendingCount = pendingCount;
             this.processedToday = processedToday;

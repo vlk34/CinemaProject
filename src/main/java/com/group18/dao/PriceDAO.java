@@ -2,20 +2,30 @@ package com.group18.dao;
 
 import com.group18.model.PriceHistory;
 import java.sql.*;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Data Access Object (DAO) for managing price-related operations, including ticket prices,
+ * age discounts, and logging price changes.
+ */
 public class PriceDAO {
     private Connection connection;
 
+    /**
+     * Constructs a new PriceDAO object and initializes the database connection.
+     */
     public PriceDAO() {
         this.connection = DBConnection.getConnection();
     }
 
-    // Ticket Prices
+    /**
+     * Retrieves the price of tickets for a specific hall.
+     *
+     * @param hall the name of the hall
+     * @return the ticket price for the specified hall
+     */
     public double getTicketPrice(String hall) {
-        // Use a local connection that's created and closed within the method
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement pstmt = connection.prepareStatement("SELECT price FROM ticket_prices WHERE hall = ?")) {
 
@@ -31,7 +41,13 @@ public class PriceDAO {
         return 0.0;
     }
 
-    // Apply similar pattern to other methods
+    /**
+     * Updates the ticket price for a specific hall.
+     *
+     * @param hall     the name of the hall
+     * @param newPrice the new ticket price to set
+     * @return true if the price update was successful, false otherwise
+     */
     public boolean updateTicketPrice(String hall, double newPrice) {
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement pstmt = connection.prepareStatement("UPDATE ticket_prices SET price = ? WHERE hall = ?")) {
@@ -46,7 +62,11 @@ public class PriceDAO {
         }
     }
 
-    // Age Discounts
+    /**
+     * Retrieves the current age discount rate.
+     *
+     * @return the discount rate for age-based discounts
+     */
     public double getAgeDiscount() {
         try (Connection connection = DBConnection.getConnection();
              Statement stmt = connection.createStatement();
@@ -61,6 +81,12 @@ public class PriceDAO {
         return 0.0;
     }
 
+    /**
+     * Updates the age discount rate.
+     *
+     * @param newDiscount the new age discount rate
+     * @return true if the discount update was successful, false otherwise
+     */
     public boolean updateAgeDiscount(double newDiscount) {
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement pstmt = connection.prepareStatement("UPDATE age_discounts SET discount_rate = ? WHERE discount_type = 'age'")) {
@@ -74,7 +100,11 @@ public class PriceDAO {
         }
     }
 
-    // Price History
+    /**
+     * Logs a price change to the price history.
+     *
+     * @param log the PriceHistory object containing details of the price change
+     */
     public void logPriceChange(PriceHistory log) {
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(
@@ -91,7 +121,11 @@ public class PriceDAO {
         }
     }
 
-    // In PriceDAO.java
+    /**
+     * Retrieves the price change history, ordered by the most recent changes.
+     *
+     * @return a list of PriceHistory objects representing the price change history
+     */
     public List<PriceHistory> getPriceUpdateHistory() {
         String query = "SELECT * FROM price_history ORDER BY change_timestamp DESC";
         List<PriceHistory> history = new ArrayList<>();

@@ -24,6 +24,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Optional;
 
+/**
+ * Controller for managing movie schedules in the admin interface.
+ * Handles displaying schedules, creating new schedules, and deleting schedules.
+ */
 public class AdminScheduleController {
     @FXML
     private DatePicker monthPicker;
@@ -72,6 +76,10 @@ public class AdminScheduleController {
 
     private LocalDate selectedMonth;
 
+    /**
+     * Initializes the controller. Sets up the initial state, table columns,
+     * and event listeners for the schedule creation and month selection.
+     */
     @FXML
     private void initialize() {
         scheduleDAO = new ScheduleDAO();
@@ -99,6 +107,9 @@ public class AdminScheduleController {
         createScheduleButton.setOnAction(event -> showScheduleCreationDialog());
     }
 
+    /**
+     * Sets up the columns for displaying schedule information in the tables for both halls.
+     */
     private void setupTableColumns() {
         // Setup Hall A columns
         dateAColumn.setCellValueFactory(new PropertyValueFactory<>("sessionDate"));
@@ -143,6 +154,11 @@ public class AdminScheduleController {
         setupActionsColumn(actionsBColumn);
     }
 
+    /**
+     * Sets up the actions column, adding delete functionality to the schedule table.
+     *
+     * @param column the column to set up
+     */
     private void setupActionsColumn(TableColumn<Schedule, Void> column) {
         column.setCellFactory(col -> new TableCell<Schedule, Void>() {
             private final Button deleteButton = new Button("Delete");
@@ -174,6 +190,11 @@ public class AdminScheduleController {
         column.setStyle("-fx-alignment: CENTER;");
     }
 
+    /**
+     * Handles the deletion of a schedule, confirming with the user before deleting.
+     *
+     * @param schedule the schedule to be deleted
+     */
     private void handleDeleteSchedule(Schedule schedule) {
         Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
         confirmation.setTitle("Delete Schedule");
@@ -193,6 +214,9 @@ public class AdminScheduleController {
         }
     }
 
+    /**
+     * Displays a dialog for creating a new schedule.
+     */
     private void showScheduleCreationDialog() {
         // Create the custom dialog
         Dialog<Schedule> dialog = new Dialog<>();
@@ -325,6 +349,15 @@ public class AdminScheduleController {
         });
     }
 
+    /**
+     * Validates the input fields for schedule creation, enabling or disabling the create button.
+     *
+     * @param createButton the button to enable/disable
+     * @param movieComboBox the movie selection combo box
+     * @param hallComboBox the hall selection combo box
+     * @param datePicker the date picker
+     * @param timeComboBox the time selection combo box
+     */
     private void validateInputs(Node createButton, ComboBox<Movie> movieComboBox,
                                 ComboBox<String> hallComboBox, DatePicker datePicker,
                                 ComboBox<LocalTime> timeComboBox) {
@@ -335,6 +368,12 @@ public class AdminScheduleController {
         createButton.setDisable(!isValid);
     }
 
+    /**
+     * Checks if a given date is valid for the selected month.
+     *
+     * @param date the date to check
+     * @return true if the date is valid, false otherwise
+     */
     private boolean isValidDate(LocalDate date) {
         return date != null &&
                 date.getYear() == selectedMonth.getYear() &&
@@ -342,6 +381,12 @@ public class AdminScheduleController {
                 !date.isBefore(LocalDate.now());
     }
 
+    /**
+     * Displays an alert dialog with a given title and content.
+     *
+     * @param title the title of the alert
+     * @param content the content text of the alert
+     */
     private void showAlert(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
@@ -350,31 +395,24 @@ public class AdminScheduleController {
         alert.showAndWait();
     }
 
+    /**
+     * Returns the status text based on the available seats.
+     *
+     * @param availableSeats the number of available seats
+     * @return a string representing the schedule's status
+     */
     private String getStatusText(int availableSeats) {
         if (availableSeats == 0) return "Full";
         if (availableSeats < 5) return "Filling Up";
         return "Available";
     }
 
-    private void loadSchedules() {
-        List<Schedule> schedules = scheduleDAO.getAllSchedules();
-
-        ObservableList<Schedule> hallASchedules = FXCollections.observableArrayList(
-                schedules.stream()
-                        .filter(s -> s.getHallId() == 1)
-                        .collect(Collectors.toList())
-        );
-
-        ObservableList<Schedule> hallBSchedules = FXCollections.observableArrayList(
-                schedules.stream()
-                        .filter(s -> s.getHallId() == 2)
-                        .collect(Collectors.toList())
-        );
-
-        hallATable.setItems(hallASchedules);
-        hallBTable.setItems(hallBSchedules);
-    }
-
+    /**
+     * Filters the schedules based on the selected month and updates the table views for Hall A and Hall B.
+     * The schedules are divided into two categories based on the hall (1 for Hall A and 2 for Hall B).
+     *
+     * @param selectedMonth The selected month to filter the schedules by.
+     */
     private void filterSchedulesByMonth(LocalDate selectedMonth) {
         List<Schedule> schedules = scheduleDAO.getSchedulesByMonth(selectedMonth);
 
@@ -394,6 +432,12 @@ public class AdminScheduleController {
         hallBTable.setItems(hallBSchedules);
     }
 
+    /**
+     * Sets up a hover animation effect for the given button. The button will scale down when pressed and
+     * scale back to its original size when released or the mouse exits.
+     *
+     * @param button The button to apply the hover animation to.
+     */
     public void setupButtonHoverAnimation(Button button) {
         // Create scale transition
         ScaleTransition pressTransition = new ScaleTransition(Duration.millis(100), button);

@@ -18,27 +18,80 @@ import javafx.util.Duration;
 
 import java.io.IOException;
 
+/**
+ * Controller responsible for managing the sidebar functionality for a manager's interface.
+ * It handles the navigation between different views such as Dashboard, Inventory, Staff,
+ * Pricing, and Revenue, as well as user information display and logout functionality.
+ */
 public class ManagerSidebarController {
+    /**
+     * The Button representing a dashboard navigation option in the manager's sidebar.
+     *
+     * This button*/
     @FXML
     private Button dashboardButton;
+    /**
+     * Represents the button in the sidebar that allows the user to access the*/
     @FXML
     private Button inventoryButton;
+    /**
+     *
+     */
     @FXML
     private Button staffButton;
+    /**
+     * Represents the button in the sidebar responsible for navigating to or managing
+     * actions related to the pricing section of the application.
+     *
+     * This*/
     @FXML
     private Button pricingButton;
+    /**
+     * Represents the "Revenue" button in the manager sidebar.
+     *
+     */
     @FXML
     private Button revenueButton;
+    /**
+     * Represents the button for logging out the current user.
+     *
+     */
     @FXML
     private Button logoutButton;
 
+    /**
+     * A JavaFX Label element used to display the username of the currently logged-in*/
     @FXML private Label userNameLabel;
+    /**
+     * Represents the label in the sidebar that displays the role of the currently logged-in*/
     @FXML private Label roleLabel;
 
+    /**
+     * Represents the main controller of the application that manages*/
     private ManagerController mainController;
+    /**
+     * Represents the currently logged-in user in the system.
+     *
+     * This variable holds the current user's details, which may include
+     * their*/
     private User currentUser;
 
 
+    /**
+     * Initializes the sidebar component of the Manager interface.
+     *
+     * This method configures hover animations for all navigation buttons
+     * within the sidebar, enhancing the user experience by adding visual
+     * feedback when the user interacts with the buttons. The animations
+     * include scaling, translation, and shadow effects.
+     *
+     * Buttons included:
+     * - Inventory
+     * - Staff
+     * - Pricing
+     * - Revenue
+     * - Logout
+     */
     @FXML
     private void initialize() {
         // Add hover animations to all navigation buttons
@@ -49,6 +102,9 @@ public class ManagerSidebarController {
         setupSidebarHoverAnimation(logoutButton);
     }
 
+    /**
+     * Initializes user-related information for the sidebar. Displays the user's full name and role
+     * on the interface if the currently*/
     private void initializeUserInfo() {
         if (currentUser != null && "manager".equals(currentUser.getRole())) {
             // Set the full name
@@ -66,6 +122,16 @@ public class ManagerSidebarController {
         }
     }
 
+    /**
+     * Configures hover and click animations for a sidebar button.
+     *
+     * This method enhances the interactivity of the button by applying
+     * visual effects such as scaling, translation, and shadowing when
+     * the user hovers over, clicks, or releases the button.
+     *
+     * @param button the Button for which the hover and click animations
+     *               need to be applied
+     */
     public static void setupSidebarHoverAnimation(Button button) {
         // Create a subtle shadow effect
         DropShadow shadow = new DropShadow();
@@ -143,21 +209,34 @@ public class ManagerSidebarController {
         });
     }
 
+    /**
+     * Sets the current user for the ManagerSidebarController*/
     public void setCurrentUser(User user) {
         this.currentUser = user;
         initializeUserInfo();
     }
 
+    /**
+     * Sets the main controller for this sidebar controller.
+     *
+     * @param controller the main controller to be assigned*/
     // Method to set the main controller
     public void setMainController(ManagerController controller) {
         this.mainController = controller;
     }
 
+    /**
+     * Handles the action for navigating to the inventory section of the application.
+     **/
     @FXML
     private void handleInventory() {
         mainController.switchContent("/fxml/manager/ManagerInventory.fxml", currentUser);
     }
 
+    /**
+     * Handles the action for navigating to the staff management view.
+     *
+     * This method is triggered when the associated*/
     @FXML
     private void handleStaff() {
         try {
@@ -175,16 +254,27 @@ public class ManagerSidebarController {
         }
     }
 
+    /**
+     * Handles the "Pricing" button action within the manager's sidebar.
+     * When invoked, it updates the main content area to display the pricing management view.
+     *
+     * The*/
     @FXML
     private void handlePricing() {
         mainController.switchContent("/fxml/manager/ManagerPricing.fxml", currentUser);
     }
 
+    /**
+     *
+     */
     @FXML
     private void handleRevenue() {
         mainController.switchContent("/fxml/manager/ManagerRevenue.fxml", currentUser);
     }
 
+    /**
+     * Handles the logout action for the manager by redirecting the application
+     */
     @FXML
     private void handleLogout() {
         try {
@@ -201,7 +291,6 @@ public class ManagerSidebarController {
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
-            // Handle the error appropriately
         }
     }
 }

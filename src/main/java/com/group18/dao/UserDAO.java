@@ -5,13 +5,27 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Data Access Object (DAO) for interacting with the "users" table in the database.
+ * Provides methods for CRUD operations and user-related queries.
+ */
 public class UserDAO {
     private Connection connection;
 
+    /**
+     * Constructs a new UserDAO object with a database connection.
+     */
     public UserDAO() {
         this.connection = DBConnection.getConnection();
     }
 
+    /**
+     * Authenticates a user based on the provided username and password.
+     *
+     * @param username The username of the user to authenticate.
+     * @param password The password of the user to authenticate.
+     * @return The authenticated User object, or null if authentication fails.
+     */
     public User authenticateUser(String username, String password) {
         String query = "SELECT * FROM users WHERE username = ? AND password = ?";
 
@@ -29,6 +43,12 @@ public class UserDAO {
         return null;
     }
 
+    /**
+     * Retrieves a user by their ID.
+     *
+     * @param userId The ID of the user to retrieve.
+     * @return The User object corresponding to the given ID, or null if not found.
+     */
     public User findById(int userId) {
         String query = "SELECT * FROM users WHERE user_id = ?";
 
@@ -45,6 +65,11 @@ public class UserDAO {
         return null;
     }
 
+    /**
+     * Retrieves all users from the "users" table.
+     *
+     * @return A list of all users in the database.
+     */
     public List<User> getAllUsers() {
         String query = "SELECT * FROM users";
         List<User> users = new ArrayList<>();
@@ -61,6 +86,12 @@ public class UserDAO {
         return users;
     }
 
+    /**
+     * Adds a new user to the "users" table.
+     *
+     * @param user The User object to be added.
+     * @return True if the user was successfully added, false otherwise.
+     */
     public boolean addUser(User user) {
         String query = "INSERT INTO users (username, password, role, first_name, last_name) VALUES (?, ?, ?, ?, ?)";
 
@@ -86,6 +117,12 @@ public class UserDAO {
         return false;
     }
 
+    /**
+     * Updates the details of an existing user in the "users" table.
+     *
+     * @param user The User object with updated information.
+     * @return True if the user was successfully updated, false otherwise.
+     */
     public boolean updateUser(User user) {
         String query = "UPDATE users SET username = ?, password = ?, role = ?, first_name = ?, last_name = ? WHERE user_id = ?";
 
@@ -104,6 +141,12 @@ public class UserDAO {
         return false;
     }
 
+    /**
+     * Deletes a user from the "users" table.
+     *
+     * @param userId The ID of the user to be deleted.
+     * @return True if the user was successfully deleted, false otherwise.
+     */
     public boolean deleteUser(int userId) {
         String query = "DELETE FROM users WHERE user_id = ?";
 
@@ -116,7 +159,11 @@ public class UserDAO {
         return false;
     }
 
-    // Add this to UserDAO.java
+    /**
+     * Retrieves the count of new users created in the current month.
+     *
+     * @return The number of new users created in the current month.
+     */
     public long getNewUsersThisMonth() {
         String query = "SELECT COUNT(*) FROM users WHERE MONTH(created_at) = MONTH(CURRENT_DATE()) " +
                 "AND YEAR(created_at) = YEAR(CURRENT_DATE())";
@@ -132,6 +179,13 @@ public class UserDAO {
         return 0;
     }
 
+    /**
+     * Extracts a User object from the current row of a ResultSet.
+     *
+     * @param rs The ResultSet object containing the user data.
+     * @return A User object populated with the data from the ResultSet.
+     * @throws SQLException If an error occurs while accessing the ResultSet.
+     */
     private User extractUserFromResultSet(ResultSet rs) throws SQLException {
         User user = new User();
         user.setUserId(rs.getInt("user_id"));

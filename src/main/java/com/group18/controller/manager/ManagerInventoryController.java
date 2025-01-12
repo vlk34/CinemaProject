@@ -23,6 +23,10 @@ import java.util.stream.Collectors;
 
 import javafx.util.Duration;
 
+/**
+ * ManagerInventoryController is responsible for managing and displaying inventory data for a store
+ * manager. It provides functionalities such as viewing, filtering, searching, adding, and managing
+ * inventory items.*/
 public class ManagerInventoryController implements Initializable {
     // FXML Injected Components
     @FXML

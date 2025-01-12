@@ -4,6 +4,11 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+/**
+ * This class manages the connection to the database.
+ * It provides methods to establish and close a connection to the MySQL database.
+ * The connection is established lazily and reused throughout the application.
+ */
 public class DBConnection {
     private static Connection connection;
 
@@ -12,10 +17,18 @@ public class DBConnection {
     private static final String DB_USERNAME = "myuser";
     private static final String DB_PASSWORD = "1234";
 
+    /**
+     * Constructor that initializes the connection to the database.
+     * It calls the connect method to establish a connection when an instance is created.
+     */
     public DBConnection() {
         connect();
     }
 
+    /**
+     * Establishes a connection to the database if not already connected.
+     * The connection is established lazily when needed.
+     */
     private static void connect() {
         try {
             if (connection == null || connection.isClosed()) {
@@ -27,11 +40,21 @@ public class DBConnection {
         }
     }
 
+    /**
+     * Provides the connection to the database.
+     * If the connection is not already established, it calls the connect method to ensure the connection is active.
+     *
+     * @return The active database connection.
+     */
     public static Connection getConnection() {
         connect();
         return connection;
     }
 
+    /**
+     * Closes the database connection if it is open.
+     * This method is called to clean up resources when the connection is no longer needed.
+     */
     private static void disconnect() {
         try {
             if (connection != null && !connection.isClosed()) {

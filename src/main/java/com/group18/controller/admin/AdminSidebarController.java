@@ -20,6 +20,10 @@ import javafx.util.Duration;
 
 import java.io.IOException;
 
+/**
+ * Controller for managing the admin sidebar.
+ * Handles navigation to different admin pages.
+ */
 public class AdminSidebarController {
     @FXML
     private Button moviesButton;
@@ -43,6 +47,9 @@ public class AdminSidebarController {
 
     private AdminController mainController;
 
+    /**
+     * Initializes the controller by setting up user information and adding hover animations to the sidebar buttons.
+     */
     @FXML
     private void initialize() {
         userDAO = new UserDAO();
@@ -53,6 +60,12 @@ public class AdminSidebarController {
         setupSidebarHoverAnimation(logoutButton);
     }
 
+    /**
+     * Sets up hover animations for the given sidebar button. The button will have a scaling and translation effect,
+     * along with a subtle shadow and background color change when hovered over.
+     *
+     * @param button The button to apply the hover animation to.
+     */
     public static void setupSidebarHoverAnimation(Button button) {
         // Create a subtle shadow effect
         DropShadow shadow = new DropShadow();
@@ -130,11 +143,19 @@ public class AdminSidebarController {
         });
     }
 
+    /**
+     * Sets the current user for the sidebar and updates the user information displayed.
+     *
+     * @param user The user to be set as the current user.
+     */
     public void setCurrentUser(User user) {
         this.currentUser = user;
         initializeUserInfo();
     }
 
+    /**
+     * Initializes and updates the user information (full name and role) displayed on the sidebar.
+     */
     private void initializeUserInfo() {
         if (currentUser != null && "admin".equals(currentUser.getRole())) {
             // Set the full name
@@ -148,26 +169,42 @@ public class AdminSidebarController {
         }
     }
 
-
+    /**
+     * Sets the main controller for the admin sidebar, allowing the sidebar to switch content.
+     *
+     * @param controller The main controller of the admin dashboard.
+     */
     public void setMainController(AdminController controller) {
         this.mainController = controller;
     }
 
+    /**
+     * Handles the "Movies" button click by switching to the admin movies view.
+     */
     @FXML
     private void handleMovies() {
         mainController.switchContent("/fxml/admin/AdminMovies.fxml");
     }
 
+    /**
+     * Handles the "Schedule" button click by switching to the admin schedule view.
+     */
     @FXML
     private void handleSchedule() {
         mainController.switchContent("/fxml/admin/AdminSchedules.fxml");
     }
 
+    /**
+     * Handles the "Cancellations" button click by switching to the admin cancellations view.
+     */
     @FXML
     private void handleCancellations() {
         mainController.switchContent("/fxml/admin/AdminCancellations.fxml");
     }
 
+    /**
+     * Handles the "Logout" button click by loading the login view and logging the user out.
+     */
     @FXML
     private void handleLogout() {
         try {

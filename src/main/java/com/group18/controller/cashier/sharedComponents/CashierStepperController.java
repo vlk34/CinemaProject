@@ -6,6 +6,11 @@ import javafx.scene.shape.Circle;
 import java.util.List;
 import java.util.Arrays;
 
+/**
+ * Controller class responsible for managing the stepper UI component in the cashier interface.
+ * This component visually represents the steps in a process with circles that indicate the current step,
+ * completed steps, and inactive steps.
+ */
 public class CashierStepperController {
     @FXML private Circle circle1;
     @FXML private Circle circle2;
@@ -16,6 +21,10 @@ public class CashierStepperController {
     private List<Circle> circles;
     private List<VBox> steps;
 
+    /**
+     * Initializes the controller by setting up the list of circles and steps,
+     * and sets the initial state of the stepper to the first step.
+     */
     @FXML
     private void initialize() {
         circles = Arrays.asList(circle1, circle2, circle3, circle4, circle5);
@@ -28,6 +37,12 @@ public class CashierStepperController {
         updateSteps(0);
     }
 
+    /**
+     * Updates the stepper UI based on the current step.
+     * Circles are styled with "completed", "active", or "inactive" based on their position relative to the current step.
+     *
+     * @param currentStep The index of the current step (0-based).
+     */
     public void updateSteps(int currentStep) {
         for (int i = 0; i < steps.size(); i++) {
             VBox step = steps.get(i);

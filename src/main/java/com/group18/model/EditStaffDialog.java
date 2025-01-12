@@ -8,15 +8,92 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 
+/**
+ * The EditStaffDialog class provides a dialog interface to edit the details of a staff member.
+ * It extends the Dialog class and supports editing attributes such as first name, last name,
+ * username, password, and role of the user.
+ *
+ * This class interacts with the UserDAO for updating the user's details in the underlying data
+ * store. It validates user input, ensuring correctness before saving the changes.
+ */
 public class EditStaffDialog extends Dialog<User> {
+    /**
+     * Represents the text field used for inputting or displaying the first name
+     * of a user in the context of staff member editing.
+     *
+     * This field is initialized as a part of the EditStaffDialog class and typically
+     * binds to or retrieves data pertaining to the first name property of a User object.
+     *
+     * Used within user-editing dialogs to validate, display, or collect the user's
+     * first name data.
+     */
     private final TextField firstNameField = new TextField();
+    /**
+     * TextField for entering or displaying the last name of the user being edited.
+     *
+     * This field is used within the EditStaffDialog to manage and validate the last name
+     * input as part of the user's personal details during staff information updates.
+     */
     private final TextField lastNameField = new TextField();
+    /**
+     * TextField used to input or display the username of the staff member.
+     *
+     * This field is part of the form in the EditStaffDialog and is initialized as
+     * an empty text field. It allows setting or editing the username for a staff
+     * member, which is typically a unique identifier within the system.
+     */
     private final TextField usernameField = new TextField();
+    /**
+     * Represents a password input field within the EditStaffDialog class.
+     *
+     * This field is used to capture or modify the password associated with a staff member.
+     * It is a private, final instance of PasswordField, ensuring secure input for sensitive
+     * information like passwords.
+     *
+     * The passwordField is typically displayed within the user interface of the
+     * EditStaffDialog and interacts with other components such as
+     * input validation and data persistence for user updates.
+     */
     private final PasswordField passwordField = new PasswordField();
+    /**
+     * A ComboBox used to select the role of a user within the system.
+     *
+     * The roleComboBox presents the available role options, such as "admin", "manager",
+     * or "cashier", to be assigned to a user. It facilitates role selection during
+     * operations like editing or creating a new user.
+     *
+     * This ComboBox is initialized as private and final, indicating it is immutable
+     * and accessible only within the EditStaffDialog class.
+     */
     private final ComboBox<String> roleComboBox = new ComboBox<>();
+    /**
+     * Instance of UserDAO used to manage user-related database operations.
+     * This field provides data access functionality for interacting with the
+     * "users" table, including user authentication, retrieval, addition,
+     * updating, and deletion of user records.
+     */
     private final UserDAO userDAO;
+    /**
+     * Represents the {@link User} instance currently being edited in the dialog.
+     *
+     * This object contains the details of a user such as their username, password,
+     * role, first name, and last name. It is used within the dialog to prefill the
+     * input fields for editing or to store the updated details after validation.
+     *
+     * The {@code user} field is immutable and is passed during the creation of the
+     * {@code EditStaffDialog} instance. This ensures consistency and prevents any
+     * unexpected modifications to the user data outside the dialog's scope.
+     */
     private final User user;
 
+    /**
+     * Constructs an EditStaffDialog instance used for creating and managing a dialog
+     * to edit the details of a staff member, including their first name, last name,
+     * username, password, and role.
+     *
+     * @param userDAO The data access object for user-related database operations.
+     * @param user    The user object containing the initial details of the staff member to be edited.
+     */
     public EditStaffDialog(UserDAO userDAO, User user) {
         this.userDAO = userDAO;
         this.user = user;
@@ -108,6 +185,22 @@ public class EditStaffDialog extends Dialog<User> {
         Platform.runLater(() -> firstNameField.requestFocus());
     }
 
+    /**
+     * Validates the input fields for the EditStaffDialog and updates the state of the save button.
+     *
+     * This method ensures that:
+     * - The first name and last name contain only Unicode letters.
+     * - All required fields (first name, last name, username, password) are not empty.
+     * - The save button is enabled only when all input fields meet the validation criteria.
+     *
+     * The validation logic:
+     * - Uses regular expressions to check that the first name and last name consist of Unicode letters.
+     * - Trims whitespace from input fields before checking if they are empty.
+     * - Disables the save button if any validation fails.
+     *
+     * Side effects:
+     * - The save button, located within the dialog pane, is enabled or disabled based on the validity of the input.
+     */
     private void validateInput() {
         // Validate that first and last names only contain Unicode letters
         boolean isFirstNameValid = firstNameField.getText().trim().matches("\\p{L}*");
@@ -125,6 +218,11 @@ public class EditStaffDialog extends Dialog<User> {
         saveButton.setDisable(!isValid);
     }
 
+    /**
+     * Displays an error message in a dialog box to inform the user of an error.
+     *
+     * @param message the error message to be shown to the user
+     */
     private void showError(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Error");

@@ -15,7 +15,6 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -24,19 +23,18 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.io.ByteArrayInputStream;
-import java.math.BigDecimal;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Controller for managing movies in the admin interface.
+ * Allows adding, updating, deleting movies, and filtering them based on genre and search terms.
+ */
 public class AdminMoviesController {
     @FXML private TextField titleField;
     @FXML private TextArea summaryField;
@@ -60,6 +58,10 @@ public class AdminMoviesController {
     private byte[] currentPosterData;
     private Set<String> selectedGenres;
     private static final String[] AVAILABLE_GENRES = {"Action", "Comedy", "Drama", "Horror", "Science Fiction", "Fantasy"};
+
+    /**
+     * Initializes the controller by setting up genre checkboxes, filtering menu, table columns, and loading movies.
+     */
     @FXML
     private void initialize() {
         movieDAO = new MovieDAO();
@@ -84,6 +86,9 @@ public class AdminMoviesController {
         });
     }
 
+    /**
+     * Sets up the genre filter menu button with available genres.
+     */
     private void setupFilterGenreMenuButton() {
         // Clear existing items
         filterGenreMenuButton.getItems().clear();
@@ -99,6 +104,9 @@ public class AdminMoviesController {
         }
     }
 
+    /**
+     * Updates the text on the filter genre button based on selected genres.
+     */
     private void updateFilterGenreButtonText() {
         List<String> selectedFilterGenres = filterGenreMenuButton.getItems().stream()
                 .filter(item -> item instanceof CheckMenuItem && ((CheckMenuItem) item).isSelected())
@@ -112,12 +120,18 @@ public class AdminMoviesController {
         }
     }
 
+    /**
+     * Sets up the search field to filter movies based on the search query.
+     */
     private void setupSearchField() {
         searchField.textProperty().addListener((obs, oldVal, newVal) -> {
             filterMovies();
         });
     }
 
+    /**
+     * Sets up the genre checkboxes for available genres.
+     */
     private void setupGenreCheckboxes() {
         genreContainer.getChildren().clear();
 
@@ -135,12 +149,9 @@ public class AdminMoviesController {
         }
     }
 
-    private void setupGenreComboBoxes() {
-        filterGenreComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            filterMovies();
-        });
-    }
-
+    /**
+     * Filters the movie list based on selected genres and search query.
+     */
     private void filterMovies() {
         String searchText = searchField.getText().toLowerCase();
         List<String> selectedFilterGenres = filterGenreMenuButton.getItems().stream()
@@ -162,6 +173,9 @@ public class AdminMoviesController {
         moviesTable.setItems(filteredMovies);
     }
 
+    /**
+     * Sets up the table columns for displaying movie data.
+     */
     private void setupTableColumns() {
         titleColumn.setCellValueFactory(new PropertyValueFactory<>("title"));
         titleColumn.setStyle("-fx-alignment: CENTER;");
@@ -180,12 +194,20 @@ public class AdminMoviesController {
         setupActionsColumn();
     }
 
+    /**
+     * Loads movies from the database into the table.
+     */
     private void loadMovies() {
         List<Movie> movies = movieDAO.getAllMovies();
         ObservableList<Movie> movieList = FXCollections.observableArrayList(movies);
         moviesTable.setItems(movieList);
     }
 
+    /**
+     * Populates movie details into the UI fields for the selected movie.
+     *
+     * @param movie the selected movie
+     */
     private void populateMovieDetails(Movie movie) {
         titleField.setText(movie.getTitle());
         summaryField.setText(movie.getSummary());
@@ -226,6 +248,9 @@ public class AdminMoviesController {
         }
     }
 
+    /**
+     * Opens a file chooser to select a movie poster image.
+     */
     @FXML
     private void handleSelectPoster() {
         FileChooser fileChooser = new FileChooser();
@@ -260,6 +285,9 @@ public class AdminMoviesController {
         }
     }
 
+    /**
+     * Opens the dialog for adding a new movie.
+     */
     @FXML
     private void handleAddMovie() throws IOException {
         try {
@@ -287,6 +315,9 @@ public class AdminMoviesController {
         }
     }
 
+    /**
+     * Updates the selected movie with the new details.
+     */
     @FXML
     private void handleUpdateMovie() {
         if (selectedMovie == null) {
@@ -309,6 +340,9 @@ public class AdminMoviesController {
         }
     }
 
+    /**
+     * Sets up the actions column in the movies table for handling delete actions.
+     */
     private void setupActionsColumn() {
         actionsColumn.setCellFactory(col -> new TableCell<Movie, Void>() {
             private final Button deleteButton = new Button("Delete");
@@ -341,6 +375,9 @@ public class AdminMoviesController {
         actionsColumn.setStyle("-fx-alignment: CENTER;");
     }
 
+    /**
+     * Handles deleting a inserted Movie object by using movieDAO.removeMovie()
+     */
     private void handleDeleteMovie(Movie movie) {
         Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
         confirmation.setTitle("Delete Movie");
@@ -360,6 +397,13 @@ public class AdminMoviesController {
         }
     }
 
+    /**
+     * Displays an alert with the specified alert type, title, and content.
+     *
+     * @param type    The type of the alert (e.g., ERROR, INFORMATION, etc.).
+     * @param title   The title of the alert window.
+     * @param content The content of the alert message.
+     */
     private void showAlert(Alert.AlertType type, String title, String content) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
@@ -368,13 +412,16 @@ public class AdminMoviesController {
         alert.showAndWait();
     }
 
+    /**
+     * Clears the form fields, resets selected genres, and unchecks all genre checkboxes.
+     */
     private void clearFields() {
         titleField.clear();
         summaryField.clear();
         durationField.clear();
         posterImageView.setImage(null);
         selectedMovie = null;
-        currentPosterData = null; // Updated from currentPosterPath
+        currentPosterData = null;
         selectedGenres.clear();
 
         // Uncheck all genre checkboxes
@@ -385,6 +432,12 @@ public class AdminMoviesController {
         });
     }
 
+    /**
+     * Sets up hover animation for the given button, where the button shrinks slightly when pressed
+     * and returns to its original size when released or the mouse exits the button area.
+     *
+     * @param button The button to apply the hover animation to.
+     */
     public void setupButtonHoverAnimation(Button button) {
         // Create scale transition
         ScaleTransition pressTransition = new ScaleTransition(Duration.millis(100), button);
