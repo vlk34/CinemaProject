@@ -96,19 +96,31 @@ public class AddStaffDialog extends Dialog<User> {
 
         // Add listeners to validate input
         firstNameField.textProperty().addListener((observable, oldValue, newValue) -> {
-            // Allow only Unicode letters
-            if (!newValue.matches("\\p{L}*")) {
-                firstNameField.setText(oldValue);
+            if (newValue != null && !newValue.equals(oldValue)) {
+                Platform.runLater(() -> {
+                    // Allow empty strings, single characters, or multiple Unicode letters with optional spaces
+                    if (newValue.trim().isEmpty() ||
+                            newValue.trim().matches("^[\\p{L}]+(\\s+[\\p{L}]+)*$")) {
+                        validateInput();
+                    } else {
+                        firstNameField.setText(oldValue);
+                    }
+                });
             }
-            validateInput();
         });
 
         lastNameField.textProperty().addListener((observable, oldValue, newValue) -> {
-            // Allow only Unicode letters
-            if (!newValue.matches("\\p{L}*")) {
-                lastNameField.setText(oldValue);
+            if (newValue != null && !newValue.equals(oldValue)) {
+                Platform.runLater(() -> {
+                    // Allow empty strings, single characters, or multiple Unicode letters with optional spaces
+                    if (newValue.trim().isEmpty() ||
+                            newValue.trim().matches("^[\\p{L}]+(\\s+[\\p{L}]+)*$")) {
+                        validateInput();
+                    } else {
+                        lastNameField.setText(oldValue);
+                    }
+                });
             }
-            validateInput();
         });
         usernameField.textProperty().addListener((observable, oldValue, newValue) -> validateInput());
         passwordField.textProperty().addListener((observable, oldValue, newValue) -> validateInput());
@@ -144,8 +156,8 @@ public class AddStaffDialog extends Dialog<User> {
      * - Checks that the first name*/
     private void validateInput() {
         // Validate that first and last names only contain Unicode letters
-        boolean isFirstNameValid = firstNameField.getText().trim().matches("\\p{L}*");
-        boolean isLastNameValid = lastNameField.getText().trim().matches("\\p{L}*");
+        boolean isFirstNameValid = firstNameField.getText().trim().matches("[\\p{L}]+(\\s[\\p{L}]+)*");
+        boolean isLastNameValid = lastNameField.getText().trim().matches("[\\p{L}]+(\\s[\\p{L}]+)*");
 
         // Ensure input is not empty and contains only letters
         boolean isValid = isFirstNameValid &&

@@ -131,6 +131,22 @@ public class ScheduleDAO {
         return 0;
     }
 
+    public boolean hasSchedules(int movieId) {
+        String query = "SELECT COUNT(*) FROM schedules WHERE movie_id = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, movieId);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     /**
      * Deletes a schedule from the database.
      * A schedule can only be deleted if no tickets have been sold for it.
@@ -139,26 +155,65 @@ public class ScheduleDAO {
      * @return True if the schedule was successfully deleted, false otherwise.
      */
     public boolean deleteSchedule(int scheduleId) {
-        // Only allow deletion if no tickets have been sold for this schedule
-        String query = """
-            DELETE FROM schedules 
+        try {
+            connection.setAutoCommit(false);
+
+            // First, update order_items to remove reference to this schedule for processed/cancelled orders
+            String updateOrderItemsQuery = """
+            UPDATE order_items 
+            SET schedule_id = NULL 
             WHERE schedule_id = ? 
-            AND NOT EXISTS (
-                SELECT 1 FROM order_items 
-                WHERE schedule_id = ? 
-                AND item_type = 'ticket'
+            AND order_id IN (
+                SELECT order_id 
+                FROM orders 
+                WHERE status IN ('PROCESSED_FULL', 'PROCESSED_TICKETS', 'REJECTED')
             )
         """;
 
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setInt(1, scheduleId);
-            stmt.setInt(2, scheduleId);
+            try (PreparedStatement updateStmt = connection.prepareStatement(updateOrderItemsQuery)) {
+                updateStmt.setInt(1, scheduleId);
+                updateStmt.executeUpdate();
+            }
 
-            int affectedRows = stmt.executeUpdate();
-            return affectedRows > 0;
+            // Then delete the schedule
+            String deleteQuery = """
+            DELETE FROM schedules 
+            WHERE schedule_id = ? 
+            AND NOT EXISTS (
+                SELECT 1 FROM order_items oi
+                WHERE oi.schedule_id = ? 
+                AND oi.item_type = 'ticket'
+                AND oi.order_id IN (
+                    SELECT order_id 
+                    FROM orders 
+                    WHERE status NOT IN ('PROCESSED_FULL', 'PROCESSED_TICKETS', 'REJECTED')
+                )
+            )
+        """;
+
+            try (PreparedStatement deleteStmt = connection.prepareStatement(deleteQuery)) {
+                deleteStmt.setInt(1, scheduleId);
+                deleteStmt.setInt(2, scheduleId);
+
+                int affectedRows = deleteStmt.executeUpdate();
+
+                connection.commit();
+                return affectedRows > 0;
+            }
         } catch (SQLException e) {
+            try {
+                connection.rollback();
+            } catch (SQLException rollbackEx) {
+                rollbackEx.printStackTrace();
+            }
             e.printStackTrace();
             return false;
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 

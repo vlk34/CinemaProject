@@ -1,6 +1,7 @@
 package com.group18.controller.admin;
 
 import com.group18.dao.MovieDAO;
+import com.group18.dao.ScheduleDAO;
 import com.group18.model.Movie;
 import javafx.animation.ScaleTransition;
 import javafx.beans.property.SimpleStringProperty;
@@ -325,11 +326,33 @@ public class AdminMoviesController {
             return;
         }
 
+        // First check if movie has schedules
+        ScheduleDAO scheduleDAO = new ScheduleDAO();
+        if (scheduleDAO.hasSchedules(selectedMovie.getMovieId())) {
+            showAlert(Alert.AlertType.ERROR, "Error",
+                    "Cannot update movie because it has existing schedules");
+            // Clear the selection and fields after showing the error
+            clearFields();
+            selectedMovie = null;
+            moviesTable.getSelectionModel().clearSelection();
+            return;
+        }
+
+
+        String newTitle = titleField.getText().trim();
+        // If the title is different from current title, check if it exists
+        if (!newTitle.equalsIgnoreCase(selectedMovie.getTitle()) &&
+                movieDAO.existsByTitleIgnoreCase(newTitle)) {
+            showAlert(Alert.AlertType.ERROR, "Error",
+                    "Another movie with this title already exists");
+            return;
+        }
+
         selectedMovie.setTitle(titleField.getText().trim());
         selectedMovie.setGenres(selectedGenres);
         selectedMovie.setSummary(summaryField.getText().trim());
-        selectedMovie.setDuration(120);  // Hardcoded to 120 minutes
-        selectedMovie.setPosterData(currentPosterData); // Updated to use poster data
+        selectedMovie.setDuration(120);
+        selectedMovie.setPosterData(currentPosterData);
 
         if (movieDAO.updateMovie(selectedMovie)) {
             loadMovies();

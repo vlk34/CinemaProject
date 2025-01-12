@@ -61,9 +61,9 @@ public class ManagerController {
      * and the main controller by assigning the current controller instance to the
      * sidebar's main controller.
      */
+
     @FXML
     private void initialize() {
-        // Just set the main controller directly
         sidebarController.setMainController(this);
     }
 
@@ -85,9 +85,22 @@ public class ManagerController {
                 ((ManagerPricingController) controller).setCurrentUser(currentUser);
             }
 
+            if (loader.getController() instanceof ManagerStaffController) {
+                ManagerStaffController staffController = loader.getController();
+                staffController.setCurrentUser(currentUser);
+
+                staffController.setSidebarController(sidebarController);
+            }
+
             root.setCenter(newContent);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void updateSidebarUserInfo(User user) {
+        if (sidebarController != null) {
+            sidebarController.setCurrentUser(user);
         }
     }
 }

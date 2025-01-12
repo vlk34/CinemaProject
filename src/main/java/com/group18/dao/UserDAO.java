@@ -93,23 +93,39 @@ public class UserDAO {
      * @return True if the user was successfully added, false otherwise.
      */
     public boolean addUser(User user) {
-        String query = "INSERT INTO users (username, password, role, first_name, last_name) VALUES (?, ?, ?, ?, ?)";
+        // First, check if the username already exists
+        String checkQuery = "SELECT COUNT(*) FROM users WHERE username = ?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
-            stmt.setString(1, user.getUsername());
-            stmt.setString(2, user.getPassword());
-            stmt.setString(3, user.getRole());
-            stmt.setString(4, user.getFirstName());
-            stmt.setString(5, user.getLastName());
+        try (PreparedStatement checkStmt = connection.prepareStatement(checkQuery)) {
+            checkStmt.setString(1, user.getUsername());
 
-            int affectedRows = stmt.executeUpdate();
-
-            if (affectedRows > 0) {
-                ResultSet rs = stmt.getGeneratedKeys();
-                if (rs.next()) {
-                    user.setUserId(rs.getInt(1));
+            try (ResultSet rs = checkStmt.executeQuery()) {
+                if (rs.next() && rs.getInt(1) > 0) {
+                    // Username is already taken
+                    return false;
                 }
-                return true;
+            }
+
+            // If username is unique, proceed with insert
+            String query = "INSERT INTO users (username, password, role, first_name, last_name) VALUES (?, ?, ?, ?, ?)";
+
+            try (PreparedStatement stmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+                stmt.setString(1, user.getUsername());
+                stmt.setString(2, user.getPassword());
+                stmt.setString(3, user.getRole());
+                stmt.setString(4, user.getFirstName());
+                stmt.setString(5, user.getLastName());
+
+                int affectedRows = stmt.executeUpdate();
+
+                if (affectedRows > 0) {
+                    try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                        if (generatedKeys.next()) {
+                            user.setUserId(generatedKeys.getInt(1));
+                        }
+                    }
+                    return true;
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -124,21 +140,37 @@ public class UserDAO {
      * @return True if the user was successfully updated, false otherwise.
      */
     public boolean updateUser(User user) {
-        String query = "UPDATE users SET username = ?, password = ?, role = ?, first_name = ?, last_name = ? WHERE user_id = ?";
+        // First, check if the username is already taken by another user
+        String checkQuery = "SELECT COUNT(*) FROM users WHERE username = ? AND user_id != ?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setString(1, user.getUsername());
-            stmt.setString(2, user.getPassword());
-            stmt.setString(3, user.getRole());
-            stmt.setString(4, user.getFirstName());
-            stmt.setString(5, user.getLastName());
-            stmt.setInt(6, user.getUserId());
+        try (PreparedStatement checkStmt = connection.prepareStatement(checkQuery)) {
+            checkStmt.setString(1, user.getUsername());
+            checkStmt.setInt(2, user.getUserId());
 
-            return stmt.executeUpdate() > 0;
+            try (ResultSet rs = checkStmt.executeQuery()) {
+                if (rs.next() && rs.getInt(1) > 0) {
+                    // Username is already taken by another user
+                    return false;
+                }
+            }
+
+            // If username is unique or belongs to the same user, proceed with update
+            String updateQuery = "UPDATE users SET username = ?, password = ?, role = ?, first_name = ?, last_name = ? WHERE user_id = ?";
+
+            try (PreparedStatement stmt = connection.prepareStatement(updateQuery)) {
+                stmt.setString(1, user.getUsername());
+                stmt.setString(2, user.getPassword());
+                stmt.setString(3, user.getRole());
+                stmt.setString(4, user.getFirstName());
+                stmt.setString(5, user.getLastName());
+                stmt.setInt(6, user.getUserId());
+
+                return stmt.executeUpdate() > 0;
+            }
         } catch (SQLException e) {
             e.printStackTrace();
+            return false;
         }
-        return false;
     }
 
     /**

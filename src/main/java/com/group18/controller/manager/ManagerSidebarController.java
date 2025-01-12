@@ -217,6 +217,11 @@ public class ManagerSidebarController {
     }
 
     /**
+     * Gets the current user from the ManagerSidebarController*/
+    public User getCurrentUser() {
+        return currentUser;
+    }
+    /**
      * Sets the main controller for this sidebar controller.
      *
      * @param controller the main controller to be assigned*/
@@ -245,6 +250,9 @@ public class ManagerSidebarController {
 
             // Get the controller and set the current user
             ManagerStaffController controller = loader.getController();
+
+            controller.setSidebarController(this);
+
             controller.setCurrentUser(currentUser);
 
             // Switch the content

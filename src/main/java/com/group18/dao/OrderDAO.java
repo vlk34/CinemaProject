@@ -296,11 +296,17 @@ public class OrderDAO {
                 return false;
             }
 
-            // Calculate refund amounts for products and tickets
+            // Calculate refund amounts for products and tickets with tax
             BigDecimal refundAmount = BigDecimal.ZERO;
 
             if (cancelProducts) {
-                String productRefundQuery = "SELECT COALESCE(SUM(item_price * quantity), 0) FROM order_items WHERE order_id = ? AND item_type = 'product'";
+                String productRefundQuery = """
+                SELECT COALESCE(SUM(
+                    (item_price * quantity) * (1 + 0.10)  -- 10% tax for products
+                ), 0) 
+                FROM order_items 
+                WHERE order_id = ? AND item_type = 'product'
+            """;
                 try (PreparedStatement stmt = connection.prepareStatement(productRefundQuery)) {
                     stmt.setInt(1, orderId);
                     try (ResultSet rs = stmt.executeQuery()) {
@@ -312,7 +318,13 @@ public class OrderDAO {
             }
 
             if (cancelTickets) {
-                String ticketRefundQuery = "SELECT COALESCE(SUM(item_price * quantity), 0) FROM order_items WHERE order_id = ? AND item_type = 'ticket'";
+                String ticketRefundQuery = """
+                SELECT COALESCE(SUM(
+                    (item_price * quantity) * (1 + 0.20)  -- 20% tax for tickets
+                ), 0) 
+                FROM order_items 
+                WHERE order_id = ? AND item_type = 'ticket'
+            """;
                 try (PreparedStatement stmt = connection.prepareStatement(ticketRefundQuery)) {
                     stmt.setInt(1, orderId);
                     try (ResultSet rs = stmt.executeQuery()) {
@@ -329,7 +341,7 @@ public class OrderDAO {
             try (PreparedStatement stmt = connection.prepareStatement(updateQuery)) {
                 stmt.setString(1, newStatus);
 
-                // Add the calculated refund amount to refunded_amount
+                // Add the calculated refund amount (including tax) to refunded_amount
                 stmt.setBigDecimal(2, refundAmount);
                 stmt.setInt(3, orderId);
 

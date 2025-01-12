@@ -6,11 +6,16 @@ import com.group18.dao.UserDAO;
 import com.group18.model.User;
 import com.group18.util.SceneSwitcher;
 import com.group18.controller.manager.ManagerSidebarController;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.ScaleTransition;
+import javafx.animation.Timeline;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.io.IOException;
 
@@ -66,6 +71,8 @@ public class LoginController {
      */
     @FXML
     private PasswordField passwordField;
+    @FXML
+    private Button loginButton;
 
     /**
      * Initializes the LoginController by setting up the necessary configurations
@@ -95,6 +102,8 @@ public class LoginController {
         passwordField.textProperty().addListener((observable, oldValue, newValue) -> {
             wrongLoginLabel.setVisible(false);
         });
+
+        addHoverAnimation(loginButton);
     }
 
     /**
@@ -176,5 +185,55 @@ public class LoginController {
 
         // Use UserDAO to authenticate and return a User object
         return new UserDAO().authenticateUser(username, password);
+    }
+
+    /**
+     * Adds a smooth hover animation to the login button.
+     *
+     * @param button The button to add hover animation to
+     */
+    public static void addHoverAnimation(Button button) {
+        // Store the original style to preserve it
+        String originalStyle = button.getStyle();
+
+        // Create click animation
+        Timeline clickAnimation = new Timeline(
+                new KeyFrame(Duration.millis(0),
+                        new KeyValue(button.scaleXProperty(), 1.0),
+                        new KeyValue(button.scaleYProperty(), 1.0)
+                ),
+                new KeyFrame(Duration.millis(100),
+                        new KeyValue(button.scaleXProperty(), 0.98),
+                        new KeyValue(button.scaleYProperty(), 0.98)
+                ),
+                new KeyFrame(Duration.millis(200),
+                        new KeyValue(button.scaleXProperty(), 1.0),
+                        new KeyValue(button.scaleYProperty(), 1.0)
+                )
+        );
+        clickAnimation.setCycleCount(1);
+
+        // Hover effects
+        button.setOnMouseEntered(event -> {
+            // Slightly lighten background
+            button.setStyle(originalStyle + "; -fx-background-color: derive(-fx-base, 5%);");
+        });
+
+        button.setOnMouseExited(event -> {
+            // Restore original style
+            button.setStyle(originalStyle);
+        });
+
+        // Press effects
+        button.setOnMousePressed(event -> {
+            // Slightly darken and play click animation
+            button.setStyle(originalStyle + "; -fx-background-color: derive(-fx-base, -5%);");
+            clickAnimation.playFromStart();
+        });
+
+        button.setOnMouseReleased(event -> {
+            // Restore original style
+            button.setStyle(originalStyle);
+        });
     }
 }

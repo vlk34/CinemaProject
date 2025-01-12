@@ -868,12 +868,21 @@ public class AdminCancellationsController {
         CheckBox ticketsCheckbox = new CheckBox("Cancel Tickets (" + ticketCount + " " + (ticketCount == 1 ? "ticket" : "tickets") + ")");
         ticketsCheckbox.setStyle("-fx-font-size: 13px;");
 
-        BigDecimal ticketPrice = items.stream()
+        BigDecimal ticketSubtotal = items.stream()
                 .filter(item -> "ticket".equals(item.getItemType()))
                 .map(item -> item.getItemPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        Label ticketPriceLabel = new Label(String.format("Ticket Refund: ₺%.2f", ticketPrice));
+        // Calculate ticket refund with 20% tax
+        BigDecimal ticketTaxRate = new BigDecimal("0.20");
+        BigDecimal ticketTotalWithTax = ticketSubtotal.multiply(BigDecimal.ONE.add(ticketTaxRate));
+
+        Label ticketPriceLabel = new Label(String.format(
+                "Ticket Subtotal: ₺%.2f%nTicket Tax (20%%): ₺%.2f%nTicket Refund Total: ₺%.2f",
+                ticketSubtotal,
+                ticketSubtotal.multiply(ticketTaxRate),
+                ticketTotalWithTax
+        ));
         ticketPriceLabel.setStyle("-fx-text-fill: #2ECC71; -fx-font-weight: bold;");
 
         ticketSection.getChildren().addAll(ticketsCheckbox, ticketPriceLabel);
@@ -882,12 +891,21 @@ public class AdminCancellationsController {
         CheckBox productsCheckbox = new CheckBox("Cancel Products (" + totalProductQuantity + " " + (totalProductQuantity == 1 ? "item" : "items") + ")");
         productsCheckbox.setStyle("-fx-font-size: 13px;");
 
-        BigDecimal productPrice = items.stream()
+        BigDecimal productSubtotal = items.stream()
                 .filter(item -> "product".equals(item.getItemType()))
                 .map(item -> item.getItemPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        Label productPriceLabel = new Label(String.format("Product Refund: ₺%.2f", productPrice));
+        // Calculate product refund with 10% tax
+        BigDecimal productTaxRate = new BigDecimal("0.10");
+        BigDecimal productTotalWithTax = productSubtotal.multiply(BigDecimal.ONE.add(productTaxRate));
+
+        Label productPriceLabel = new Label(String.format(
+                "Product Subtotal: ₺%.2f%nProduct Tax (10%%): ₺%.2f%nProduct Refund Total: ₺%.2f",
+                productSubtotal,
+                productSubtotal.multiply(productTaxRate),
+                productTotalWithTax
+        ));
         productPriceLabel.setStyle("-fx-text-fill: #2ECC71; -fx-font-weight: bold;");
 
         productSection.getChildren().addAll(productsCheckbox, productPriceLabel);

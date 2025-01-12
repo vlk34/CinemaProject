@@ -48,6 +48,11 @@ public class MovieDAO {
      * @return True if the movie was successfully added; false otherwise.
      */
     public boolean addMovie(Movie movie) {
+
+        if (existsByTitleIgnoreCase(movie.getTitle())) {
+            return false;
+        }
+
         String query = "INSERT INTO movies (title, genre, summary, poster_data, duration) VALUES (?, ?, ?, ?, ?)";
 
         try (PreparedStatement stmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
@@ -90,24 +95,48 @@ public class MovieDAO {
      * @return True if the movie was successfully updated; false otherwise.
      */
     public boolean updateMovie(Movie movie) {
+        // First check if movie has any schedules
+        ScheduleDAO scheduleDAO = new ScheduleDAO();
+        if (scheduleDAO.hasSchedules(movie.getMovieId())) {
+            return false;
+        }
+
         String query = "UPDATE movies SET title = ?, genre = ?, summary = ?, poster_data = ?, duration = ? WHERE movie_id = ?";
 
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, movie.getTitle());
             stmt.setString(2, movie.getGenresAsString());
             stmt.setString(3, movie.getSummary());
-
-            // Handle poster image BLOB
-            if (movie.getPosterData() != null) {
-                stmt.setBytes(4, movie.getPosterData());
-            } else {
-                stmt.setNull(4, Types.BLOB);
-            }
-
+            stmt.setBytes(4, movie.getPosterData());
             stmt.setInt(5, movie.getDuration());
             stmt.setInt(6, movie.getMovieId());
 
-            return stmt.executeUpdate() > 0;
+            int affectedRows = stmt.executeUpdate();
+
+            if (affectedRows > 0) {
+                return true;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Checks whether a movie exists in the database by comparing its non-case sensitive title.
+     *
+     * @return true if the same movie exists in the database, false otherwise.
+     */
+    public boolean existsByTitleIgnoreCase(String title) {
+        String query = "SELECT COUNT(*) FROM movies WHERE LOWER(title) = LOWER(?)";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, title);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }

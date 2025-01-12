@@ -18,6 +18,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.util.Duration;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
@@ -229,6 +230,18 @@ public class ManagerStaffController implements Initializable {
      */
     private User currentUser; // To track the logged-in user
 
+    private ManagerSidebarController sidebarController;
+
+    public void setSidebarController(ManagerSidebarController sidebarController) {
+        System.out.println("Setting sidebar controller from: " +
+                Arrays.stream(Thread.currentThread().getStackTrace())
+                        .map(StackTraceElement::getMethodName)
+                        .limit(5)
+                        .collect(Collectors.joining(" <- "))
+        );
+        this.sidebarController = sidebarController;
+        System.out.println("Sidebar controller set: " + sidebarController);
+    }
     /**
      * Initializes the ManagerStaffController by setting up table columns, filters, search functionality,
      * and other UI components. It also loads the initial staff data.
@@ -377,13 +390,8 @@ public class ManagerStaffController implements Initializable {
      * counts and other staff-related metrics in the UI.
      */
     private void loadStaffData() {
-        // Get all users except the current user
-        masterData = FXCollections.observableArrayList(
-                userDAO.getAllUsers().stream()
-                        .filter(user -> currentUser == null || user.getUserId() != currentUser.getUserId())
-                        .collect(Collectors.toList())
-        );
-
+        // Get all users (including current user)
+        masterData = FXCollections.observableArrayList(userDAO.getAllUsers());
         staffTable.setItems(masterData);
         updateStaffStats();
     }
@@ -446,6 +454,13 @@ public class ManagerStaffController implements Initializable {
      * @param user the User object representing the staff member to be edited
      */
     private void showEditStaffDialog(User user) {
+        System.out.println("showEditStaffDialog called from: " +
+                Arrays.stream(Thread.currentThread().getStackTrace())
+                        .map(StackTraceElement::getMethodName)
+                        .limit(5)
+                        .collect(Collectors.joining(" <- "))
+        );
+
         EditStaffDialog dialog = new EditStaffDialog(userDAO, user);
         dialog.showAndWait().ifPresent(updatedUser -> {
             int index = masterData.indexOf(user);
@@ -453,6 +468,29 @@ public class ManagerStaffController implements Initializable {
                 masterData.set(index, updatedUser);
                 updateStaffStats();
                 staffTable.refresh();
+
+                // Check if the updated user is the current user
+                if (currentUser != null && updatedUser.getUserId() == currentUser.getUserId()) {
+                    // Update the current user reference
+                    currentUser = updatedUser;
+
+                    System.out.println("Sidebar Controller (before check): " + sidebarController);
+                    System.out.println("Current User ID: " + currentUser.getUserId());
+                    System.out.println("Updated User ID: " + updatedUser.getUserId());
+
+                    if (sidebarController != null) {
+                        System.out.println("Updating sidebar user info");
+                        sidebarController.setCurrentUser(updatedUser);
+                    } else {
+                        System.out.println("WARNING: Sidebar controller is NULL!");
+                        System.out.println("Current stack trace: " +
+                                Arrays.stream(Thread.currentThread().getStackTrace())
+                                        .map(StackTraceElement::getMethodName)
+                                        .limit(10)
+                                        .collect(Collectors.joining(" <- "))
+                        );
+                    }
+                }
             }
         });
     }
@@ -467,6 +505,8 @@ public class ManagerStaffController implements Initializable {
      *             and personal details such as first and last names.
      */
     private void handleDeleteStaff(User user) {
+        System.out.println(currentUser.getUserId());
+        System.out.println(user.getUserId());
         if (currentUser != null && user.getUserId() == currentUser.getUserId()) {
             showAlert("Error", "You cannot delete your own account.");
             return;

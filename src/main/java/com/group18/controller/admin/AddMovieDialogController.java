@@ -221,6 +221,14 @@ public class AddMovieDialogController {
     private void handleAddMovie() {
         try {
             String title = titleField.getText().trim();
+
+            // Check for existing movie with same title
+            if (movieDAO.existsByTitleIgnoreCase(title)) {
+                showAlert(Alert.AlertType.ERROR, "Error",
+                        "A movie with this title already exists (case insensitive)");
+                return;
+            }
+
             String summary = summaryField.getText().trim();
             int duration = 120;
 
